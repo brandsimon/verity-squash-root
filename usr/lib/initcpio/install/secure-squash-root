@@ -17,6 +17,9 @@ build() {
 	rootfs="$(findmnt -uno fstype -T /mnt/root)"
 	add_module "${rootfs}"
 	add_binary "fsck.${rootfs}"
+	# autodetect with overlayfs does not work, so
+	# set the rootfstype manually
+	rootfstype="${rootfs}"
 
 	if type add_systemd_unit &> /dev/null; then
 		# add_systemd_unit otpboot.service
