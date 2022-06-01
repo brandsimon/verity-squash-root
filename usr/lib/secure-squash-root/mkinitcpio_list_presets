@@ -1,0 +1,18 @@
+#!/bin/bash
+die() {
+	# shellcheck disable=SC2059
+	printf "${@}"
+	exit 1
+}
+preset_name="${1}"
+_d_presets=/etc/mkinitcpio.d
+printf -v preset '%s/%s.preset' "${_d_presets}" "${preset_name}"
+# Files can be executed, since they will be executed by
+# mkinitcpio anyway
+# shellcheck disable=SC1090
+. "$preset" || die "Failed to load preset: %s" "$preset"
+(( ! ${#PRESETS[@]} )) && die \
+	"Preset file \`%s' is empty or does not contain any presets." "$preset"
+for p in "${PRESETS[@]}"; do
+	printf "%s\n" "${p}"
+done
