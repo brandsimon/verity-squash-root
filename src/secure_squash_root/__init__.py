@@ -10,7 +10,7 @@ DEFAULT_CONFIG = {
     "CMDLINE": "root=UUID=a6a7b817-0979-46f2-a6f7-dfa191f9fea4 rw",
     "EFI_STUB": "/usr/lib/systemd/boot/efi/linuxx64.efi.stub",
     "SECURE_BOOT_KEYS": "/root/securebootkeys",
-    "EXCLUDE_DIRS": "/home,/opt,/srv,/var/!(lib)/*",
+    "EXCLUDE_DIRS": "/home,/opt,/srv,/var/!(lib)",
     "EFI_PARTITION": "/boot/efi",
     "ROOT_MOUNT": "/mnt/root",
 }
