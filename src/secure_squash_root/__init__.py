@@ -10,8 +10,8 @@ DEFAULT_CONFIG = {
     "CMDLINE": "root=UUID=a6a7b817-0979-46f2-a6f7-dfa191f9fea4 rw",
     "EFI_STUB": "/usr/lib/systemd/boot/efi/linuxx64.efi.stub",
     "SECURE_BOOT_KEYS": "/root/securebootkeys",
-    "EXCLUDE_DIRS": "boot/efi,home,opt,srv,var/!(lib)/*",
-    "EFI_PATH": "/boot/efi/EFI/Arch",
+    "EXCLUDE_DIRS": "/home,/opt,/srv,/var/!(lib)/*",
+    "EFI_PARTITION": "/boot/efi",
     "ROOT_MOUNT": "/mnt/root",
 }
 TMPDIR = "/tmp/secure_squash_root"
@@ -43,15 +43,19 @@ def str_to_exclude_dirs(s: str) -> [str]:
     return [i.strip() for i in s.split(",")]
 
 
-def build_mksquashfs_cmd(exclude_dirs: [str], image: str) -> str:
+def build_mksquashfs_cmd(exclude_dirs: [str], image: str,
+                         root_mount: str, efi_partition) -> str:
     include_dirs = ["/"]
-    include_empty_dirs = [
-        "dev", "mnt/root", "proc", "run", "sys", "tmp"] + exclude_dirs
-    options = ["-reproducible", "-xattrs", "-wildcards",
-               "-one-file-system", "-noappend"]
+    include_empty_dirs = ["dev", "proc", "run", "sys", "tmp", root_mount,
+                          efi_partition] + exclude_dirs
+    options = ["-reproducible", "-xattrs", "-wildcards", "-noappend",
+               "-p", "{} d 0700 0 0".format(root_mount),
+               "-p", "{} d 0700 0 0".format(efi_partition)]
     cmd = ["mksquashfs"] + include_dirs + [image] + options + ["-e"]
     for d in include_empty_dirs:
-        cmd += ["{}/*".format(d)]
+        sd = d.strip("/")
+        cmd += ["{}/*".format(sd)]
+        cmd += ["{}/.*".format(sd)]
     return cmd
 
 
@@ -146,6 +150,9 @@ class DistributionConfig:
     def file_name(self, kernel: str, preset: str) -> str:
         raise NotImplementedError("Base class")
 
+    def efi_dirname(self) -> str:
+        raise NotImplementedError("Base class")
+
     def vmlinuz(self, kernel: str) -> str:
         raise NotImplementedError("Base class")
 
@@ -188,6 +195,9 @@ class ArchLinuxConfig(DistributionConfig):
             return kernel_name
         else:
             return "{}_{}".format(kernel_name, preset_name)
+
+    def efi_dirname(self) -> str:
+        return "Arch"
 
     def _kernel_to_name(self, kernel: str) -> str:
         pkgbase_file = os.path.join(self._modules_dir, kernel, "pkgbase")
@@ -261,10 +271,14 @@ def create_image_and_sign_kernel(config: Config,
                                  distribution: DistributionConfig):
     kernel_cmdline = read_text_file("/proc/cmdline")
     use_slot = unused_slot(kernel_cmdline)
-    image = "/mnt/root/image_{}.squashfs".format(use_slot)
+    root_mount = config.get("ROOT_MOUNT")
+    image = os.path.join(root_mount, "image_{}.squashfs".format(use_slot))
+    efi_partition = config.get("EFI_PARTITION")
     exclude_dirs = str_to_exclude_dirs(config.get("EXCLUDE_DIRS"))
-    run_prog(build_mksquashfs_cmd(exclude_dirs, image))
+    run_prog(build_mksquashfs_cmd(exclude_dirs, image,
+                                  root_mount, efi_partition))
     root_hash = veritysetup_image(image)
+    efi_dirname = distribution.efi_dirname()
     print(root_hash)
 
     for kernel in distribution.list_kernel():
@@ -274,7 +288,8 @@ def create_image_and_sign_kernel(config: Config,
             base_name = distribution.file_name(kernel, preset)
             initramfs = distribution.build_initramfs_with_microcode(
                 kernel, preset)
-            out_dir = config.get("EFI_PATH")
+
+            out_dir = os.path.join(efi_partition, "EFI", efi_dirname)
             out = os.path.join(out_dir, "{}.efi".format(base_name))
             build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
                                   root_hash, out)
