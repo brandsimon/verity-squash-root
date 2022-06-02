@@ -3,6 +3,7 @@ import os
 import shutil
 from collections.abc import Mapping
 import secure_squash_root.efi as efi
+import secure_squash_root.parsing as parsing
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE
 from secure_squash_root.exec import exec_binary
 
@@ -53,23 +54,11 @@ def build_veritysetup_cmd(image: str) -> str:
     return ["veritysetup", "format", image, "{}.verity".format(image)]
 
 
-def info_to_dict(output: str, sep: str = ":") -> Mapping[str, str]:
-    result = {}
-    for line in output.split("\n"):
-        line = line.strip()
-        if line == "" or sep not in line:
-            continue
-        s = line.split(sep, 2)
-        key = s[0].strip()
-        result[key] = s[1].strip()
-    return result
-
-
 def veritysetup_image(image: str) -> str:
     cmd = build_veritysetup_cmd(image)
     result = exec_binary(cmd)
     stdout = result[0].decode()
-    info = info_to_dict(stdout)
+    info = parsing.info_to_dict(stdout)
     return info["Root hash"]
 
 
