@@ -6,7 +6,8 @@ import secure_squash_root.efi as efi
 import secure_squash_root.parsing as parsing
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE
 from secure_squash_root.exec import exec_binary
-from secure_squash_root.file_op import read_text_from, write_str_to
+from secure_squash_root.file_op import \
+    read_text_from, write_str_to, merge_files
 
 
 DEFAULT_CONFIG = {
@@ -115,13 +116,6 @@ class DistributionConfig:
 
     def list_kernel_presets(self, kernel: str) -> [str]:
         raise NotImplementedError("Base class")
-
-
-def merge_files(src: [str], dest: str):
-    with open(dest, "wb") as dest_fd:
-        for s in src:
-            with open(s, "rb") as src_fd:
-                shutil.copyfileobj(src_fd, dest_fd)
 
 
 def merge_initram_images(main_image: str, microcode_paths: [str], out: str):
