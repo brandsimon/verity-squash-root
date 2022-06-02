@@ -25,6 +25,8 @@ else
 	OLROOT="${ROOT}"
 fi
 
+# workdir needs to be an empty directory
+rm -rf "${OLROOT}/workdir"
 mkdir -p "${OLROOT}/overlay" "${OLROOT}/workdir"
 IMAGE="${ROOT}/image_${SLOT}.squashfs"
 veritysetup open "${IMAGE}" rootsq "${IMAGE}.verity" "${ROOTHASH}"
