@@ -1,9 +1,10 @@
 #!/usr/bin/python3
-import subprocess
 import os
 import shutil
 from collections.abc import Mapping
-from typing import Tuple
+import secure_squash_root.efi as efi
+from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE
+from secure_squash_root.exec import run_prog
 
 
 DEFAULT_CONFIG = {
@@ -14,8 +15,6 @@ DEFAULT_CONFIG = {
     "EFI_PARTITION": "/boot/efi",
     "ROOT_MOUNT": "/mnt/root",
 }
-TMPDIR = "/tmp/secure_squash_root"
-KERNEL_PARAM_BASE = "secure_squash_root"
 
 
 class Config:
@@ -28,15 +27,6 @@ class Config:
         if val is None:
             val = DEFAULT_CONFIG.get(key)
         return val
-
-
-def run_prog(cmd: [str], expect_returncode: int = 0) -> Tuple[bytes, bytes]:
-    proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE)
-    result = proc.communicate()
-    if proc.returncode != expect_returncode:
-        raise ChildProcessError([cmd, result])
-    return result
 
 
 def str_to_exclude_dirs(s: str) -> [str]:
@@ -139,7 +129,11 @@ def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
     key_dir = config.get("SECURE_BOOT_KEYS")
     sign_efi(key_dir, tmp_efi_file, tmp_efi_file)
     if os.path.exists(out):
-        os.rename(out, "{}.bak".format(out))
+        if efi.file_matches_slot(out, slot):
+            # if backup slot is booted, dont override it
+            os.unlink(out)
+        else:
+            os.rename(out, "{}.bak".format(out))
     shutil.move(tmp_efi_file, out)
 
 
