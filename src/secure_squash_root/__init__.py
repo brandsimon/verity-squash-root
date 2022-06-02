@@ -98,14 +98,6 @@ def read_text_file(path: str) -> str:
         return f.read()
 
 
-def sign_efi(key_dir: str, in_file: str, out_file: str) -> None:
-    exec_binary([
-        "sbsign",
-        "--key", os.path.join(key_dir, "db.key"),
-        "--cert",  os.path.join(key_dir, "db.crt"),
-        "--output", out_file, in_file])
-
-
 def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
                           slot: str, root_hash: str,
                           out: str, add_cmdline: str = "") -> None:
@@ -127,7 +119,7 @@ def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
         tmp_efi_file)
     exec_binary(objcopy_cmd)
     key_dir = config.get("SECURE_BOOT_KEYS")
-    sign_efi(key_dir, tmp_efi_file, tmp_efi_file)
+    efi.sign(key_dir, tmp_efi_file, tmp_efi_file)
     if os.path.exists(out):
         if efi.file_matches_slot(out, slot):
             # if backup slot is booted, dont override it
