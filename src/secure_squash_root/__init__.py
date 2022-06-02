@@ -306,9 +306,5 @@ def main():
         create_image_and_sign_kernel(config, distribution)
 
 
-def test():
-    run_prog(["dash", "-c", "exit 3"], 3)
-
-
 if __name__ == "__main__":
     main()
