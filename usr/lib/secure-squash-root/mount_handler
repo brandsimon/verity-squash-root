@@ -25,7 +25,7 @@ else
 	OLROOT="${ROOT}"
 fi
 
-# workdir needs to be an empty directory
+# workdir needs to be an empty directory, otherwise there can be file corruption
 rm -rf "${OLROOT}/workdir"
 mkdir -p "${OLROOT}/overlay" "${OLROOT}/workdir"
 IMAGE="${ROOT}/image_${SLOT}.squashfs"
