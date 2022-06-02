@@ -6,6 +6,7 @@ import secure_squash_root.efi as efi
 import secure_squash_root.parsing as parsing
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE
 from secure_squash_root.exec import exec_binary
+from secure_squash_root.file_op import read_text_from, write_str_to
 
 
 DEFAULT_CONFIG = {
@@ -62,16 +63,6 @@ def veritysetup_image(image: str) -> str:
     return info["Root hash"]
 
 
-def write_str_to_file(path: str, content: str) -> None:
-    with open(path, "w") as f:
-        f.write(content)
-
-
-def read_text_file(path: str) -> str:
-    with open(path, "r") as f:
-        return f.read()
-
-
 def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
                           slot: str, root_hash: str,
                           out: str, add_cmdline: str = "") -> None:
@@ -83,7 +74,7 @@ def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
         p=KERNEL_PARAM_BASE)
     cmdline_file = os.path.join(TMPDIR, "cmdline")
     # Store files to sign on trusted tmpfs
-    write_str_to_file(cmdline_file, cmdline)
+    write_str_to(cmdline_file, cmdline)
     tmp_efi_file = os.path.join(TMPDIR, "tmp.efi")
     efi.create_efi_executable(
         config.get("EFI_STUB"),
@@ -160,7 +151,7 @@ class ArchLinuxConfig(DistributionConfig):
 
     def _kernel_to_name(self, kernel: str) -> str:
         pkgbase_file = os.path.join(self._modules_dir, kernel, "pkgbase")
-        return read_text_file(pkgbase_file).strip()
+        return read_text_from(pkgbase_file).strip()
 
     def vmlinuz(self, kernel: str) -> str:
         return os.path.join(self._modules_dir, kernel, "vmlinuz")
@@ -168,7 +159,7 @@ class ArchLinuxConfig(DistributionConfig):
     def build_initramfs_with_microcode(self, kernel: str,
                                        preset: str) -> str:
         name = self._kernel_to_name(kernel)
-        config = read_text_file(os.path.join(
+        config = read_text_from(os.path.join(
             "/etc/mkinitcpio.d", "{}.preset".format(name)))
         base_path = os.path.join(TMPDIR, "{}-{}".format(
             name, preset))
@@ -178,7 +169,7 @@ class ArchLinuxConfig(DistributionConfig):
             config,
             initcpio_image,
             p=preset)
-        write_str_to_file(preset_path, write_config)
+        write_str_to(preset_path, write_config)
         exec_binary(["mkinitcpio", "-p", preset_path, "-A", KERNEL_PARAM_BASE])
 
         merged_initramfs = "{}.image".format(base_path)
@@ -228,7 +219,7 @@ def unused_slot(kernel_cmdline: str) -> str:
 
 def create_image_and_sign_kernel(config: Config,
                                  distribution: DistributionConfig):
-    kernel_cmdline = read_text_file("/proc/cmdline")
+    kernel_cmdline = read_text_from("/proc/cmdline")
     use_slot = unused_slot(kernel_cmdline)
     root_mount = config.get("ROOT_MOUNT")
     image = os.path.join(root_mount, "image_{}.squashfs".format(use_slot))
