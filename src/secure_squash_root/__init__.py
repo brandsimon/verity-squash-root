@@ -73,21 +73,6 @@ def veritysetup_image(image: str) -> str:
     return info["Root hash"]
 
 
-def build_objcopy_cmd(stub: str, cmdline_file: str, linux: str, initrd: str,
-                      dest: str) -> [str]:
-    return [
-        "objcopy",
-        "--add-section", ".osrel=/etc/os-release",
-        "--change-section-vma", ".osrel=0x20000",
-        "--add-section", ".cmdline={}".format(cmdline_file),
-        "--change-section-vma", ".cmdline=0x30000",
-        "--add-section", ".linux={}".format(linux),
-        "--change-section-vma", ".linux=0x2000000",
-        "--add-section", ".initrd={}".format(initrd),
-        "--change-section-vma", ".initrd=0x3000000",
-        stub, dest]
-
-
 def write_str_to_file(path: str, content: str) -> None:
     with open(path, "w") as f:
         f.write(content)
@@ -111,13 +96,12 @@ def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
     # Store files to sign on trusted tmpfs
     write_str_to_file(cmdline_file, cmdline)
     tmp_efi_file = os.path.join(TMPDIR, "tmp.efi")
-    objcopy_cmd = build_objcopy_cmd(
+    efi.create_efi_executable(
         config.get("EFI_STUB"),
         cmdline_file,
         vmlinuz,
         initramfs,
         tmp_efi_file)
-    exec_binary(objcopy_cmd)
     key_dir = config.get("SECURE_BOOT_KEYS")
     efi.sign(key_dir, tmp_efi_file, tmp_efi_file)
     if os.path.exists(out):
