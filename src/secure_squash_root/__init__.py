@@ -4,7 +4,7 @@ import shutil
 from collections.abc import Mapping
 import secure_squash_root.efi as efi
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE
-from secure_squash_root.exec import run_prog
+from secure_squash_root.exec import exec_binary
 
 
 DEFAULT_CONFIG = {
@@ -67,7 +67,7 @@ def info_to_dict(output: str, sep: str = ":") -> Mapping[str, str]:
 
 def veritysetup_image(image: str) -> str:
     cmd = build_veritysetup_cmd(image)
-    result = run_prog(cmd)
+    result = exec_binary(cmd)
     stdout = result[0].decode()
     info = info_to_dict(stdout)
     return info["Root hash"]
@@ -99,7 +99,7 @@ def read_text_file(path: str) -> str:
 
 
 def sign_efi(key_dir: str, in_file: str, out_file: str) -> None:
-    run_prog([
+    exec_binary([
         "sbsign",
         "--key", os.path.join(key_dir, "db.key"),
         "--cert",  os.path.join(key_dir, "db.crt"),
@@ -125,7 +125,7 @@ def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
         vmlinuz,
         initramfs,
         tmp_efi_file)
-    run_prog(objcopy_cmd)
+    exec_binary(objcopy_cmd)
     key_dir = config.get("SECURE_BOOT_KEYS")
     sign_efi(key_dir, tmp_efi_file, tmp_efi_file)
     if os.path.exists(out):
@@ -214,7 +214,7 @@ class ArchLinuxConfig(DistributionConfig):
             initcpio_image,
             p=preset)
         write_str_to_file(preset_path, write_config)
-        run_prog(["mkinitcpio", "-p", preset_path, "-A", KERNEL_PARAM_BASE])
+        exec_binary(["mkinitcpio", "-p", preset_path, "-A", KERNEL_PARAM_BASE])
 
         merged_initramfs = "{}.image".format(base_path)
         merge_initram_images(initcpio_image, self._microcode_paths,
@@ -227,7 +227,7 @@ class ArchLinuxConfig(DistributionConfig):
     def list_kernel_presets(self, kernel: str) -> [str]:
         name = self._kernel_to_name(kernel)
         run = "/usr/lib/secure-squash-root/mkinitcpio_list_presets"
-        presets_str = run_prog([run, name])[0].decode()
+        presets_str = exec_binary([run, name])[0].decode()
         return presets_str.strip().split("\n")
 
 
@@ -238,10 +238,10 @@ class RunProgAndCleanup:
         self.__cleanup = cleanup
 
     def __enter__(self):
-        run_prog(self.__setup)
+        exec_binary(self.__setup)
 
     def __exit__(self, exc_type, exc_value, exc_tb):
-        run_prog(self.__cleanup)
+        exec_binary(self.__cleanup)
 
 
 def current_slot(kernel_cmdline: str) -> str:
@@ -269,8 +269,8 @@ def create_image_and_sign_kernel(config: Config,
     image = os.path.join(root_mount, "image_{}.squashfs".format(use_slot))
     efi_partition = config.get("EFI_PARTITION")
     exclude_dirs = str_to_exclude_dirs(config.get("EXCLUDE_DIRS"))
-    run_prog(build_mksquashfs_cmd(exclude_dirs, image,
-                                  root_mount, efi_partition))
+    exec_binary(build_mksquashfs_cmd(exclude_dirs, image,
+                                     root_mount, efi_partition))
     root_hash = veritysetup_image(image)
     efi_dirname = distribution.efi_dirname()
     print(root_hash)
@@ -301,7 +301,7 @@ def main():
     tmp_mount = ["mount", "-t", "tmpfs", "-o",
                  "mode=0700,uid=0,gid=0", "tmpfs", TMPDIR]
     tmp_umount = ["umount", "-f", "-R", TMPDIR]
-    run_prog(["mkdir", "-p", TMPDIR])
+    exec_binary(["mkdir", "-p", TMPDIR])
     with RunProgAndCleanup(tmp_mount, tmp_umount):
         create_image_and_sign_kernel(config, distribution)
 
