@@ -1,10 +1,11 @@
 #!/usr/bin/python3
 import os
 import shutil
+from configparser import ConfigParser
 import secure_squash_root.cmdline as cmdline
 import secure_squash_root.efi as efi
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
-    str_to_exclude_dirs
+    str_to_exclude_dirs, read_config
 from secure_squash_root.exec import exec_binary
 from secure_squash_root.file_op import read_text_from, write_str_to
 from secure_squash_root.image import mksquashfs, veritysetup_image
@@ -12,33 +13,11 @@ from secure_squash_root.distributions.base import DistributionConfig
 from secure_squash_root.distributions.arch import ArchLinuxConfig
 
 
-DEFAULT_CONFIG = {
-    "CMDLINE": "root=UUID=a6a7b817-0979-46f2-a6f7-dfa191f9fea4 rw",
-    "EFI_STUB": "/usr/lib/systemd/boot/efi/linuxx64.efi.stub",
-    "SECURE_BOOT_KEYS": "/root/securebootkeys",
-    "EXCLUDE_DIRS": "/home,/opt,/srv,/var/!(lib)",
-    "EFI_PARTITION": "/boot/efi",
-    "ROOT_MOUNT": "/mnt/root",
-}
-
-
-class Config:
-
-    def __init__(self, config):
-        self.__config = config
-
-    def get(self, key):
-        val = self.__config.get(key)
-        if val is None:
-            val = DEFAULT_CONFIG.get(key)
-        return val
-
-
-def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
+def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
                           slot: str, root_hash: str,
                           out: str, add_cmdline: str = "") -> None:
     cmdline = "{} {} {p}_slot={} {p}_hash={}".format(
-        config.get("CMDLINE"),
+        config["DEFAULT"]["CMDLINE"],
         add_cmdline,
         slot,
         root_hash,
@@ -48,12 +27,12 @@ def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
     write_str_to(cmdline_file, cmdline)
     tmp_efi_file = os.path.join(TMPDIR, "tmp.efi")
     efi.create_efi_executable(
-        config.get("EFI_STUB"),
+        config["DEFAULT"]["EFI_STUB"],
         cmdline_file,
         vmlinuz,
         initramfs,
         tmp_efi_file)
-    key_dir = config.get("SECURE_BOOT_KEYS")
+    key_dir = config["DEFAULT"]["SECURE_BOOT_KEYS"]
     efi.sign(key_dir, tmp_efi_file, tmp_efi_file)
     if os.path.exists(out):
         if efi.file_matches_slot(out, slot):
@@ -82,14 +61,14 @@ class TmpfsMount():
         shutil.rmtree(self._directory)
 
 
-def create_image_and_sign_kernel(config: Config,
+def create_image_and_sign_kernel(config: ConfigParser,
                                  distribution: DistributionConfig):
     kernel_cmdline = read_text_from("/proc/cmdline")
     use_slot = cmdline.unused_slot(kernel_cmdline)
-    root_mount = config.get("ROOT_MOUNT")
+    root_mount = config["DEFAULT"]["ROOT_MOUNT"]
     image = os.path.join(root_mount, "image_{}.squashfs".format(use_slot))
-    efi_partition = config.get("EFI_PARTITION")
-    exclude_dirs = str_to_exclude_dirs(config.get("EXCLUDE_DIRS"))
+    efi_partition = config["DEFAULT"]["EFI_PARTITION"]
+    exclude_dirs = str_to_exclude_dirs(config["DEFAULT"]["EXCLUDE_DIRS"])
     mksquashfs(exclude_dirs, image, root_mount, efi_partition)
     root_hash = veritysetup_image(image)
     efi_dirname = distribution.efi_dirname()
@@ -114,7 +93,7 @@ def create_image_and_sign_kernel(config: Config,
 
 
 def main():
-    config = Config({})
+    config = read_config()
     distribution = ArchLinuxConfig()
     os.umask(0o077)
 
