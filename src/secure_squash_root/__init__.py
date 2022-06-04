@@ -101,7 +101,7 @@ class ArchLinuxConfig(DistributionConfig):
             initcpio_image,
             p=preset)
         write_str_to(preset_path, write_config)
-        exec_binary(["mkinitcpio", "-p", preset_path, "-A", KERNEL_PARAM_BASE])
+        exec_binary(["mkinitcpio", "-p", preset_path])
 
         merged_initramfs = "{}.image".format(base_path)
         merge_initramfs_images(initcpio_image, self._microcode_paths,
