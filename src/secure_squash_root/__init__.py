@@ -4,7 +4,8 @@ import shutil
 from collections.abc import Mapping
 import secure_squash_root.cmdline as cmdline
 import secure_squash_root.efi as efi
-from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE
+from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
+    str_to_exclude_dirs
 from secure_squash_root.exec import exec_binary
 from secure_squash_root.file_op import read_text_from, write_str_to
 from secure_squash_root.image import mksquashfs, veritysetup_image
@@ -32,10 +33,6 @@ class Config:
         if val is None:
             val = DEFAULT_CONFIG.get(key)
         return val
-
-
-def str_to_exclude_dirs(s: str) -> [str]:
-    return [i.strip() for i in s.split(",")]
 
 
 def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
