@@ -6,9 +6,9 @@ import secure_squash_root.cmdline as cmdline
 import secure_squash_root.efi as efi
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE
 from secure_squash_root.exec import exec_binary
-from secure_squash_root.file_op import \
-    read_text_from, write_str_to, merge_files
+from secure_squash_root.file_op import read_text_from, write_str_to
 from secure_squash_root.image import mksquashfs, veritysetup_image
+from secure_squash_root.initramfs import merge_initramfs_images
 
 
 DEFAULT_CONFIG = {
@@ -91,16 +91,6 @@ class DistributionConfig:
         raise NotImplementedError("Base class")
 
 
-def merge_initram_images(main_image: str, microcode_paths: [str], out: str):
-    initramfs_files = []
-    for i in microcode_paths:
-        if os.path.exists(i):
-            merge_files.append(i)
-    # main image needs to be last!
-    initramfs_files.append(main_image)
-    merge_files(initramfs_files, out)
-
-
 class ArchLinuxConfig(DistributionConfig):
     _microcode_paths: [str] = ["/boot/intel-ucode.img", "/boot/amd-ucode.img"]
     _preset_map: Mapping[str, str] = {"default": ""}
@@ -140,8 +130,8 @@ class ArchLinuxConfig(DistributionConfig):
         exec_binary(["mkinitcpio", "-p", preset_path, "-A", KERNEL_PARAM_BASE])
 
         merged_initramfs = "{}.image".format(base_path)
-        merge_initram_images(initcpio_image, self._microcode_paths,
-                             merged_initramfs)
+        merge_initramfs_images(initcpio_image, self._microcode_paths,
+                               merged_initramfs)
         return merged_initramfs
 
     def list_kernel(self) -> [str]:
