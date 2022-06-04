@@ -9,6 +9,7 @@ from secure_squash_root.exec import exec_binary
 from secure_squash_root.file_op import read_text_from, write_str_to
 from secure_squash_root.image import mksquashfs, veritysetup_image
 from secure_squash_root.initramfs import merge_initramfs_images
+from secure_squash_root.distributions.base import DistributionConfig
 
 
 DEFAULT_CONFIG = {
@@ -65,30 +66,6 @@ def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
         else:
             os.rename(out, "{}.bak".format(out))
     shutil.move(tmp_efi_file, out)
-
-
-class DistributionConfig:
-
-    _modules_dir: str = "/usr/lib/modules"
-
-    def file_name(self, kernel: str, preset: str) -> str:
-        raise NotImplementedError("Base class")
-
-    def efi_dirname(self) -> str:
-        raise NotImplementedError("Base class")
-
-    def vmlinuz(self, kernel: str) -> str:
-        raise NotImplementedError("Base class")
-
-    def build_initramfs_with_microcode(self, kernel: str,
-                                       preset: str) -> str:
-        raise NotImplementedError("Base class")
-
-    def list_kernel(self) -> [str]:
-        raise NotImplementedError("Base class")
-
-    def list_kernel_presets(self, kernel: str) -> [str]:
-        raise NotImplementedError("Base class")
 
 
 class ArchLinuxConfig(DistributionConfig):
