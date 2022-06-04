@@ -39,9 +39,9 @@ class ArchLinuxConfigTest(unittest.TestCase):
         # TODO
 
     @mock.patch("secure_squash_root.distributions.arch.os.listdir")
-    def test__list_kernel(self, mock):
+    def test__list_kernels(self, mock):
         arch = ArchLinuxConfig()
-        result = arch.list_kernel()
+        result = arch.list_kernels()
         mock.assert_called_once_with("/usr/lib/modules")
         self.assertEqual(result, mock())
 

@@ -50,7 +50,7 @@ class ArchLinuxConfig(DistributionConfig):
                                merged_initramfs)
         return merged_initramfs
 
-    def list_kernel(self) -> [str]:
+    def list_kernels(self) -> [str]:
         return os.listdir(self._modules_dir)
 
     def list_kernel_presets(self, kernel: str) -> [str]:

@@ -15,7 +15,7 @@ class DistributionConfig:
                                        preset: str) -> str:
         raise NotImplementedError("Base class")
 
-    def list_kernel(self) -> [str]:
+    def list_kernels(self) -> [str]:
         raise NotImplementedError("Base class")
 
     def list_kernel_presets(self, kernel: str) -> [str]:

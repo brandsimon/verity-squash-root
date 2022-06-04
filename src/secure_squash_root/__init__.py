@@ -90,7 +90,7 @@ def create_image_and_sign_kernel(config: Config,
     efi_dirname = distribution.efi_dirname()
     print(root_hash)
 
-    for kernel in distribution.list_kernel():
+    for kernel in distribution.list_kernels():
         vmlinuz = distribution.vmlinuz(kernel)
         for preset in distribution.list_kernel_presets(kernel):
             print(kernel, preset)
