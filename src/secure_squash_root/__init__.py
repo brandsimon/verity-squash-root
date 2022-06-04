@@ -64,17 +64,22 @@ def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
     shutil.move(tmp_efi_file, out)
 
 
-class RunProgAndCleanup:
+class TmpfsMount():
+    _directory: str
 
-    def __init__(self, setup: [str], cleanup: [str]):
-        self.__setup = setup
-        self.__cleanup = cleanup
+    def __init__(self, directory: str):
+        self._directory = directory
 
     def __enter__(self):
-        exec_binary(self.__setup)
+        tmp_mount = ["mount", "-t", "tmpfs", "-o",
+                     "mode=0700,uid=0,gid=0", "tmpfs", self._directory]
+        exec_binary(["mkdir", self._directory])
+        exec_binary(tmp_mount)
 
     def __exit__(self, exc_type, exc_value, exc_tb):
-        exec_binary(self.__cleanup)
+        tmp_umount = ["umount", "-f", "-R", self._directory]
+        exec_binary(tmp_umount)
+        shutil.rmtree(self._directory)
 
 
 def create_image_and_sign_kernel(config: Config,
@@ -113,11 +118,7 @@ def main():
     distribution = ArchLinuxConfig()
     os.umask(0o077)
 
-    tmp_mount = ["mount", "-t", "tmpfs", "-o",
-                 "mode=0700,uid=0,gid=0", "tmpfs", TMPDIR]
-    tmp_umount = ["umount", "-f", "-R", TMPDIR]
-    exec_binary(["mkdir", "-p", TMPDIR])
-    with RunProgAndCleanup(tmp_mount, tmp_umount):
+    with TmpfsMount(TMPDIR):
         create_image_and_sign_kernel(config, distribution)
 
 
