@@ -3,11 +3,11 @@ import os
 import shutil
 from collections.abc import Mapping
 import secure_squash_root.efi as efi
-import secure_squash_root.parsing as parsing
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE
 from secure_squash_root.exec import exec_binary
 from secure_squash_root.file_op import \
     read_text_from, write_str_to, merge_files
+from secure_squash_root.image import mksquashfs, veritysetup_image
 
 
 DEFAULT_CONFIG = {
@@ -34,34 +34,6 @@ class Config:
 
 def str_to_exclude_dirs(s: str) -> [str]:
     return [i.strip() for i in s.split(",")]
-
-
-def build_mksquashfs_cmd(exclude_dirs: [str], image: str,
-                         root_mount: str, efi_partition) -> str:
-    include_dirs = ["/"]
-    include_empty_dirs = ["dev", "proc", "run", "sys", "tmp", root_mount,
-                          efi_partition] + exclude_dirs
-    options = ["-reproducible", "-xattrs", "-wildcards", "-noappend",
-               "-p", "{} d 0700 0 0".format(root_mount),
-               "-p", "{} d 0700 0 0".format(efi_partition)]
-    cmd = ["mksquashfs"] + include_dirs + [image] + options + ["-e"]
-    for d in include_empty_dirs:
-        sd = d.strip("/")
-        cmd += ["{}/*".format(sd)]
-        cmd += ["{}/.*".format(sd)]
-    return cmd
-
-
-def build_veritysetup_cmd(image: str) -> str:
-    return ["veritysetup", "format", image, "{}.verity".format(image)]
-
-
-def veritysetup_image(image: str) -> str:
-    cmd = build_veritysetup_cmd(image)
-    result = exec_binary(cmd)
-    stdout = result[0].decode()
-    info = parsing.info_to_dict(stdout)
-    return info["Root hash"]
 
 
 def build_and_sign_kernel(config: Config, vmlinuz: str, initramfs: str,
@@ -219,8 +191,7 @@ def create_image_and_sign_kernel(config: Config,
     image = os.path.join(root_mount, "image_{}.squashfs".format(use_slot))
     efi_partition = config.get("EFI_PARTITION")
     exclude_dirs = str_to_exclude_dirs(config.get("EXCLUDE_DIRS"))
-    exec_binary(build_mksquashfs_cmd(exclude_dirs, image,
-                                     root_mount, efi_partition))
+    mksquashfs(exclude_dirs, image, root_mount, efi_partition)
     root_hash = veritysetup_image(image)
     efi_dirname = distribution.efi_dirname()
     print(root_hash)
