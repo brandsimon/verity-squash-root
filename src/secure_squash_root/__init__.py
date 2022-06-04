@@ -2,6 +2,7 @@
 import os
 import shutil
 from collections.abc import Mapping
+import secure_squash_root.cmdline as cmdline
 import secure_squash_root.efi as efi
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE
 from secure_squash_root.exec import exec_binary
@@ -166,27 +167,10 @@ class RunProgAndCleanup:
         exec_binary(self.__cleanup)
 
 
-def current_slot(kernel_cmdline: str) -> str:
-    params = kernel_cmdline.split(" ")
-    for p in params:
-        if p.startswith("{}_slot=".format(KERNEL_PARAM_BASE)):
-            return p[24:].lower()
-    return None
-
-
-def unused_slot(kernel_cmdline: str) -> str:
-    curr = current_slot(kernel_cmdline)
-    try:
-        next_slot = {"a": "b", "b": "a"}
-        return next_slot[curr]
-    except KeyError:
-        return "a"
-
-
 def create_image_and_sign_kernel(config: Config,
                                  distribution: DistributionConfig):
     kernel_cmdline = read_text_from("/proc/cmdline")
-    use_slot = unused_slot(kernel_cmdline)
+    use_slot = cmdline.unused_slot(kernel_cmdline)
     root_mount = config.get("ROOT_MOUNT")
     image = os.path.join(root_mount, "image_{}.squashfs".format(use_slot))
     efi_partition = config.get("EFI_PARTITION")
