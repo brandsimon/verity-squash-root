@@ -2,6 +2,8 @@ import os
 import shutil
 import tempfile
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+
 
 def get_test_files_path(extra: str) -> str:
     return os.path.join(os.path.dirname(__file__), "files", extra)

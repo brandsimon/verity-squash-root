@@ -1,0 +1,7 @@
+# example config
+ALL_config="/etc/mkinitcpio.conf"
+PRESETS=('default' 'fallback' 'test')
+
+default_image="/boot/initramfs-linux-test.img"
+fallback_image="/boot/initramfs-linux-test-fallback.img"
+fallback_options="-S autodetect"
