@@ -8,6 +8,8 @@ def mksquashfs(exclude_dirs: [str], image: str,
     include_empty_dirs = ["dev", "proc", "run", "sys", "tmp", root_mount,
                           efi_partition] + exclude_dirs
     options = ["-reproducible", "-xattrs", "-wildcards", "-noappend",
+               # prevents overlayfs corruption on updates
+               "-no-exports",
                "-p", "{} d 0700 0 0".format(root_mount),
                "-p", "{} d 0700 0 0".format(efi_partition)]
     cmd = ["mksquashfs"] + include_dirs + [image] + options + ["-e"]
