@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import argparse
 import os
 import shutil
 from configparser import ConfigParser
@@ -9,7 +10,8 @@ from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
 from secure_squash_root.exec import exec_binary
 from secure_squash_root.file_op import read_text_from, write_str_to
 from secure_squash_root.image import mksquashfs, veritysetup_image
-from secure_squash_root.distributions.base import DistributionConfig
+from secure_squash_root.distributions.base import DistributionConfig, \
+    iterate_distribution_efi
 from secure_squash_root.distributions.arch import ArchLinuxConfig
 
 
@@ -74,22 +76,26 @@ def create_image_and_sign_kernel(config: ConfigParser,
     efi_dirname = distribution.efi_dirname()
     print(root_hash)
 
-    for kernel in distribution.list_kernels():
+    for [kernel, preset, base_name] in iterate_distribution_efi(distribution):
         vmlinuz = distribution.vmlinuz(kernel)
-        for preset in distribution.list_kernel_presets(kernel):
-            print(kernel, preset)
-            base_name = distribution.file_name(kernel, preset)
-            initramfs = distribution.build_initramfs_with_microcode(
-                kernel, preset)
+        print(kernel, preset)
+        base_name = distribution.file_name(kernel, preset)
+        initramfs = distribution.build_initramfs_with_microcode(
+            kernel, preset)
 
-            out_dir = os.path.join(efi_partition, "EFI", efi_dirname)
-            out = os.path.join(out_dir, "{}.efi".format(base_name))
-            build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
-                                  root_hash, out)
-            out_tmpfs = os.path.join(out_dir, "{}_tmpfs.efi".format(base_name))
-            build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
-                                  root_hash, out_tmpfs,
-                                  "{}_volatile".format(KERNEL_PARAM_BASE))
+        out_dir = os.path.join(efi_partition, "EFI", efi_dirname)
+        out = os.path.join(out_dir, "{}.efi".format(base_name))
+        build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
+                              root_hash, out)
+        out_tmpfs = os.path.join(out_dir, "{}_tmpfs.efi".format(base_name))
+        build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
+                              root_hash, out_tmpfs,
+                              "{}_volatile".format(KERNEL_PARAM_BASE))
+
+
+def list_distribution_efi(distribution: DistributionConfig) -> None:
+    for [kernel, preset, base_name] in iterate_distribution_efi(distribution):
+        print("{} (Kernel: {}, preset: {})".format(base_name, kernel, preset))
 
 
 def main():
@@ -97,8 +103,17 @@ def main():
     distribution = ArchLinuxConfig()
     os.umask(0o077)
 
-    with TmpfsMount(TMPDIR):
-        create_image_and_sign_kernel(config, distribution)
+    parser = argparse.ArgumentParser()
+    cmd_parser = parser.add_subparsers(dest="command")
+    cmd_parser.add_parser("list")
+    cmd_parser.add_parser("build")
+    args = parser.parse_args()
+
+    if args.command == "list":
+        list_distribution_efi(distribution)
+    elif args.command == "build":
+        with TmpfsMount(TMPDIR):
+            create_image_and_sign_kernel(config, distribution)
 
 
 if __name__ == "__main__":

@@ -1,3 +1,6 @@
+from typing import Generator, Tuple
+
+
 class DistributionConfig:
 
     _modules_dir: str = "/usr/lib/modules"
@@ -20,3 +23,11 @@ class DistributionConfig:
 
     def list_kernel_presets(self, kernel: str) -> [str]:
         raise NotImplementedError("Base class")
+
+
+def iterate_distribution_efi(distribution: DistributionConfig) \
+        -> Generator[Tuple[str, str, str], None, None]:
+    for kernel in distribution.list_kernels():
+        for preset in distribution.list_kernel_presets(kernel):
+            base_name = distribution.file_name(kernel, preset)
+            yield (kernel, preset, base_name)
