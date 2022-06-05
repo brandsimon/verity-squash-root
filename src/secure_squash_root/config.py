@@ -8,7 +8,7 @@ CONFIG_FILE = "/etc/{}/config.ini".format(KERNEL_PARAM_BASE)
 DISTRI_FILE = os.path.join("/usr/share/", KERNEL_PARAM_BASE, "default.ini")
 
 
-def str_to_exclude_dirs(s: str) -> [str]:
+def config_str_to_stripped_arr(s: str) -> [str]:
     return [i.strip() for i in s.split(",")]
 
 

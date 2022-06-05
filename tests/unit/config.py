@@ -2,14 +2,14 @@ import os
 import unittest
 from unittest import mock
 from tests.unit.test_helper import PROJECT_ROOT
-from secure_squash_root.config import str_to_exclude_dirs, read_config
+from secure_squash_root.config import config_str_to_stripped_arr, read_config
 
 
 class ConfigTest(unittest.TestCase):
 
-    def test__str_to_exclude_dirs(self):
+    def test__config_str_to_stripped_arr(self):
         self.assertEqual(
-            str_to_exclude_dirs(
+            config_str_to_stripped_arr(
                 " var/!(lib) ,/mnt/test\n,another/dir/ ,testdir"),
             ["var/!(lib)", "/mnt/test", "another/dir/", "testdir"])
 

@@ -6,7 +6,7 @@ from configparser import ConfigParser
 import secure_squash_root.cmdline as cmdline
 import secure_squash_root.efi as efi
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
-    str_to_exclude_dirs, read_config
+    config_str_to_stripped_arr, read_config
 from secure_squash_root.exec import exec_binary
 from secure_squash_root.file_op import read_text_from, write_str_to
 from secure_squash_root.image import mksquashfs, veritysetup_image
@@ -70,32 +70,43 @@ def create_image_and_sign_kernel(config: ConfigParser,
     root_mount = config["DEFAULT"]["ROOT_MOUNT"]
     image = os.path.join(root_mount, "image_{}.squashfs".format(use_slot))
     efi_partition = config["DEFAULT"]["EFI_PARTITION"]
-    exclude_dirs = str_to_exclude_dirs(config["DEFAULT"]["EXCLUDE_DIRS"])
+    exclude_dirs = config_str_to_stripped_arr(
+        config["DEFAULT"]["EXCLUDE_DIRS"])
     mksquashfs(exclude_dirs, image, root_mount, efi_partition)
     root_hash = veritysetup_image(image)
     efi_dirname = distribution.efi_dirname()
     print(root_hash)
+    ignore_efis = config_str_to_stripped_arr(
+        config["DEFAULT"]["IGNORE_KERNEL_EFIS"])
 
     for [kernel, preset, base_name] in iterate_distribution_efi(distribution):
         vmlinuz = distribution.vmlinuz(kernel)
         print(kernel, preset)
         base_name = distribution.file_name(kernel, preset)
+        base_name_tmpfs = "{}_tmpfs".format(base_name)
+        if base_name in ignore_efis and base_name_tmpfs in ignore_efis:
+            continue
+
         initramfs = distribution.build_initramfs_with_microcode(
             kernel, preset)
-
         out_dir = os.path.join(efi_partition, "EFI", efi_dirname)
-        out = os.path.join(out_dir, "{}.efi".format(base_name))
-        build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
-                              root_hash, out)
-        out_tmpfs = os.path.join(out_dir, "{}_tmpfs.efi".format(base_name))
-        build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
-                              root_hash, out_tmpfs,
-                              "{}_volatile".format(KERNEL_PARAM_BASE))
+        if base_name not in ignore_efis:
+            out = os.path.join(out_dir, "{}.efi".format(base_name))
+            build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
+                                  root_hash, out)
+
+        if base_name_tmpfs not in ignore_efis:
+            out_tmpfs = os.path.join(out_dir, "{}.efi".format(base_name_tmpfs))
+            build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
+                                  root_hash, out_tmpfs,
+                                  "{}_volatile".format(KERNEL_PARAM_BASE))
 
 
 def list_distribution_efi(distribution: DistributionConfig) -> None:
     for [kernel, preset, base_name] in iterate_distribution_efi(distribution):
-        print("{} (Kernel: {}, preset: {})".format(base_name, kernel, preset))
+        print("kernel: {}, preset: {}".format(kernel, preset))
+        print(" - {}".format(base_name))
+        print(" - {}_tmpfs".format(base_name))
 
 
 def main():
