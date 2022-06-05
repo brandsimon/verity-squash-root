@@ -21,6 +21,7 @@ class ImageTest(unittest.TestCase):
         mock.assert_called_once_with(
             ['mksquashfs', '/', '/image.squashfs',
              '-reproducible', '-xattrs', '-wildcards', '-noappend',
+             '-no-exports',
              '-p', '/mnt/root/ d 0700 0 0',
              '-p', '/boot/wierd/efi d 0700 0 0',
              '-e', 'dev/*', 'dev/.*',
