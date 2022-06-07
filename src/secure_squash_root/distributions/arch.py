@@ -21,6 +21,13 @@ class ArchLinuxConfig(DistributionConfig):
         else:
             return "{}_{}".format(kernel_name, preset_name)
 
+    def display_name(self, kernel: str, preset: str) -> str:
+        preset_name = self._preset_map.get(preset, preset)
+        kernel_name = self._kernel_to_name(kernel).replace("-", " ")
+        if preset_name != "":
+            preset_name = " ({})".format(preset_name)
+        return "Arch {}{}".format(kernel_name.capitalize(), preset_name)
+
     def efi_dirname(self) -> str:
         return "Arch"
 

@@ -105,7 +105,8 @@ def create_image_and_sign_kernel(config: ConfigParser,
 
 def list_distribution_efi(distribution: DistributionConfig) -> None:
     for [kernel, preset, base_name] in iterate_distribution_efi(distribution):
-        print("kernel: {}, preset: {}".format(kernel, preset))
+        display = distribution.display_name(kernel, preset)
+        print("{}: kernel: {}, preset: {}".format(display, kernel, preset))
         print(" - {}".format(base_name))
         print(" - {}_tmpfs".format(base_name))
 

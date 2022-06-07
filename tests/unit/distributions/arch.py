@@ -25,6 +25,24 @@ class ArchLinuxConfigTest(unittest.TestCase):
         test_file_name("5.2.44", "fallback", "linux", "linux_fallback")
         test_file_name("5.19.4", "test", "linux-lts", "linux-lts_test")
 
+    @mock.patch("secure_squash_root.distributions.arch.read_text_from")
+    def test__display_name(self, mock):
+        def test_display_name(kernel, preset, mock_ret, expected_result):
+            mock.reset_mock()
+            arch = ArchLinuxConfig()
+            mock.return_value = mock_ret
+            result = arch.display_name(kernel, preset)
+            mock.assert_called_once_with(
+                os.path.join("/usr/lib/modules", kernel, "pkgbase"))
+            self.assertEqual(result, expected_result)
+
+        test_display_name("5.2.43", "default", "linux",
+                          "Arch Linux")
+        test_display_name("5.2.44", "fallback", "linux",
+                          "Arch Linux (fallback)")
+        test_display_name("5.19.4", "test", "linux-lts",
+                          "Arch Linux lts (test)")
+
     def test__efi_dirname(self):
         arch = ArchLinuxConfig()
         self.assertEqual(arch.efi_dirname(), "Arch")

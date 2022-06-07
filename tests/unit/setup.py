@@ -25,14 +25,13 @@ class SetupTest(unittest.TestCase):
             }
         }
         add_kernels_to_uefi(config, distri_mock, "/dev/vda", 3)
-        self.maxDiff = None
         self.assertEqual(
             boot_mock.mock_calls,
-            [mock.call('/dev/vda', 3, 'Arch linux-lts_default',
+            [mock.call('/dev/vda', 3, 'Distri Linux-lts (default)',
                        '/EFI/Arch/linux-lts_default.efi'),
-             mock.call('/dev/vda', 3, 'Arch linux_fallback tmpfs',
+             mock.call('/dev/vda', 3, 'Distri Linux (fallback) tmpfs',
                        '/EFI/Arch/linux_fallback_tmpfs.efi'),
-             mock.call('/dev/vda', 3, 'Arch linux_default tmpfs',
+             mock.call('/dev/vda', 3, 'Distri Linux (default) tmpfs',
                        '/EFI/Arch/linux_default_tmpfs.efi'),
-             mock.call('/dev/vda', 3, 'Arch linux_default',
+             mock.call('/dev/vda', 3, 'Distri Linux (default)',
                        '/EFI/Arch/linux_default.efi')])

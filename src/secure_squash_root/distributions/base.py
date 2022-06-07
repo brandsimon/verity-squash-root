@@ -8,6 +8,9 @@ class DistributionConfig:
     def file_name(self, kernel: str, preset: str) -> str:
         raise NotImplementedError("Base class")
 
+    def display_name(self, kernel: str, preset: str) -> str:
+        raise NotImplementedError("Base class")
+
     def efi_dirname(self) -> str:
         raise NotImplementedError("Base class")
 

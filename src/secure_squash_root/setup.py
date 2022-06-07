@@ -27,6 +27,7 @@ def add_kernels_to_uefi(config: ConfigParser, distribution: DistributionConfig,
 
     kernels = reversed(list(iterate_distribution_efi(distribution)))
     for [kernel, preset, base_name] in kernels:
+        display = distribution.display_name(kernel, preset)
         add("{}_tmpfs".format(base_name),
-            "{} {} tmpfs".format(efi_dirname, base_name))
-        add(base_name, "{} {}".format(efi_dirname, base_name))
+            "{} tmpfs".format(display))
+        add(base_name, "{}".format(display))
