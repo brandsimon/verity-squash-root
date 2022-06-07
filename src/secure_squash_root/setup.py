@@ -1,4 +1,5 @@
 import os
+from collections.abc import Callable
 from configparser import ConfigParser
 from secure_squash_root.exec import exec_binary
 from secure_squash_root.distributions.base import DistributionConfig, \
@@ -13,6 +14,24 @@ def add_uefi_boot_option(disk: str, partition_no: int, label: str,
     cmd = ["efibootmgr", "--disk", disk, "--part", str(partition_no),
            "--create", "--label", label, "--loader", efi_file]
     exec_binary(cmd)
+
+
+def _call_normal_and_backup_with_tmpfs(
+        base_name: str, label: str,
+        callback: Callable[[str, str], None],
+        reverse=False) -> None:
+    tasks = []
+
+    def add_normal_and_backup(bn: str, lb: str):
+        tasks.append((bn, lb))
+
+    add_normal_and_backup(base_name, "{}".format(label))
+    add_normal_and_backup("{}_tmpfs".format(base_name),
+                          "{} tmpfs".format(label))
+    if reverse:
+        tasks = list(reversed(tasks))
+    for task in tasks:
+        callback(task[0], task[1])
 
 
 def add_kernels_to_uefi(config: ConfigParser, distribution: DistributionConfig,
@@ -30,9 +49,8 @@ def add_kernels_to_uefi(config: ConfigParser, distribution: DistributionConfig,
     kernels = reversed(list(iterate_distribution_efi(distribution)))
     for [kernel, preset, base_name] in kernels:
         display = distribution.display_name(kernel, preset)
-        add("{}_tmpfs".format(base_name),
-            "{} tmpfs".format(display))
-        add(base_name, "{}".format(display))
+        _call_normal_and_backup_with_tmpfs(base_name, display, add,
+                                           reverse=True)
 
 
 def setup_systemd_boot(config: ConfigParser,
@@ -60,6 +78,4 @@ def setup_systemd_boot(config: ConfigParser,
     kernels = list(iterate_distribution_efi(distribution))
     for [kernel, preset, base_name] in kernels:
         display = distribution.display_name(kernel, preset)
-        add(base_name, "{}".format(display))
-        add("{}_tmpfs".format(base_name),
-            "{} tmpfs".format(display))
+        _call_normal_and_backup_with_tmpfs(base_name, display, add)
