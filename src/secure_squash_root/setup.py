@@ -24,6 +24,9 @@ def _call_normal_and_backup_with_tmpfs(
 
     def add_normal_and_backup(bn: str, lb: str):
         tasks.append((bn, lb))
+        tasks.append(("{}_backup".format(bn), "{} Backup".format(lb)))
+        if reverse:
+            tasks[-1], tasks[-2] = tasks[-2], tasks[-1]
 
     add_normal_and_backup(base_name, "{}".format(label))
     add_normal_and_backup("{}_tmpfs".format(base_name),
