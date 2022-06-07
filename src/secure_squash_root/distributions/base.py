@@ -1,4 +1,4 @@
-from typing import Generator, Tuple
+from typing import Generator, List, Tuple
 
 
 class DistributionConfig:
@@ -18,10 +18,10 @@ class DistributionConfig:
                                        preset: str) -> str:
         raise NotImplementedError("Base class")
 
-    def list_kernels(self) -> [str]:
+    def list_kernels(self) -> List[str]:
         raise NotImplementedError("Base class")
 
-    def list_kernel_presets(self, kernel: str) -> [str]:
+    def list_kernel_presets(self, kernel: str) -> List[str]:
         raise NotImplementedError("Base class")
 
 

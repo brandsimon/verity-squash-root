@@ -20,7 +20,7 @@ def sign(key_dir: str, in_file: str, out_file: str) -> None:
 
 
 def create_efi_executable(stub: str, cmdline_file: str, linux: str,
-                          initrd: str, dest: str) -> [str]:
+                          initrd: str, dest: str):
     exec_binary([
         "objcopy",
         "--add-section", ".osrel=/etc/os-release",

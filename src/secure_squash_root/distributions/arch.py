@@ -1,5 +1,6 @@
 import os
 from collections.abc import Mapping
+from typing import List
 from secure_squash_root.config import TMPDIR
 from secure_squash_root.exec import exec_binary
 from secure_squash_root.file_op import read_text_from, write_str_to
@@ -8,7 +9,8 @@ from secure_squash_root.distributions.base import DistributionConfig
 
 
 class ArchLinuxConfig(DistributionConfig):
-    _microcode_paths: [str] = ["/boot/intel-ucode.img", "/boot/amd-ucode.img"]
+    _microcode_paths: List[str] = [
+        "/boot/intel-ucode.img", "/boot/amd-ucode.img"]
     _preset_map: Mapping[str, str] = {"default": ""}
 
     def file_name(self, kernel: str, preset: str) -> str:
@@ -50,10 +52,10 @@ class ArchLinuxConfig(DistributionConfig):
                                merged_initramfs)
         return merged_initramfs
 
-    def list_kernels(self) -> [str]:
+    def list_kernels(self) -> List[str]:
         return os.listdir(self._modules_dir)
 
-    def list_kernel_presets(self, kernel: str) -> [str]:
+    def list_kernel_presets(self, kernel: str) -> List[str]:
         name = self._kernel_to_name(kernel)
         run = "/usr/lib/secure-squash-root/mkinitcpio_list_presets"
         presets_str = exec_binary([run, name])[0].decode()

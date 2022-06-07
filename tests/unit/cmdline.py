@@ -23,5 +23,8 @@ class CmdlineTest(unittest.TestCase):
             unused_slot("crpytroot secure_squash_root_slot=b tsx=off"),
             "a")
         self.assertEqual(
+            unused_slot("crpytroot secure_squash_root_slot=h tsx=off"),
+            "a")
+        self.assertEqual(
             unused_slot("crpytroot pti=on tsx=off"),
             "a")

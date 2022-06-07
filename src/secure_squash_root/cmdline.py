@@ -1,7 +1,8 @@
+from typing import Optional
 from secure_squash_root.config import KERNEL_PARAM_BASE
 
 
-def current_slot(kernel_cmdline: str) -> str:
+def current_slot(kernel_cmdline: str) -> Optional[str]:
     params = kernel_cmdline.split(" ")
     for p in params:
         if p.startswith("{}_slot=".format(KERNEL_PARAM_BASE)):
@@ -13,6 +14,6 @@ def unused_slot(kernel_cmdline: str) -> str:
     curr = current_slot(kernel_cmdline)
     try:
         next_slot = {"a": "b", "b": "a"}
-        return next_slot[curr]
+        return next_slot[curr or ""]
     except KeyError:
         return "a"

@@ -131,7 +131,8 @@ def main():
         list_distribution_efi(distribution)
     elif args.command == "setup":
         if args.boot_method == "uefi":
-            add_kernels_to_uefi(config, distribution, args.disk, args.partition_no)
+            add_kernels_to_uefi(config, distribution,
+                                args.disk, args.partition_no)
     elif args.command == "build":
         with TmpfsMount(TMPDIR):
             create_image_and_sign_kernel(config, distribution)

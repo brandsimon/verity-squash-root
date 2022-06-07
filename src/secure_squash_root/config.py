@@ -1,5 +1,6 @@
 import os
 from configparser import ConfigParser
+from typing import List
 
 
 TMPDIR = "/tmp/secure_squash_root"
@@ -8,7 +9,7 @@ CONFIG_FILE = "/etc/{}/config.ini".format(KERNEL_PARAM_BASE)
 DISTRI_FILE = os.path.join("/usr/share/", KERNEL_PARAM_BASE, "default.ini")
 
 
-def config_str_to_stripped_arr(s: str) -> [str]:
+def config_str_to_stripped_arr(s: str) -> List[str]:
     return [i.strip() for i in s.split(",")]
 
 

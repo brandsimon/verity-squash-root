@@ -1,9 +1,10 @@
+from typing import List
 import secure_squash_root.parsing as parsing
 from secure_squash_root.exec import exec_binary
 
 
-def mksquashfs(exclude_dirs: [str], image: str,
-               root_mount: str, efi_partition) -> str:
+def mksquashfs(exclude_dirs: List[str], image: str,
+               root_mount: str, efi_partition):
     include_dirs = ["/"]
     include_empty_dirs = ["dev", "proc", "run", "sys", "tmp", root_mount,
                           efi_partition] + exclude_dirs
