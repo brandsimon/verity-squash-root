@@ -1,6 +1,7 @@
 import unittest
 from unittest import mock
-from secure_squash_root.setup import add_uefi_boot_option, add_kernels_to_uefi
+from secure_squash_root.setup import add_uefi_boot_option, \
+    add_kernels_to_uefi, setup_systemd_boot
 from tests.unit.distributions.base import distribution_mock
 
 
@@ -35,3 +36,41 @@ class SetupTest(unittest.TestCase):
                        '/EFI/Arch/linux_default_tmpfs.efi'),
              mock.call('/dev/vda', 3, 'Distri Linux (default)',
                        '/EFI/Arch/linux_default.efi')])
+
+    @mock.patch("secure_squash_root.setup.exec_binary")
+    @mock.patch("secure_squash_root.setup.write_str_to")
+    @mock.patch("secure_squash_root.setup.efi.sign")
+    def test__setup_systemd_boot(self, sign_mock, write_to_mock, exec_mock):
+        distri_mock = distribution_mock()
+        ignore = " linux-lts_default_tmpfs ,linux_fallback"
+        config = {
+            "DEFAULT": {
+                "IGNORE_KERNEL_EFIS": ignore,
+                "SECURE_BOOT_KEYS": "/secure/path",
+                "EFI_PARTITION": "/boot/efi_dir",
+            }
+        }
+        setup_systemd_boot(config, distri_mock)
+        exec_mock.assert_called_once_with(["bootctl", "install"])
+        boot_efi = "/usr/lib/systemd/boot/efi/systemd-bootx64.efi"
+        self.assertEqual(
+            sign_mock.mock_calls,
+            [mock.call("/secure/path", boot_efi,
+                       "/boot/efi/EFI/systemd/systemd-bootx64.efi"),
+             mock.call("/secure/path", boot_efi,
+                       "/boot/efi/EFI/BOOT/BOOTX64.EFI")])
+        text = "title Distri {}\nlinux /EFI/Arch/{}\n"
+        path = "/boot/efi_dir/loader/entries/{}"
+        self.assertEqual(
+            write_to_mock.mock_calls,
+            [mock.call(path.format("linux_default.conf"),
+                       text.format("Linux (default)", "linux_default.efi")),
+             mock.call(path.format("linux_default_tmpfs.conf"),
+                       text.format("Linux (default) tmpfs",
+                                   "linux_default_tmpfs.efi")),
+             mock.call(path.format("linux_fallback_tmpfs.conf"),
+                       text.format("Linux (fallback) tmpfs",
+                                   "linux_fallback_tmpfs.efi")),
+             mock.call(path.format("linux-lts_default.conf"),
+                       text.format("Linux-lts (default)",
+                                   "linux-lts_default.efi"))])

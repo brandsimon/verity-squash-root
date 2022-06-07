@@ -13,7 +13,7 @@ from secure_squash_root.image import mksquashfs, veritysetup_image
 from secure_squash_root.distributions.base import DistributionConfig, \
     iterate_distribution_efi
 from secure_squash_root.distributions.arch import ArchLinuxConfig
-from secure_squash_root.setup import add_kernels_to_uefi
+from secure_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
 
 
 def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
@@ -123,6 +123,7 @@ def main():
     setup_parser = cmd_parser.add_parser("setup")
     boot_parser = setup_parser.add_subparsers(dest="boot_method",
                                               required=True)
+    boot_parser.add_parser("systemd")
     efi_parser = boot_parser.add_parser("uefi")
     efi_parser.add_argument("disk")
     efi_parser.add_argument("partition_no", type=int)
@@ -134,6 +135,8 @@ def main():
         if args.boot_method == "uefi":
             add_kernels_to_uefi(config, distribution,
                                 args.disk, args.partition_no)
+        if args.boot_method == "systemd":
+            setup_systemd_boot(config, distribution)
     elif args.command == "build":
         with TmpfsMount(TMPDIR):
             create_image_and_sign_kernel(config, distribution)
