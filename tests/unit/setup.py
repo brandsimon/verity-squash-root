@@ -34,20 +34,20 @@ class SetupTest(unittest.TestCase):
                        '/EFI/Arch/linux-lts_default_tmpfs_backup.efi'),
              mock.call('/dev/vda', 3, 'Distri Linux-lts (default)',
                        '/EFI/Arch/linux-lts_default.efi'),
-             mock.call('/dev/vda', 3, 'Distri Linux (fallback) tmpfs',
-                       '/EFI/Arch/linux_fallback_tmpfs.efi'),
              mock.call('/dev/vda', 3, 'Distri Linux (fallback) tmpfs Backup',
                        '/EFI/Arch/linux_fallback_tmpfs_backup.efi'),
+             mock.call('/dev/vda', 3, 'Distri Linux (fallback) tmpfs',
+                       '/EFI/Arch/linux_fallback_tmpfs.efi'),
              mock.call('/dev/vda', 3, 'Distri Linux (fallback) Backup',
                        '/EFI/Arch/linux_fallback_backup.efi'),
-             mock.call('/dev/vda', 3, 'Distri Linux (default) tmpfs',
-                       '/EFI/Arch/linux_default_tmpfs.efi'),
              mock.call('/dev/vda', 3, 'Distri Linux (default) tmpfs Backup',
                        '/EFI/Arch/linux_default_tmpfs_backup.efi'),
-             mock.call('/dev/vda', 3, 'Distri Linux (default)',
-                       '/EFI/Arch/linux_default.efi'),
+             mock.call('/dev/vda', 3, 'Distri Linux (default) tmpfs',
+                       '/EFI/Arch/linux_default_tmpfs.efi'),
              mock.call('/dev/vda', 3, 'Distri Linux (default) Backup',
-                       '/EFI/Arch/linux_default_backup.efi')])
+                       '/EFI/Arch/linux_default_backup.efi'),
+             mock.call('/dev/vda', 3, 'Distri Linux (default)',
+                       '/EFI/Arch/linux_default.efi')])
 
     @mock.patch("secure_squash_root.setup.exec_binary")
     @mock.patch("secure_squash_root.setup.write_str_to")

@@ -1,12 +1,11 @@
 import os
-from collections.abc import Callable
 from configparser import ConfigParser
 from secure_squash_root.exec import exec_binary
-from secure_squash_root.distributions.base import DistributionConfig, \
-    iterate_distribution_efi
+from secure_squash_root.distributions.base import DistributionConfig
 from secure_squash_root.config import config_str_to_stripped_arr
 import secure_squash_root.efi as efi
 from secure_squash_root.file_op import write_str_to
+from secure_squash_root.file_names import iterate_kernel_variants
 
 
 def add_uefi_boot_option(disk: str, partition_no: int, label: str,
@@ -16,27 +15,6 @@ def add_uefi_boot_option(disk: str, partition_no: int, label: str,
     exec_binary(cmd)
 
 
-def _call_normal_and_backup_with_tmpfs(
-        base_name: str, label: str,
-        callback: Callable[[str, str], None],
-        reverse=False) -> None:
-    tasks = []
-
-    def add_normal_and_backup(bn: str, lb: str):
-        tasks.append((bn, lb))
-        tasks.append(("{}_backup".format(bn), "{} Backup".format(lb)))
-        if reverse:
-            tasks[-1], tasks[-2] = tasks[-2], tasks[-1]
-
-    add_normal_and_backup(base_name, "{}".format(label))
-    add_normal_and_backup("{}_tmpfs".format(base_name),
-                          "{} tmpfs".format(label))
-    if reverse:
-        tasks = list(reversed(tasks))
-    for task in tasks:
-        callback(task[0], task[1])
-
-
 def add_kernels_to_uefi(config: ConfigParser, distribution: DistributionConfig,
                         disk: str, partition_no: int) -> None:
     efi_dirname = distribution.efi_dirname()
@@ -44,16 +22,11 @@ def add_kernels_to_uefi(config: ConfigParser, distribution: DistributionConfig,
     ignore_efis = config_str_to_stripped_arr(
         config["DEFAULT"]["IGNORE_KERNEL_EFIS"])
 
-    def add(base_name, label):
+    kernels = reversed(list(iterate_kernel_variants(distribution)))
+    for (kernel, preset, base_name, label) in kernels:
         if base_name not in ignore_efis:
             out = os.path.join(out_dir, "{}.efi".format(base_name))
             add_uefi_boot_option(disk, partition_no, label, out)
-
-    kernels = reversed(list(iterate_distribution_efi(distribution)))
-    for [kernel, preset, base_name] in kernels:
-        display = distribution.display_name(kernel, preset)
-        _call_normal_and_backup_with_tmpfs(base_name, display, add,
-                                           reverse=True)
 
 
 def setup_systemd_boot(config: ConfigParser,
@@ -71,14 +44,10 @@ def setup_systemd_boot(config: ConfigParser,
     ignore_efis = config_str_to_stripped_arr(
         config["DEFAULT"]["IGNORE_KERNEL_EFIS"])
 
-    def add(base_name, label):
+    for (kernel, preset, base_name, label) in iterate_kernel_variants(
+            distribution):
         if base_name not in ignore_efis:
             binary = os.path.join(out_dir, "{}.efi".format(base_name))
             out = os.path.join(entries_dir, "{}.conf".format(base_name))
             text = "title {}\nlinux {}\n".format(label, binary)
             write_str_to(out, text)
-
-    kernels = list(iterate_distribution_efi(distribution))
-    for [kernel, preset, base_name] in kernels:
-        display = distribution.display_name(kernel, preset)
-        _call_normal_and_backup_with_tmpfs(base_name, display, add)

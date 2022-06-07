@@ -5,6 +5,7 @@ from tests.unit.distributions.arch import ArchLinuxConfigTest
 from tests.unit.distributions.base import BaseDistributionTest
 from tests.unit.efi import EfiTest
 from tests.unit.exec import ExecTest
+from tests.unit.file_names import FileNamesTest
 from tests.unit.file_op import FileOPTest
 from tests.unit.image import ImageTest
 from tests.unit.initramfs import InitramfsTest
@@ -21,6 +22,7 @@ def test_suite():
         unittest.makeSuite(ConfigTest),
         unittest.makeSuite(EfiTest),
         unittest.makeSuite(ExecTest),
+        unittest.makeSuite(FileNamesTest),
         unittest.makeSuite(FileOPTest),
         unittest.makeSuite(ImageTest),
         unittest.makeSuite(InitramfsTest),
