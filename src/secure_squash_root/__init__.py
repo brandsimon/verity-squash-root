@@ -9,7 +9,7 @@ from typing import Union
 import secure_squash_root.cmdline as cmdline
 import secure_squash_root.efi as efi
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
-    config_str_to_stripped_arr, read_config, LOG_FILE
+    config_str_to_stripped_arr, read_config, LOG_FILE, check_config
 from secure_squash_root.exec import exec_binary
 from secure_squash_root.file_op import read_text_from, write_str_to
 from secure_squash_root.image import mksquashfs, veritysetup_image
@@ -147,6 +147,11 @@ def list_distribution_efi(config: ConfigParser,
     print("\n(+ = included, - = excluded")
 
 
+def warn_check_config(config: ConfigParser):
+    for line in check_config(config):
+        logging.warning(line)
+
+
 def configure_logger(verbose: bool) -> None:
     loglevel = logging.INFO if not verbose else logging.DEBUG
     logging.basicConfig(
@@ -172,6 +177,7 @@ def main():
     parser.add_argument("--verbose", action="store_true")
     cmd_parser = parser.add_subparsers(dest="command", required=True)
     cmd_parser.add_parser("list")
+    cmd_parser.add_parser("check")
     cmd_parser.add_parser("build")
     setup_parser = cmd_parser.add_parser("setup")
     boot_parser = setup_parser.add_subparsers(dest="boot_method",
@@ -185,6 +191,7 @@ def main():
 
     logging.debug("Running: {}".format(sys.argv))
     logging.debug("Parsed arguments: {}".format(args))
+    warn_check_config(config)
 
     if args.command == "list":
         list_distribution_efi(config, distribution)

@@ -22,3 +22,13 @@ def read_config() -> ConfigParser:
     config.read(DISTRI_FILE)
     config.read(CONFIG_FILE)
     return config
+
+
+def check_config(config: ConfigParser) -> List[str]:
+    root_mount = config["DEFAULT"]["ROOT_MOUNT"]
+    efi_partition = config["DEFAULT"]["EFI_PARTITION"]
+    result = []
+    for d in [root_mount, efi_partition]:
+        if not os.path.ismount(d):
+            result.append("Directory '{}' is not a mount point".format(d))
+    return result

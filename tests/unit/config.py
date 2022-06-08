@@ -2,7 +2,8 @@ import os
 import unittest
 from unittest import mock
 from tests.unit.test_helper import PROJECT_ROOT
-from secure_squash_root.config import config_str_to_stripped_arr, read_config
+from secure_squash_root.config import config_str_to_stripped_arr, \
+    read_config, check_config
 
 
 class ConfigTest(unittest.TestCase):
@@ -25,3 +26,29 @@ class ConfigTest(unittest.TestCase):
             mock.call().read('/usr/share/secure_squash_root/default.ini'),
             mock.call().read('/etc/secure_squash_root/config.ini')])
         self.assertEqual(result, cp_mock())
+
+    @mock.patch("secure_squash_root.config.os.path.ismount")
+    def test__check_config(self, mount_mock):
+        config = {
+            "DEFAULT": {
+                "ROOT_MOUNT": "/opt/root",
+                "EFI_PARTITION": "/boot/efimnt",
+            }
+        }
+
+        def run(mount_result):
+            mount_mock.side_effect = mount_result
+            result = check_config(config)
+            self.assertEqual(
+                mount_mock.mock_calls,
+                [mock.call("/opt/root"),
+                 mock.call("/boot/efimnt")])
+            mount_mock.reset_mock()
+            return result
+
+        mnt_error = "Directory '/opt/root' is not a mount point"
+        efi_error = "Directory '/boot/efimnt' is not a mount point"
+        self.assertEqual(run([True, True]), [])
+        self.assertEqual(run([True, False]), [efi_error])
+        self.assertEqual(run([False, True]), [mnt_error])
+        self.assertEqual(run([False, False]), [mnt_error, efi_error])
