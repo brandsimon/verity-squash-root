@@ -18,7 +18,7 @@ from secure_squash_root.distributions.base import DistributionConfig, \
 from secure_squash_root.distributions.arch import ArchLinuxConfig
 from secure_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
 from secure_squash_root.file_names import iterate_kernel_variants, \
-    backup_file, tmpfs_file, kernel_is_ignored
+    backup_file, tmpfs_file, kernel_is_ignored, tmpfs_label
 
 
 def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
@@ -126,6 +126,7 @@ def create_image_and_sign_kernel(config: ConfigParser,
                                       root_hash, out, backup_out, cmdline_add)
 
         build(base_name, "")
+        logging.info("Processing {} ".format(tmpfs_label(display)))
         build(base_name_tmpfs, "{}_volatile".format(KERNEL_PARAM_BASE))
 
 
