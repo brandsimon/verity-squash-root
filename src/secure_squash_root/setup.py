@@ -22,6 +22,8 @@ def add_kernels_to_uefi(config: ConfigParser, distribution: DistributionConfig,
     ignore_efis = config_str_to_stripped_arr(
         config["DEFAULT"]["IGNORE_KERNEL_EFIS"])
 
+    # Use reversed order, because last added option is sometimes
+    # the default boot option
     kernels = reversed(list(iterate_kernel_variants(distribution)))
     for (kernel, preset, base_name, label) in kernels:
         if base_name not in ignore_efis:
