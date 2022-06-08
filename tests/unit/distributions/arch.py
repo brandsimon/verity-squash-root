@@ -3,7 +3,9 @@ import unittest
 from unittest import mock
 from secure_squash_root.distributions.arch import ArchLinuxConfig
 from secure_squash_root.exec import exec_binary
-from tests.unit.test_helper import PROJECT_ROOT, get_test_files_path
+from secure_squash_root.config import TMPDIR
+from tests.unit.test_helper import PROJECT_ROOT, get_test_files_path, \
+    wrap_tempdir
 
 TEST_FILES_DIR = get_test_files_path("distributions/arch")
 
@@ -52,9 +54,52 @@ class ArchLinuxConfigTest(unittest.TestCase):
         self.assertEqual(arch.vmlinuz("5.17.2-arch"),
                          "/usr/lib/modules/5.17.2-arch/vmlinuz")
 
-    def test__build_initramfs_with_microcode(self):
-        pass
-        # TODO
+    @wrap_tempdir
+    def test__build_initramfs_with_microcode(self, tempdir):
+        preset_info = "some info\npreset_image = /test\nsome more info\nx=y\n"
+
+        def read(file):
+            if file == "/usr/lib/modules/5.14.3-arch/pkgbase":
+                return "linux-pkg"
+            if file == "/etc/mkinitcpio.d/linux-pkg.preset":
+                return preset_info
+            raise ValueError(file)
+
+        base = "secure_squash_root.distributions.arch"
+        all_mocks = mock.Mock()
+        all_mocks.read_text_from.side_effect = read
+        with mock.patch("{}.merge_initramfs_images".format(base),
+                        new=all_mocks.merge_initramfs_images), \
+             mock.patch("{}.exec_binary".format(base),
+                        new=all_mocks.exec_binary), \
+             mock.patch("{}.read_text_from".format(base),
+                        new=all_mocks.read_text_from), \
+             mock.patch("{}.write_str_to".format(base),
+                        new=all_mocks.write_str_to):
+            arch = ArchLinuxConfig()
+            res = arch.build_initramfs_with_microcode(
+                "5.14.3-arch", "x_preset")
+            base_name = "linux-pkg-x_preset"
+            call = mock.call
+            self.assertEqual(
+                all_mocks.mock_calls,
+                [call.read_text_from("/usr/lib/modules/5.14.3-arch/pkgbase"),
+                 call.read_text_from("/etc/mkinitcpio.d/linux-pkg.preset"),
+                 call.write_str_to(
+                     "{}/linux-pkg-x_preset.preset".format(TMPDIR),
+                     ("{}\nPRESETS=('x_preset')\n"
+                      "x_preset_image={}/{}.initcpio\n".format(
+                          preset_info, TMPDIR, base_name))),
+                 call.exec_binary(["mkinitcpio", "-p",
+                                   "{}/{}.preset".format(TMPDIR, base_name)]),
+                 call.merge_initramfs_images("{}/{}.initcpio".format(
+                                             TMPDIR, base_name),
+                                             ["/boot/intel-ucode.img",
+                                              "/boot/amd-ucode.img"],
+                                             "{}/{}.image".format(
+                                                 TMPDIR, base_name))])
+            self.assertEqual(
+                res, "{}/{}.image".format(TMPDIR, base_name))
 
     @mock.patch("secure_squash_root.distributions.arch.os.listdir")
     def test__list_kernels(self, mock):
