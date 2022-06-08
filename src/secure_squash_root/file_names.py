@@ -1,12 +1,14 @@
-from typing import Generator, Tuple
+from typing import Generator, List, Tuple
 from configparser import ConfigParser
 from secure_squash_root.config import config_str_to_stripped_arr
 from secure_squash_root.distributions.base import DistributionConfig, \
     iterate_distribution_efi
 
+BACKUP_SUFFIX = "_backup"
+
 
 def backup_file(file: str) -> str:
-    return "{}_backup".format(file)
+    return "{}{}".format(file, BACKUP_SUFFIX)
 
 
 def backup_label(label: str) -> str:
@@ -19,6 +21,16 @@ def tmpfs_file(file: str) -> str:
 
 def tmpfs_label(label: str) -> str:
     return "{} tmpfs".format(label)
+
+
+def kernel_is_ignored(base_name: str, ignored: List[str]) -> bool:
+    if base_name in ignored:
+        return True
+    if base_name.endswith(BACKUP_SUFFIX):
+        length = len(BACKUP_SUFFIX)
+        if base_name[:-length] in ignored:
+            return True
+    return False
 
 
 def iterate_kernel_variants(distribution: DistributionConfig) \
@@ -41,5 +53,5 @@ def iterate_non_ignored_kernel_variants(
 
     for (kernel, preset, base_name, display) in iterate_kernel_variants(
             distribution):
-        if base_name not in ignore_efis:
+        if not kernel_is_ignored(base_name, ignore_efis):
             yield (kernel, preset, base_name, display)

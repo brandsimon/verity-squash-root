@@ -29,17 +29,12 @@ class SetupTest(unittest.TestCase):
         add_kernels_to_uefi(config, distri_mock, "/dev/vda", 3)
         self.assertEqual(
             boot_mock.mock_calls,
-            [mock.call('/dev/vda', 3,
-                       'Distri Linux-lts (default) tmpfs Backup',
-                       '/EFI/Arch/linux-lts_default_tmpfs_backup.efi'),
-             mock.call('/dev/vda', 3, 'Distri Linux-lts (default)',
+            [mock.call('/dev/vda', 3, 'Distri Linux-lts (default)',
                        '/EFI/Arch/linux-lts_default.efi'),
              mock.call('/dev/vda', 3, 'Distri Linux (fallback) tmpfs Backup',
                        '/EFI/Arch/linux_fallback_tmpfs_backup.efi'),
              mock.call('/dev/vda', 3, 'Distri Linux (fallback) tmpfs',
                        '/EFI/Arch/linux_fallback_tmpfs.efi'),
-             mock.call('/dev/vda', 3, 'Distri Linux (fallback) Backup',
-                       '/EFI/Arch/linux_fallback_backup.efi'),
              mock.call('/dev/vda', 3, 'Distri Linux (default) tmpfs Backup',
                        '/EFI/Arch/linux_default_tmpfs_backup.efi'),
              mock.call('/dev/vda', 3, 'Distri Linux (default) tmpfs',
@@ -84,9 +79,6 @@ class SetupTest(unittest.TestCase):
              mock.call(path.format("linux_default_tmpfs_backup.conf"),
                        text.format("Linux (default) tmpfs Backup",
                                    "linux_default_tmpfs_backup.efi")),
-             mock.call(path.format("linux_fallback_backup.conf"),
-                       text.format("Linux (fallback) Backup",
-                                   "linux_fallback_backup.efi")),
              mock.call(path.format("linux_fallback_tmpfs.conf"),
                        text.format("Linux (fallback) tmpfs",
                                    "linux_fallback_tmpfs.efi")),
@@ -98,7 +90,4 @@ class SetupTest(unittest.TestCase):
                                    "linux-lts_default.efi")),
              mock.call(path.format("linux-lts_default_backup.conf"),
                        text.format("Linux-lts (default) Backup",
-                                   "linux-lts_default_backup.efi")),
-             mock.call(path.format("linux-lts_default_tmpfs_backup.conf"),
-                       text.format("Linux-lts (default) tmpfs Backup",
-                                   "linux-lts_default_tmpfs_backup.efi"))])
+                                   "linux-lts_default_backup.efi"))])

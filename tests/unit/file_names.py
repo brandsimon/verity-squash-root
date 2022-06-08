@@ -2,7 +2,7 @@ import unittest
 from tests.unit.distributions.base import distribution_mock
 from secure_squash_root.file_names import iterate_kernel_variants, \
     backup_file, backup_label, tmpfs_file, tmpfs_label, \
-    iterate_non_ignored_kernel_variants
+    iterate_non_ignored_kernel_variants, kernel_is_ignored
 
 
 class FileNamesTest(unittest.TestCase):
@@ -53,16 +53,12 @@ class FileNamesTest(unittest.TestCase):
               'Distri Linux (default) tmpfs'),
              ('5.19', 'default', 'linux_default_tmpfs_backup',
               'Distri Linux (default) tmpfs Backup'),
-             ('5.19', 'fallback', 'linux_fallback_backup',
-              'Distri Linux (fallback) Backup'),
              ('5.19', 'fallback', 'linux_fallback_tmpfs',
               'Distri Linux (fallback) tmpfs'),
              ('5.19', 'fallback', 'linux_fallback_tmpfs_backup',
               'Distri Linux (fallback) tmpfs Backup'),
              ('5.14', 'default', 'linux-lts_default',
-              'Distri Linux-lts (default)'),
-             ('5.14', 'default', 'linux-lts_default_tmpfs_backup',
-              'Distri Linux-lts (default) tmpfs Backup')])
+              'Distri Linux-lts (default)')])
 
     def test__backup_file(self):
         self.assertEqual(backup_file("linux-lts"), "linux-lts_backup")
@@ -75,3 +71,13 @@ class FileNamesTest(unittest.TestCase):
 
     def test__tmpfs_label(self):
         self.assertEqual(tmpfs_label("Linux LTS"), "Linux LTS tmpfs")
+
+    def test__kernel_is_ignored(self):
+        ignored = ["linux_fallback_tmpfs", "linux_default_backup",
+                   "linux-lts_tmpfs"]
+        self.assertEqual(kernel_is_ignored("linux_default", ignored),
+                         False)
+        self.assertEqual(kernel_is_ignored("linux_default_backup", ignored),
+                         True)
+        self.assertEqual(kernel_is_ignored("linux-lts_tmpfs_backup", ignored),
+                         True)

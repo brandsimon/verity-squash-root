@@ -18,7 +18,7 @@ from secure_squash_root.distributions.base import DistributionConfig, \
 from secure_squash_root.distributions.arch import ArchLinuxConfig
 from secure_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
 from secure_squash_root.file_names import iterate_kernel_variants, \
-    backup_file, tmpfs_file
+    backup_file, tmpfs_file, kernel_is_ignored
 
 
 def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
@@ -142,7 +142,7 @@ def list_distribution_efi(config: ConfigParser,
             print("{}: kernel: {}, preset: {}".format(display, kernel, preset))
         last = ident
 
-        op = "+" if base_name not in ignore_efis else "-"
+        op = "-" if kernel_is_ignored(base_name, ignore_efis) else "+"
         print(" {} {} ({})".format(op, base_name, display))
     print("\n(+ = included, - = excluded")
 
