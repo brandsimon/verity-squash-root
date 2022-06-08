@@ -7,6 +7,7 @@ TMPDIR = "/tmp/secure_squash_root"
 KERNEL_PARAM_BASE = "secure_squash_root"
 CONFIG_FILE = "/etc/{}/config.ini".format(KERNEL_PARAM_BASE)
 DISTRI_FILE = os.path.join("/usr/share/", KERNEL_PARAM_BASE, "default.ini")
+LOG_FILE = "/var/log/{}.log".format(KERNEL_PARAM_BASE)
 
 
 def config_str_to_stripped_arr(s: str) -> List[str]:

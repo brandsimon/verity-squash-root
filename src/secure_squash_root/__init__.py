@@ -1,13 +1,15 @@
 #!/usr/bin/python3
 import argparse
+import logging
 import os
 import shutil
+import sys
 from configparser import ConfigParser
 from typing import Union
 import secure_squash_root.cmdline as cmdline
 import secure_squash_root.efi as efi
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
-    config_str_to_stripped_arr, read_config
+    config_str_to_stripped_arr, read_config, LOG_FILE
 from secure_squash_root.exec import exec_binary
 from secure_squash_root.file_op import read_text_from, write_str_to
 from secure_squash_root.image import mksquashfs, veritysetup_image
@@ -42,10 +44,17 @@ def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
     key_dir = config["DEFAULT"]["SECURE_BOOT_KEYS"]
     efi.sign(key_dir, tmp_efi_file, tmp_efi_file)
     if os.path.exists(out):
-        if efi.file_matches_slot(out, slot) or out_backup is None:
+        slot_matches = efi.file_matches_slot(out, slot)
+        if slot_matches or out_backup is None:
             # if backup slot is booted, dont override it
+            if out_backup is None:
+                logging.debug("Backup ignored")
+            elif slot_matches:
+                logging.debug("Backup slot kept as is")
             os.unlink(out)
         else:
+            logging.info("Moving old efi to backup")
+            logging.debug("Path: {}".format(out_backup))
             os.rename(out, out_backup)
     shutil.move(tmp_efi_file, out)
 
@@ -72,34 +81,42 @@ def create_image_and_sign_kernel(config: ConfigParser,
                                  distribution: DistributionConfig):
     kernel_cmdline = read_text_from("/proc/cmdline")
     use_slot = cmdline.unused_slot(kernel_cmdline)
+    logging.info("Using slot {} for new image".format(use_slot))
     root_mount = config["DEFAULT"]["ROOT_MOUNT"]
     image = os.path.join(root_mount, "image_{}.squashfs".format(use_slot))
+    logging.debug("Image path: {}".format(image))
     efi_partition = config["DEFAULT"]["EFI_PARTITION"]
     exclude_dirs = config_str_to_stripped_arr(
         config["DEFAULT"]["EXCLUDE_DIRS"])
+    logging.info("Creating squashfs...")
     mksquashfs(exclude_dirs, image, root_mount, efi_partition)
+    logging.info("Setup device verity")
     root_hash = veritysetup_image(image)
     efi_dirname = distribution.efi_dirname()
-    print(root_hash)
+    out_dir = os.path.join(efi_partition, "EFI", efi_dirname)
+    logging.debug("Calculated root hash: {}".format(root_hash))
     ignore_efis = config_str_to_stripped_arr(
         config["DEFAULT"]["IGNORE_KERNEL_EFIS"])
 
     for [kernel, preset, base_name] in iterate_distribution_efi(distribution):
         vmlinuz = distribution.vmlinuz(kernel)
-        print(kernel, preset)
         base_name = distribution.file_name(kernel, preset)
         base_name_tmpfs = tmpfs_file(base_name)
+        display = distribution.display_name(kernel, preset)
+        logging.info("Processing {}".format(display))
 
         if base_name in ignore_efis and base_name_tmpfs in ignore_efis:
+            logging.info("skipping due to ignored kernels")
             continue
 
+        logging.info("Create initramfs")
         initramfs = distribution.build_initramfs_with_microcode(
             kernel, preset)
-        out_dir = os.path.join(efi_partition, "EFI", efi_dirname)
 
         def build(bn, cmdline_add):
             if bn not in ignore_efis:
                 out = os.path.join(out_dir, "{}.efi".format(bn))
+                logging.debug("Write efi to {}".format(out))
                 backup_out = None
                 backup_bn = backup_file(bn)
                 if backup_bn not in ignore_efis:
@@ -109,7 +126,7 @@ def create_image_and_sign_kernel(config: ConfigParser,
                                       root_hash, out, backup_out, cmdline_add)
 
         build(base_name, "")
-        build(tmpfs_file(base_name), "{}_volatile".format(KERNEL_PARAM_BASE))
+        build(base_name_tmpfs, "{}_volatile".format(KERNEL_PARAM_BASE))
 
 
 def list_distribution_efi(config: ConfigParser,
@@ -130,12 +147,29 @@ def list_distribution_efi(config: ConfigParser,
     print("\n(+ = included, - = excluded")
 
 
+def configure_logger(verbose: bool) -> None:
+    loglevel = logging.INFO if not verbose else logging.DEBUG
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        encoding="utf-8",
+        handlers=[
+            logging.FileHandler(LOG_FILE),
+            logging.StreamHandler(),
+        ],
+    )
+    logger = logging.getLogger()
+    logger.handlers[0].setLevel(logging.DEBUG)
+    logger.handlers[1].setLevel(loglevel)
+
+
 def main():
+    os.umask(0o077)
     config = read_config()
     distribution = ArchLinuxConfig()
-    os.umask(0o077)
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("--verbose", action="store_true")
     cmd_parser = parser.add_subparsers(dest="command", required=True)
     cmd_parser.add_parser("list")
     cmd_parser.add_parser("build")
@@ -147,6 +181,10 @@ def main():
     efi_parser.add_argument("disk")
     efi_parser.add_argument("partition_no", type=int)
     args = parser.parse_args()
+    configure_logger(args.verbose)
+
+    logging.debug("Running: {}".format(sys.argv))
+    logging.debug("Parsed arguments: {}".format(args))
 
     if args.command == "list":
         list_distribution_efi(config, distribution)
