@@ -1,6 +1,7 @@
 import unittest
-from secure_squash_root.file_names import iterate_kernel_variants
 from tests.unit.distributions.base import distribution_mock
+from secure_squash_root.file_names import iterate_kernel_variants, \
+    backup_file, backup_label, tmpfs_file, tmpfs_label
 
 
 class FileNamesTest(unittest.TestCase):
@@ -32,3 +33,15 @@ class FileNamesTest(unittest.TestCase):
               'Distri Linux-lts (default) tmpfs'),
              ('5.14', 'default', 'linux-lts_default_tmpfs_backup',
               'Distri Linux-lts (default) tmpfs Backup')])
+
+    def test__backup_file(self):
+        self.assertEqual(backup_file("linux-lts"), "linux-lts_backup")
+
+    def test__backup_label(self):
+        self.assertEqual(backup_label("Linux LTS"), "Linux LTS Backup")
+
+    def test__tmpfs_file(self):
+        self.assertEqual(tmpfs_file("linux-lts"), "linux-lts_tmpfs")
+
+    def test__tmpfs_label(self):
+        self.assertEqual(tmpfs_label("Linux LTS"), "Linux LTS tmpfs")

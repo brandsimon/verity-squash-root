@@ -3,6 +3,7 @@ import argparse
 import os
 import shutil
 from configparser import ConfigParser
+from typing import Union
 import secure_squash_root.cmdline as cmdline
 import secure_squash_root.efi as efi
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
@@ -14,12 +15,14 @@ from secure_squash_root.distributions.base import DistributionConfig, \
     iterate_distribution_efi
 from secure_squash_root.distributions.arch import ArchLinuxConfig
 from secure_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
-from secure_squash_root.file_names import iterate_kernel_variants
+from secure_squash_root.file_names import iterate_kernel_variants, \
+    backup_file, tmpfs_file
 
 
 def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
                           slot: str, root_hash: str,
-                          out: str, add_cmdline: str = "") -> None:
+                          out: str, out_backup: Union[str, None],
+                          add_cmdline: str = "") -> None:
     cmdline = "{} {} {p}_slot={} {p}_hash={}".format(
         config["DEFAULT"]["CMDLINE"],
         add_cmdline,
@@ -39,11 +42,11 @@ def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
     key_dir = config["DEFAULT"]["SECURE_BOOT_KEYS"]
     efi.sign(key_dir, tmp_efi_file, tmp_efi_file)
     if os.path.exists(out):
-        if efi.file_matches_slot(out, slot):
+        if efi.file_matches_slot(out, slot) or out_backup is None:
             # if backup slot is booted, dont override it
             os.unlink(out)
         else:
-            os.rename(out, "{}.bak".format(out))
+            os.rename(out, out_backup)
     shutil.move(tmp_efi_file, out)
 
 
@@ -85,23 +88,28 @@ def create_image_and_sign_kernel(config: ConfigParser,
         vmlinuz = distribution.vmlinuz(kernel)
         print(kernel, preset)
         base_name = distribution.file_name(kernel, preset)
-        base_name_tmpfs = "{}_tmpfs".format(base_name)
+        base_name_tmpfs = tmpfs_file(base_name)
+
         if base_name in ignore_efis and base_name_tmpfs in ignore_efis:
             continue
 
         initramfs = distribution.build_initramfs_with_microcode(
             kernel, preset)
         out_dir = os.path.join(efi_partition, "EFI", efi_dirname)
-        if base_name not in ignore_efis:
-            out = os.path.join(out_dir, "{}.efi".format(base_name))
-            build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
-                                  root_hash, out)
 
-        if base_name_tmpfs not in ignore_efis:
-            out_tmpfs = os.path.join(out_dir, "{}.efi".format(base_name_tmpfs))
-            build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
-                                  root_hash, out_tmpfs,
-                                  "{}_volatile".format(KERNEL_PARAM_BASE))
+        def build(bn, cmdline_add):
+            if bn not in ignore_efis:
+                out = os.path.join(out_dir, "{}.efi".format(bn))
+                backup_out = None
+                backup_bn = backup_file(bn)
+                if backup_bn not in ignore_efis:
+                    backup_out = os.path.join(
+                        out_dir, "{}.efi".format(backup_bn))
+                build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
+                                      root_hash, out, backup_out, cmdline_add)
+
+        build(base_name, "")
+        build(tmpfs_file(base_name), "{}_volatile".format(KERNEL_PARAM_BASE))
 
 
 def list_distribution_efi(config: ConfigParser,
