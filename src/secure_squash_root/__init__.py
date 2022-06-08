@@ -14,6 +14,7 @@ from secure_squash_root.distributions.base import DistributionConfig, \
     iterate_distribution_efi
 from secure_squash_root.distributions.arch import ArchLinuxConfig
 from secure_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
+from secure_squash_root.file_names import iterate_kernel_variants
 
 
 def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
@@ -103,12 +104,22 @@ def create_image_and_sign_kernel(config: ConfigParser,
                                   "{}_volatile".format(KERNEL_PARAM_BASE))
 
 
-def list_distribution_efi(distribution: DistributionConfig) -> None:
-    for [kernel, preset, base_name] in iterate_distribution_efi(distribution):
-        display = distribution.display_name(kernel, preset)
-        print("{}: kernel: {}, preset: {}".format(display, kernel, preset))
-        print(" - {}".format(base_name))
-        print(" - {}_tmpfs".format(base_name))
+def list_distribution_efi(config: ConfigParser,
+                          distribution: DistributionConfig) -> None:
+    ignore_efis = config_str_to_stripped_arr(
+        config["DEFAULT"]["IGNORE_KERNEL_EFIS"])
+    last = ("", "")
+
+    for (kernel, preset, base_name, display) in iterate_kernel_variants(
+            distribution):
+        ident = (kernel, preset)
+        if ident != last:
+            print("{}: kernel: {}, preset: {}".format(display, kernel, preset))
+        last = ident
+
+        op = "+" if base_name not in ignore_efis else "-"
+        print(" {} {} ({})".format(op, base_name, display))
+    print("\n(+ = included, - = excluded")
 
 
 def main():
@@ -130,7 +141,7 @@ def main():
     args = parser.parse_args()
 
     if args.command == "list":
-        list_distribution_efi(distribution)
+        list_distribution_efi(config, distribution)
     elif args.command == "setup":
         if args.boot_method == "uefi":
             add_kernels_to_uefi(config, distribution,
