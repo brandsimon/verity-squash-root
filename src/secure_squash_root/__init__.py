@@ -103,18 +103,18 @@ def create_image_and_sign_kernel(config: ConfigParser,
         base_name = distribution.file_name(kernel, preset)
         base_name_tmpfs = tmpfs_file(base_name)
         display = distribution.display_name(kernel, preset)
-        logging.info("Processing {}".format(display))
 
         if base_name in ignore_efis and base_name_tmpfs in ignore_efis:
             logging.info("skipping due to ignored kernels")
             continue
 
-        logging.info("Create initramfs")
+        logging.info("Create initramfs for {}".format(display))
         initramfs = distribution.build_initramfs_with_microcode(
             kernel, preset)
 
-        def build(bn, cmdline_add):
+        def build(bn, label, cmdline_add):
             if bn not in ignore_efis:
+                logging.info("Processing {}".format(label))
                 out = os.path.join(out_dir, "{}.efi".format(bn))
                 logging.debug("Write efi to {}".format(out))
                 backup_out = None
@@ -125,9 +125,9 @@ def create_image_and_sign_kernel(config: ConfigParser,
                 build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
                                       root_hash, out, backup_out, cmdline_add)
 
-        build(base_name, "")
-        logging.info("Processing {} ".format(tmpfs_label(display)))
-        build(base_name_tmpfs, "{}_volatile".format(KERNEL_PARAM_BASE))
+        build(base_name, display, "")
+        build(base_name_tmpfs, tmpfs_label(display),
+              "{}_volatile".format(KERNEL_PARAM_BASE))
 
 
 def list_distribution_efi(config: ConfigParser,
