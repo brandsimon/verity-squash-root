@@ -1,5 +1,6 @@
 import os
 from collections.abc import Mapping
+from functools import lru_cache
 from typing import List
 from secure_squash_root.config import TMPDIR
 from secure_squash_root.exec import exec_binary
@@ -31,6 +32,7 @@ class ArchLinuxConfig(DistributionConfig):
     def efi_dirname(self) -> str:
         return "Arch"
 
+    @lru_cache(maxsize=128)
     def _kernel_to_name(self, kernel: str) -> str:
         pkgbase_file = os.path.join(self._modules_dir, kernel, "pkgbase")
         return read_text_from(pkgbase_file).strip()
