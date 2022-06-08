@@ -1,4 +1,6 @@
 from typing import Generator, Tuple
+from configparser import ConfigParser
+from secure_squash_root.config import config_str_to_stripped_arr
 from secure_squash_root.distributions.base import DistributionConfig, \
     iterate_distribution_efi
 
@@ -29,3 +31,15 @@ def iterate_kernel_variants(distribution: DistributionConfig) \
         yield (kernel, preset,
                backup_file(tmpfs_file(base_name)),
                backup_label(tmpfs_label(display)))
+
+
+def iterate_non_ignored_kernel_variants(
+        config: ConfigParser, distribution: DistributionConfig) \
+        -> Generator[Tuple[str, str, str, str], None, None]:
+    ignore_efis = config_str_to_stripped_arr(
+        config["DEFAULT"]["IGNORE_KERNEL_EFIS"])
+
+    for (kernel, preset, base_name, display) in iterate_kernel_variants(
+            distribution):
+        if base_name not in ignore_efis:
+            yield (kernel, preset, base_name, display)

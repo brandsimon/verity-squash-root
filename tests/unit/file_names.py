@@ -1,7 +1,8 @@
 import unittest
 from tests.unit.distributions.base import distribution_mock
 from secure_squash_root.file_names import iterate_kernel_variants, \
-    backup_file, backup_label, tmpfs_file, tmpfs_label
+    backup_file, backup_label, tmpfs_file, tmpfs_label, \
+    iterate_non_ignored_kernel_variants
 
 
 class FileNamesTest(unittest.TestCase):
@@ -31,6 +32,35 @@ class FileNamesTest(unittest.TestCase):
               'Distri Linux-lts (default) Backup'),
              ('5.14', 'default', 'linux-lts_default_tmpfs',
               'Distri Linux-lts (default) tmpfs'),
+             ('5.14', 'default', 'linux-lts_default_tmpfs_backup',
+              'Distri Linux-lts (default) tmpfs Backup')])
+
+    def test__iterate_non_ignored_kernel_variants(self):
+        distri_mock = distribution_mock()
+        ignore = (" linux-lts_default_backup,linux_default_backup,"
+                  "linux-lts_default_tmpfs ,linux_fallback")
+        config = {
+            "DEFAULT": {
+                "IGNORE_KERNEL_EFIS": ignore,
+            }
+        }
+        variants = list(iterate_non_ignored_kernel_variants(
+            config, distri_mock))
+        self.assertEqual(
+            variants,
+            [('5.19', 'default', 'linux_default', 'Distri Linux (default)'),
+             ('5.19', 'default', 'linux_default_tmpfs',
+              'Distri Linux (default) tmpfs'),
+             ('5.19', 'default', 'linux_default_tmpfs_backup',
+              'Distri Linux (default) tmpfs Backup'),
+             ('5.19', 'fallback', 'linux_fallback_backup',
+              'Distri Linux (fallback) Backup'),
+             ('5.19', 'fallback', 'linux_fallback_tmpfs',
+              'Distri Linux (fallback) tmpfs'),
+             ('5.19', 'fallback', 'linux_fallback_tmpfs_backup',
+              'Distri Linux (fallback) tmpfs Backup'),
+             ('5.14', 'default', 'linux-lts_default',
+              'Distri Linux-lts (default)'),
              ('5.14', 'default', 'linux-lts_default_tmpfs_backup',
               'Distri Linux-lts (default) tmpfs Backup')])
 
