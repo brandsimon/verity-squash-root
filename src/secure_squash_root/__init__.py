@@ -10,7 +10,6 @@ import secure_squash_root.cmdline as cmdline
 import secure_squash_root.efi as efi
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
     config_str_to_stripped_arr, read_config, LOG_FILE, check_config_and_system
-from secure_squash_root.exec import exec_binary
 from secure_squash_root.file_op import read_text_from, write_str_to
 from secure_squash_root.image import mksquashfs, veritysetup_image
 from secure_squash_root.distributions.base import DistributionConfig, \
