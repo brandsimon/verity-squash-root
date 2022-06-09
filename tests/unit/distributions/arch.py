@@ -4,8 +4,7 @@ from unittest import mock
 from secure_squash_root.distributions.arch import ArchLinuxConfig
 from secure_squash_root.exec import exec_binary
 from secure_squash_root.config import TMPDIR
-from tests.unit.test_helper import PROJECT_ROOT, get_test_files_path, \
-    wrap_tempdir
+from tests.unit.test_helper import PROJECT_ROOT, get_test_files_path
 
 TEST_FILES_DIR = get_test_files_path("distributions/arch")
 
@@ -54,8 +53,7 @@ class ArchLinuxConfigTest(unittest.TestCase):
         self.assertEqual(arch.vmlinuz("5.17.2-arch"),
                          "/usr/lib/modules/5.17.2-arch/vmlinuz")
 
-    @wrap_tempdir
-    def test__build_initramfs_with_microcode(self, tempdir):
+    def test__build_initramfs_with_microcode(self):
         preset_info = "some info\npreset_image = /test\nsome more info\nx=y\n"
 
         def read(file):
