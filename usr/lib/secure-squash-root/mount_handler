@@ -35,7 +35,7 @@ veritysetup open "${IMAGE}" rootsq "${IMAGE}.verity" "${ROOTHASH}"
 mount -o ro "/dev/mapper/rootsq" "${TMP}/squashroot"
 # Remove modules and use them from squashfs
 # This avoids module loading problems due to kernel version mismatch
-rm -rf "${ROOT}/overlay/usr/lib/modules/$(uname -r)/kernel/"
+rm -rf "${ROOT}/overlay/usr/lib/modules/$(uname -r)/"
 # Disable xino, index and metacopy, so the underlying filesystem can be updated
 # Metacopy also has security problems on untrusted upper (See kernel overlayfs)
 mount \
