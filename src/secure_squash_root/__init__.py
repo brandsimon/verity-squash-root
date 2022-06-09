@@ -19,6 +19,7 @@ from secure_squash_root.distributions.arch import ArchLinuxConfig
 from secure_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
 from secure_squash_root.file_names import iterate_kernel_variants, \
     backup_file, tmpfs_file, kernel_is_ignored, tmpfs_label
+from secure_squash_root.mount import TmpfsMount
 
 
 def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
@@ -57,24 +58,6 @@ def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
             logging.debug("Path: {}".format(out_backup))
             os.rename(out, out_backup)
     shutil.move(tmp_efi_file, out)
-
-
-class TmpfsMount():
-    _directory: str
-
-    def __init__(self, directory: str):
-        self._directory = directory
-
-    def __enter__(self):
-        tmp_mount = ["mount", "-t", "tmpfs", "-o",
-                     "mode=0700,uid=0,gid=0", "tmpfs", self._directory]
-        exec_binary(["mkdir", self._directory])
-        exec_binary(tmp_mount)
-
-    def __exit__(self, exc_type, exc_value, exc_tb):
-        tmp_umount = ["umount", "-f", "-R", self._directory]
-        exec_binary(tmp_umount)
-        shutil.rmtree(self._directory)
 
 
 def create_image_and_sign_kernel(config: ConfigParser,
