@@ -1,5 +1,5 @@
 import unittest
-from secure_squash_root import exec_binary
+from secure_squash_root.exec import exec_binary
 
 
 class ExecTest(unittest.TestCase):
