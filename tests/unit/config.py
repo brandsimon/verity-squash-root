@@ -67,7 +67,7 @@ class ConfigTest(unittest.TestCase):
                 ["findmnt", "-uno", "OPTIONS", "/"])
 
         test("/sysroot/overlay", False)
-        test("/secure-squashfs-tmp/tmpfs", True)
+        test("/secure-squashfs-tmp/tmpfs/overlay", True)
 
     def test__check_config_and_system(self):
         with mock.patch("secure_squash_root.config.is_volatile_boot") as \
