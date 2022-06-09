@@ -148,9 +148,11 @@ def list_distribution_efi(config: ConfigParser,
     print("\n(+ = included, - = excluded")
 
 
-def warn_check_system_config(config: ConfigParser):
-    for line in check_config_and_system(config):
+def warn_check_system_config(config: ConfigParser) -> bool:
+    warnings = check_config_and_system(config)
+    for line in warnings:
         logging.warning(line)
+    return len(warnings) > 0
 
 
 def configure_logger(verbose: bool) -> None:
@@ -176,6 +178,7 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--verbose", action="store_true")
+    parser.add_argument("--ignore-warnings", action="store_true")
     cmd_parser = parser.add_subparsers(dest="command", required=True)
     cmd_parser.add_parser("list")
     cmd_parser.add_parser("check")
@@ -192,7 +195,11 @@ def main():
 
     logging.debug("Running: {}".format(sys.argv))
     logging.debug("Parsed arguments: {}".format(args))
-    warn_check_system_config(config)
+    warned = warn_check_system_config(config)
+    if warned and not args.ignore_warnings:
+        logging.error("If you want to ignore those warnings, run with "
+                      "--ignore-warnings")
+        sys.exit(1)
 
     if args.command == "list":
         list_distribution_efi(config, distribution)
