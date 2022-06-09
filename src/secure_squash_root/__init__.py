@@ -9,7 +9,7 @@ from typing import Union
 import secure_squash_root.cmdline as cmdline
 import secure_squash_root.efi as efi
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
-    config_str_to_stripped_arr, read_config, LOG_FILE, check_config
+    config_str_to_stripped_arr, read_config, LOG_FILE, check_config_and_system
 from secure_squash_root.exec import exec_binary
 from secure_squash_root.file_op import read_text_from, write_str_to
 from secure_squash_root.image import mksquashfs, veritysetup_image
@@ -148,8 +148,8 @@ def list_distribution_efi(config: ConfigParser,
     print("\n(+ = included, - = excluded")
 
 
-def warn_check_config(config: ConfigParser):
-    for line in check_config(config):
+def warn_check_system_config(config: ConfigParser):
+    for line in check_config_and_system(config):
         logging.warning(line)
 
 
@@ -192,7 +192,7 @@ def main():
 
     logging.debug("Running: {}".format(sys.argv))
     logging.debug("Parsed arguments: {}".format(args))
-    warn_check_config(config)
+    warn_check_system_config(config)
 
     if args.command == "list":
         list_distribution_efi(config, distribution)

@@ -1,6 +1,7 @@
 import os
 from configparser import ConfigParser
 from typing import List
+from secure_squash_root.exec import exec_binary
 
 
 TMPDIR = "/tmp/secure_squash_root"
@@ -24,6 +25,12 @@ def read_config() -> ConfigParser:
     return config
 
 
+def is_volatile_boot():
+    res = exec_binary(["findmnt", "-uno", "OPTIONS", "/"])[0].decode()
+    parts = res.split(",")
+    return "upperdir=/secure-squashfs-tmp/tmpfs" in parts
+
+
 def check_config(config: ConfigParser) -> List[str]:
     root_mount = config["DEFAULT"]["ROOT_MOUNT"]
     efi_partition = config["DEFAULT"]["EFI_PARTITION"]
@@ -32,3 +39,14 @@ def check_config(config: ConfigParser) -> List[str]:
         if not os.path.ismount(d):
             result.append("Directory '{}' is not a mount point".format(d))
     return result
+
+
+def check_config_and_system(config: ConfigParser) -> List[str]:
+    res = check_config(config)
+    if not is_volatile_boot():
+        res.append("System is not booted in volatile mode:")
+        res.append(" - System could be compromised from previous boots")
+        res.append(" - It is recommended to enter secure boot key passwords "
+                   "only in volatile mode")
+        res.append(" - Know what you are doing!")
+    return res

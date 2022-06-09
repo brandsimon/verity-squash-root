@@ -3,7 +3,7 @@ import unittest
 from unittest import mock
 from tests.unit.test_helper import PROJECT_ROOT
 from secure_squash_root.config import config_str_to_stripped_arr, \
-    read_config, check_config
+    read_config, check_config, is_volatile_boot, check_config_and_system
 
 
 class ConfigTest(unittest.TestCase):
@@ -52,3 +52,43 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(run([True, False]), [efi_error])
         self.assertEqual(run([False, True]), [mnt_error])
         self.assertEqual(run([False, False]), [mnt_error, efi_error])
+
+    @mock.patch("secure_squash_root.config.exec_binary")
+    def test__is_volatile_boot(self, exec_mock):
+        cmdline = ("rw,relatime,lowerdir=/secure-squashfs-tmp/squashroot,"
+                   "upperdir={},workdir=/sysroot/workdir,"
+                   "index=off,xino=off,metacopy=off")
+
+        def test(upper, result):
+            exec_mock.reset_mock()
+            exec_mock.return_value = [cmdline.format(upper).encode(), b""]
+            self.assertEqual(is_volatile_boot(), result)
+            exec_mock.assert_called_once_with(
+                ["findmnt", "-uno", "OPTIONS", "/"])
+
+        test("/sysroot/overlay", False)
+        test("/secure-squashfs-tmp/tmpfs", True)
+
+    def test__check_config_and_system(self):
+        with mock.patch("secure_squash_root.config.is_volatile_boot") as \
+                is_vol, \
+             mock.patch("secure_squash_root.config.check_config") as \
+                check_config:
+            check_config.return_value = ["some", "test", "values"]
+            is_vol.return_value = True
+            config = mock.Mock()
+            res = check_config_and_system(config)
+            is_vol.assert_called_once_with()
+            check_config.assert_called_once_with(config)
+            self.assertEqual(res, ["some", "test", "values"])
+
+            is_vol.return_value = False
+            res = check_config_and_system(config)
+            self.assertEqual(
+                res,
+                ["some", "test", "values",
+                 "System is not booted in volatile mode:",
+                 " - System could be compromised from previous boots",
+                 (" - It is recommended to enter secure boot key passwords "
+                  "only in volatile mode"),
+                 " - Know what you are doing!"])
