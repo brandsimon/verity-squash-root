@@ -23,8 +23,7 @@ from secure_squash_root.mount import TmpfsMount
 
 def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
                           slot: str, root_hash: str,
-                          out: str, out_backup: Union[str, None],
-                          add_cmdline: str = "") -> None:
+                          tmp_efi_file: str, add_cmdline: str = "") -> None:
     cmdline = "{} {} {p}_slot={} {p}_hash={}".format(
         config["DEFAULT"]["CMDLINE"],
         add_cmdline,
@@ -34,7 +33,6 @@ def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
     cmdline_file = os.path.join(TMPDIR, "cmdline")
     # Store files to sign on trusted tmpfs
     write_str_to(cmdline_file, cmdline)
-    tmp_efi_file = os.path.join(TMPDIR, "tmp.efi")
     efi.create_efi_executable(
         config["DEFAULT"]["EFI_STUB"],
         cmdline_file,
@@ -43,20 +41,24 @@ def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
         tmp_efi_file)
     key_dir = config["DEFAULT"]["SECURE_BOOT_KEYS"]
     efi.sign(key_dir, tmp_efi_file, tmp_efi_file)
-    if os.path.exists(out):
-        slot_matches = efi.file_matches_slot(out, slot)
-        if slot_matches or out_backup is None:
+
+
+def move_kernel_to(src: str, dst: str, slot: str,
+                   dst_backup: Union[str, None]) -> None:
+    if os.path.exists(dst):
+        slot_matches = efi.file_matches_slot(dst, slot)
+        if slot_matches or dst_backup is None:
             # if backup slot is booted, dont override it
-            if out_backup is None:
+            if dst_backup is None:
                 logging.debug("Backup ignored")
             elif slot_matches:
                 logging.debug("Backup slot kept as is")
-            os.unlink(out)
+            os.unlink(dst)
         else:
             logging.info("Moving old efi to backup")
-            logging.debug("Path: {}".format(out_backup))
-            os.rename(out, out_backup)
-    shutil.move(tmp_efi_file, out)
+            logging.debug("Path: {}".format(dst_backup))
+            os.rename(dst, dst_backup)
+    shutil.move(src, dst)
 
 
 def create_image_and_sign_kernel(config: ConfigParser,
@@ -104,8 +106,11 @@ def create_image_and_sign_kernel(config: ConfigParser,
                 if backup_bn not in ignore_efis:
                     backup_out = os.path.join(
                         out_dir, "{}.efi".format(backup_bn))
+                tmp_efi_file = os.path.join(TMPDIR, "tmp.efi")
                 build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
-                                      root_hash, out, backup_out, cmdline_add)
+                                      root_hash, tmp_efi_file,
+                                      cmdline_add)
+                move_kernel_to(tmp_efi_file, out, use_slot, backup_out)
 
         build(base_name, display, "")
         build(base_name_tmpfs, tmpfs_label(display),
