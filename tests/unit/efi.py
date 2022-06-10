@@ -2,7 +2,7 @@ import os
 import unittest
 from .test_helper import get_test_files_path
 from unittest import mock
-from secure_squash_root.exec import exec_binary
+from secure_squash_root.file_op import read_from
 from secure_squash_root.efi import file_matches_slot, sign, \
     create_efi_executable
 
@@ -11,17 +11,13 @@ TEST_FILES_DIR = get_test_files_path("efi")
 
 class EfiTest(unittest.TestCase):
 
-    @mock.patch("secure_squash_root.efi.exec_binary")
-    def test__file_matches_slot(self, exec_mock):
-        exec_mock.side_effect = exec_binary
+    def test__file_matches_slot(self):
 
         def wrapper(path: str, slot: str):
-            exec_mock.reset_mock()
             file = os.path.join(TEST_FILES_DIR, path)
+            content_before = read_from(file)
             result = file_matches_slot(file, slot)
-            exec_mock.assert_called_once_with([
-                "objcopy", "--dump-section", ".cmdline=/dev/stdout",
-                file, "/dev/stderr"])
+            self.assertEqual(content_before, read_from(file))
             return result
 
         self.assertTrue(wrapper("stub_slot_a.efi", "a"))

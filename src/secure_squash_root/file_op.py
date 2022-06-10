@@ -7,9 +7,13 @@ def write_str_to(path: str, content: str) -> None:
         f.write(content)
 
 
-def read_text_from(path: str) -> str:
-    with open(path, "r") as f:
+def read_from(path: str) -> bytes:
+    with open(path, "rb") as f:
         return f.read()
+
+
+def read_text_from(path: str) -> str:
+    return read_from(path).decode()
 
 
 def merge_files(src: List[str], dest: str):
