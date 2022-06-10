@@ -17,7 +17,8 @@ class EfiTest(unittest.TestCase):
             file = os.path.join(TEST_FILES_DIR, path)
             content_before = read_from(file)
             result = file_matches_slot(file, slot)
-            self.assertEqual(content_before, read_from(file))
+            self.assertEqual(content_before, read_from(file),
+                             "objcopy modified file (breaks secure boot)")
             return result
 
         self.assertTrue(wrapper("stub_slot_a.efi", "a"))
