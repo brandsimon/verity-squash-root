@@ -1,7 +1,9 @@
 import os
+from configparser import ConfigParser
 from tempfile import NamedTemporaryFile
 from secure_squash_root.exec import exec_binary
-from secure_squash_root.config import KERNEL_PARAM_BASE
+from secure_squash_root.config import KERNEL_PARAM_BASE, TMPDIR
+from secure_squash_root.file_op import write_str_to
 
 
 def file_matches_slot(file: str, slot: str):
@@ -35,3 +37,24 @@ def create_efi_executable(stub: str, cmdline_file: str, linux: str,
         "--add-section", ".initrd={}".format(initrd),
         "--change-section-vma", ".initrd=0x3000000",
         stub, dest])
+
+
+def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
+                          slot: str, root_hash: str,
+                          tmp_efi_file: str, add_cmdline: str = "") -> None:
+    cmdline = "{} {} {p}_slot={} {p}_hash={}".format(
+        config["DEFAULT"]["CMDLINE"],
+        add_cmdline,
+        slot,
+        root_hash,
+        p=KERNEL_PARAM_BASE)
+    cmdline_file = os.path.join(TMPDIR, "cmdline")
+    write_str_to(cmdline_file, cmdline)
+    create_efi_executable(
+        config["DEFAULT"]["EFI_STUB"],
+        cmdline_file,
+        vmlinuz,
+        initramfs,
+        tmp_efi_file)
+    key_dir = config["DEFAULT"]["SECURE_BOOT_KEYS"]
+    sign(key_dir, tmp_efi_file, tmp_efi_file)

@@ -10,7 +10,7 @@ import secure_squash_root.cmdline as cmdline
 import secure_squash_root.efi as efi
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
     config_str_to_stripped_arr, read_config, LOG_FILE, check_config_and_system
-from secure_squash_root.file_op import read_text_from, write_str_to
+from secure_squash_root.file_op import read_text_from
 from secure_squash_root.image import mksquashfs, veritysetup_image
 from secure_squash_root.distributions.base import DistributionConfig, \
     iterate_distribution_efi
@@ -19,28 +19,6 @@ from secure_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
 from secure_squash_root.file_names import iterate_kernel_variants, \
     backup_file, tmpfs_file, kernel_is_ignored, tmpfs_label
 from secure_squash_root.mount import TmpfsMount
-
-
-def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
-                          slot: str, root_hash: str,
-                          tmp_efi_file: str, add_cmdline: str = "") -> None:
-    cmdline = "{} {} {p}_slot={} {p}_hash={}".format(
-        config["DEFAULT"]["CMDLINE"],
-        add_cmdline,
-        slot,
-        root_hash,
-        p=KERNEL_PARAM_BASE)
-    cmdline_file = os.path.join(TMPDIR, "cmdline")
-    # Store files to sign on trusted tmpfs
-    write_str_to(cmdline_file, cmdline)
-    efi.create_efi_executable(
-        config["DEFAULT"]["EFI_STUB"],
-        cmdline_file,
-        vmlinuz,
-        initramfs,
-        tmp_efi_file)
-    key_dir = config["DEFAULT"]["SECURE_BOOT_KEYS"]
-    efi.sign(key_dir, tmp_efi_file, tmp_efi_file)
 
 
 def move_kernel_to(src: str, dst: str, slot: str,
@@ -106,10 +84,11 @@ def create_image_and_sign_kernel(config: ConfigParser,
                 if backup_bn not in ignore_efis:
                     backup_out = os.path.join(
                         out_dir, "{}.efi".format(backup_bn))
+                # Store files to sign on trusted tmpfs
                 tmp_efi_file = os.path.join(TMPDIR, "tmp.efi")
-                build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
-                                      root_hash, tmp_efi_file,
-                                      cmdline_add)
+                efi.build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
+                                          root_hash, tmp_efi_file,
+                                          cmdline_add)
                 move_kernel_to(tmp_efi_file, out, use_slot, backup_out)
 
         build(base_name, display, "")

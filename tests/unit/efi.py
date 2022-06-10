@@ -4,8 +4,7 @@ from .test_helper import get_test_files_path
 from unittest import mock
 from secure_squash_root.file_op import read_from
 from secure_squash_root.efi import file_matches_slot, sign, \
-    create_efi_executable
-from secure_squash_root import build_and_sign_kernel
+    create_efi_executable, build_and_sign_kernel
 
 TEST_FILES_DIR = get_test_files_path("efi")
 
@@ -59,7 +58,7 @@ class EfiTest(unittest.TestCase):
 
     def test__build_and_sign_kernel(self):
         all_mocks = mock.Mock()
-        base = "secure_squash_root"
+        base = "secure_squash_root.efi"
         config = {
             "DEFAULT": {
                 "CMDLINE": "rw encrypt=/dev/sda2 quiet",
@@ -69,8 +68,10 @@ class EfiTest(unittest.TestCase):
         }
         call = mock.call
 
-        with mock.patch("{}.efi".format(base),
-                        new=all_mocks.efi), \
+        with mock.patch("{}.sign".format(base),
+                        new=all_mocks.efi.sign), \
+             mock.patch("{}.create_efi_executable".format(base),
+                        new=all_mocks.efi.create_efi_executable), \
              mock.patch("{}.write_str_to".format(base),
                         new=all_mocks.write_str_to):
             build_and_sign_kernel(config, "/boot/vmlinuz",
