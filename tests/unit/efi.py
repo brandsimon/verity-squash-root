@@ -5,6 +5,7 @@ from unittest import mock
 from secure_squash_root.file_op import read_from
 from secure_squash_root.efi import file_matches_slot, sign, \
     create_efi_executable
+from secure_squash_root import build_and_sign_kernel
 
 TEST_FILES_DIR = get_test_files_path("efi")
 
@@ -55,3 +56,58 @@ class EfiTest(unittest.TestCase):
             '--add-section', '.initrd=/tmp/initramfs.img',
             '--change-section-vma', '.initrd=0x3000000',
             '/my/stub.efi', '/tmp/file.efi'])
+
+    def test__build_and_sign_kernel(self):
+        all_mocks = mock.Mock()
+        base = "secure_squash_root"
+        config = {
+            "DEFAULT": {
+                "CMDLINE": "rw encrypt=/dev/sda2 quiet",
+                "SECURE_BOOT_KEYS": "/etc/securebootkeys",
+                "EFI_STUB": "/usr/lib/systemd/mystub.efi",
+            }
+        }
+        call = mock.call
+
+        with mock.patch("{}.efi".format(base),
+                        new=all_mocks.efi), \
+             mock.patch("{}.write_str_to".format(base),
+                        new=all_mocks.write_str_to):
+            build_and_sign_kernel(config, "/boot/vmlinuz",
+                                  "/tmp/initramfs.img", "a",
+                                  "567myhash234", "/tmp/file.efi",
+                                  "tmpfsparam")
+            self.assertEqual(
+                all_mocks.mock_calls,
+                [call.write_str_to("/tmp/secure_squash_root/cmdline",
+                                   ("rw encrypt=/dev/sda2 quiet tmpfsparam "
+                                    "secure_squash_root_slot=a "
+                                    "secure_squash_root_hash=567myhash234")),
+                 call.efi.create_efi_executable(
+                     "/usr/lib/systemd/mystub.efi",
+                     "/tmp/secure_squash_root/cmdline",
+                     "/boot/vmlinuz", "/tmp/initramfs.img", "/tmp/file.efi"),
+                 call.efi.sign("/etc/securebootkeys", "/tmp/file.efi",
+                               "/tmp/file.efi")])
+
+            all_mocks.reset_mock()
+
+            build_and_sign_kernel(config, "/usr/lib/vmlinuz-lts",
+                                  "/boot/initramfs_fallback.img", "b",
+                                  "853anotherhash723", "/tmporary/dir/f.efi",
+                                  "")
+            self.assertEqual(
+                all_mocks.mock_calls,
+                [call.write_str_to(
+                     "/tmp/secure_squash_root/cmdline",
+                     ("rw encrypt=/dev/sda2 quiet  secure_squash_root_slot=b "
+                      "secure_squash_root_hash=853anotherhash723")),
+                 call.efi.create_efi_executable(
+                         "/usr/lib/systemd/mystub.efi",
+                         "/tmp/secure_squash_root/cmdline",
+                     "/usr/lib/vmlinuz-lts",
+                     "/boot/initramfs_fallback.img",
+                     "/tmporary/dir/f.efi"),
+                 call.efi.sign("/etc/securebootkeys",
+                               "/tmporary/dir/f.efi",
+                               "/tmporary/dir/f.efi")])
