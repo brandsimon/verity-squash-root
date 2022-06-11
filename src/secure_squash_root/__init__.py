@@ -2,10 +2,8 @@
 import argparse
 import logging
 import os
-import shutil
 import sys
 from configparser import ConfigParser
-from typing import Union
 import secure_squash_root.cmdline as cmdline
 import secure_squash_root.efi as efi
 from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
@@ -19,24 +17,7 @@ from secure_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
 from secure_squash_root.file_names import iterate_kernel_variants, \
     backup_file, tmpfs_file, kernel_is_ignored, tmpfs_label
 from secure_squash_root.mount import TmpfsMount
-
-
-def move_kernel_to(src: str, dst: str, slot: str,
-                   dst_backup: Union[str, None]) -> None:
-    if os.path.exists(dst):
-        slot_matches = efi.file_matches_slot(dst, slot)
-        if slot_matches or dst_backup is None:
-            # if backup slot is booted, dont override it
-            if dst_backup is None:
-                logging.debug("Backup ignored")
-            elif slot_matches:
-                logging.debug("Backup slot kept as is")
-            os.unlink(dst)
-        else:
-            logging.info("Moving old efi to backup")
-            logging.debug("Path: {}".format(dst_backup))
-            os.rename(dst, dst_backup)
-    shutil.move(src, dst)
+from secure_squash_root.main import move_kernel_to
 
 
 def create_image_and_sign_kernel(config: ConfigParser,
@@ -137,7 +118,7 @@ def configure_logger(verbose: bool) -> None:
     logger.handlers[1].setLevel(loglevel)
 
 
-def main():
+def parse_params_and_run():
     os.umask(0o077)
     config = read_config()
     distribution = ArchLinuxConfig()
@@ -181,4 +162,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parse_params_and_run()

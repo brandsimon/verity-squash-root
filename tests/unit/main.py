@@ -6,7 +6,7 @@ from secure_squash_root import move_kernel_to
 class MainTest(unittest.TestCase):
 
     def test__move_kernel_to(self):
-        base = "secure_squash_root"
+        base = "secure_squash_root.main"
         call = mock.call
         all_mocks = mock.Mock()
 
@@ -69,7 +69,6 @@ class MainTest(unittest.TestCase):
                            "/boot/efi/linux_test.efi",
                            "a",
                            "/boot/efi/EFI/linux_test_backup.efi")
-            print(all_mocks.mock_calls)
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.os.path.exists("/boot/efi/linux_test.efi"),
