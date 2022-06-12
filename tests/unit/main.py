@@ -1,13 +1,14 @@
 import unittest
 from unittest import mock
-from secure_squash_root import move_kernel_to
+from unittest.mock import call
+from secure_squash_root import move_kernel_to, \
+    create_squashfs_return_verity_hash
 
 
 class MainTest(unittest.TestCase):
 
     def test__move_kernel_to(self):
         base = "secure_squash_root.main"
-        call = mock.call
         all_mocks = mock.Mock()
 
         with mock.patch("{}.os".format(base),
@@ -77,3 +78,31 @@ class MainTest(unittest.TestCase):
                  call.os.unlink("/boot/efi/linux_test.efi"),
                  call.shutil.move("/tmp/tmp_a5.efi",
                                   "/boot/efi/linux_test.efi")])
+
+    def test__create_squashfs_return_verity_hash(self):
+        base = "secure_squash_root"
+        all_mocks = mock.Mock()
+
+        config = {
+            "DEFAULT": {
+                "ROOT_MOUNT": "/opt/mnt/root",
+                "EFI_PARTITION": "/boot/second/efi",
+                "EXCLUDE_DIRS": "var/lib,opt/var",
+            }
+        }
+
+        with mock.patch("{}.veritysetup_image".format(base),
+                        new=all_mocks.veritysetup_image), \
+             mock.patch("{}.mksquashfs".format(base),
+                        new=all_mocks.mksquashfs):
+            result = create_squashfs_return_verity_hash(config, "c")
+            self.assertEqual(
+                all_mocks.mock_calls,
+                [call.mksquashfs(['var/lib', 'opt/var'],
+                                 '/opt/mnt/root/image_c.squashfs',
+                                 '/opt/mnt/root',
+                                 '/boot/second/efi'),
+                 call.veritysetup_image('/opt/mnt/root/image_c.squashfs')])
+            self.assertEqual(
+                result,
+                all_mocks.veritysetup_image())
