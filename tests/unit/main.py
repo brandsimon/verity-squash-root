@@ -2,7 +2,7 @@ import unittest
 from unittest import mock
 from unittest.mock import call
 from secure_squash_root import move_kernel_to, \
-    create_squashfs_return_verity_hash
+    create_squashfs_return_verity_hash, build_and_move_kernel
 
 
 class MainTest(unittest.TestCase):
@@ -106,3 +106,57 @@ class MainTest(unittest.TestCase):
             self.assertEqual(
                 result,
                 all_mocks.veritysetup_image())
+
+    def test__build_and_move_kernel(self):
+        base = "secure_squash_root"
+        all_mocks = mock.Mock()
+        config = mock.Mock()
+        vmlinuz = mock.Mock()
+        initramfs = mock.Mock()
+        use_slot = mock.Mock()
+        root_hash = mock.Mock()
+        cmdline_add = mock.Mock()
+
+        with mock.patch("{}.efi".format(base),
+                        new=all_mocks.efi), \
+             mock.patch("{}.move_kernel_to".format(base),
+                        new=all_mocks.move_kernel_to):
+            # No install
+            build_and_move_kernel(
+                config, vmlinuz, initramfs, use_slot, root_hash,
+                cmdline_add, "linux_fallback", "/boot/ef/EFI/Debian",
+                "Debian Linux", ["linux", "linux_fallback", "linux-lts"])
+            self.assertEqual(all_mocks.mock_calls, [])
+
+            # No backup
+            build_and_move_kernel(
+                config, vmlinuz, initramfs, use_slot, root_hash,
+                cmdline_add, "linux_fallback", "/boot/ef/EFI/Debian",
+                "Debian Linux", ["linux", "linux_fallback_backup", "lts_lin"])
+
+            self.assertEqual(
+                all_mocks.mock_calls,
+                [call.efi.build_and_sign_kernel(
+                     config, vmlinuz, initramfs, use_slot, root_hash,
+                     '/tmp/secure_squash_root/tmp.efi', cmdline_add),
+                 call.move_kernel_to(
+                     '/tmp/secure_squash_root/tmp.efi',
+                     '/boot/ef/EFI/Debian/linux_fallback.efi',
+                     use_slot, None)])
+
+            all_mocks.reset_mock()
+            # Backup
+            build_and_move_kernel(
+                config, vmlinuz, initramfs, use_slot, root_hash,
+                cmdline_add, "linux_tmpfs", "/boot/efidir/EFI/Debian",
+                "Debian Linux 11", ["linux", "linux_tmp", "lts_lin"])
+            self.assertEqual(
+                all_mocks.mock_calls,
+                [call.efi.build_and_sign_kernel(
+                     config, vmlinuz, initramfs, use_slot, root_hash,
+                     '/tmp/secure_squash_root/tmp.efi', cmdline_add),
+                 call.move_kernel_to(
+                     '/tmp/secure_squash_root/tmp.efi',
+                     '/boot/efidir/EFI/Debian/linux_tmpfs.efi',
+                     use_slot,
+                     '/boot/efidir/EFI/Debian/linux_tmpfs_backup.efi')])
