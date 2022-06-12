@@ -36,7 +36,7 @@ setup(
     install_requires=[],
     entry_points={
         'console_scripts': [
-            'secure-squash-root=secure_squash_root:main',
+            'secure-squash-root=secure_squash_root:parse_params_and_run'
         ]
     },
 )
