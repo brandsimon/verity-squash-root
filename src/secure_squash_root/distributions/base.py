@@ -1,4 +1,4 @@
-from typing import Generator, List, Tuple
+from typing import Generator, List, MutableMapping, Tuple
 
 
 class DistributionConfig:
@@ -34,3 +34,19 @@ def iterate_distribution_efi(distribution: DistributionConfig) \
         for preset in distribution.list_kernel_presets(kernel):
             base_name = distribution.file_name(kernel, preset)
             yield (kernel, preset, base_name)
+
+
+def calc_kernel_packages_not_unique(distribution: DistributionConfig) \
+        -> List[str]:
+    mapping: MutableMapping[str, str] = {}
+    result = []
+    for kernel in distribution.list_kernels():
+        file_name = distribution.file_name(kernel, "")
+        if file_name in mapping:
+            result.append("Package {} has multiple kernel versions: {}, {}"
+                          .format(file_name, kernel, mapping[file_name]))
+        mapping[file_name] = kernel
+    if len(result) > 0:
+        result.append("This means, that there are probably old files in "
+                      "/usr/lib/modules")
+    return result

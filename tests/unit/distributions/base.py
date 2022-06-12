@@ -1,6 +1,7 @@
 import unittest
 from unittest import mock
-from secure_squash_root.distributions.base import iterate_distribution_efi
+from secure_squash_root.distributions.base import iterate_distribution_efi, \
+    calc_kernel_packages_not_unique
 
 
 def distribution_mock():
@@ -41,3 +42,17 @@ class BaseDistributionTest(unittest.TestCase):
                           mock.call.file_name("5.19", "fallback"),
                           mock.call.list_kernel_presets("5.14"),
                           mock.call.file_name("5.14", "default")])
+
+    def test__calc_kernel_packages_not_unique(self):
+        distri_mock = distribution_mock()
+        self.assertEqual(
+            [],
+            calc_kernel_packages_not_unique(distri_mock))
+
+        distri_mock.file_name.side_effect = None
+        distri_mock.file_name.return_value = "linux"
+        self.assertEqual(
+            ["Package linux has multiple kernel versions: 5.14, 5.19",
+             "This means, that there are probably old files in "
+             "/usr/lib/modules"],
+            calc_kernel_packages_not_unique(distri_mock))

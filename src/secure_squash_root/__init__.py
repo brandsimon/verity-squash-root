@@ -12,7 +12,7 @@ from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
 from secure_squash_root.file_op import read_text_from
 from secure_squash_root.image import mksquashfs, veritysetup_image
 from secure_squash_root.distributions.base import DistributionConfig, \
-    iterate_distribution_efi
+    iterate_distribution_efi, calc_kernel_packages_not_unique
 from secure_squash_root.distributions.arch import ArchLinuxConfig
 from secure_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
 from secure_squash_root.file_names import iterate_kernel_variants, \
@@ -116,8 +116,10 @@ def list_distribution_efi(config: ConfigParser,
     print("\n(+ = included, - = excluded")
 
 
-def warn_check_system_config(config: ConfigParser) -> bool:
-    warnings = check_config_and_system(config)
+def warn_check_system_config(config: ConfigParser,
+                             distribution: DistributionConfig) -> bool:
+    warnings = check_config_and_system(config) + \
+        calc_kernel_packages_not_unique(distribution)
     for line in warnings:
         logging.warning(line)
     return len(warnings) > 0
@@ -163,7 +165,7 @@ def parse_params_and_run():
 
     logging.debug("Running: {}".format(sys.argv))
     logging.debug("Parsed arguments: {}".format(args))
-    warned = warn_check_system_config(config)
+    warned = warn_check_system_config(config, distribution)
     if warned and not args.ignore_warnings:
         logging.error("If you want to ignore those warnings, run with "
                       "--ignore-warnings")
