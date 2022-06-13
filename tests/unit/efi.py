@@ -2,6 +2,7 @@ import os
 import unittest
 from .test_helper import get_test_files_path
 from unittest import mock
+from secure_squash_root.config import KEY_DIR
 from secure_squash_root.file_op import read_from
 from secure_squash_root.efi import file_matches_slot, sign, \
     create_efi_executable, build_and_sign_kernel
@@ -62,7 +63,6 @@ class EfiTest(unittest.TestCase):
         config = {
             "DEFAULT": {
                 "CMDLINE": "rw encrypt=/dev/sda2 quiet",
-                "SECURE_BOOT_KEYS": "/etc/securebootkeys",
                 "EFI_STUB": "/usr/lib/systemd/mystub.efi",
             }
         }
@@ -88,7 +88,7 @@ class EfiTest(unittest.TestCase):
                      "/usr/lib/systemd/mystub.efi",
                      "/tmp/secure_squash_root/cmdline",
                      "/boot/vmlinuz", "/tmp/initramfs.img", "/tmp/file.efi"),
-                 call.efi.sign("/etc/securebootkeys", "/tmp/file.efi",
+                 call.efi.sign(KEY_DIR, "/tmp/file.efi",
                                "/tmp/file.efi")])
 
             all_mocks.reset_mock()
@@ -109,6 +109,6 @@ class EfiTest(unittest.TestCase):
                      "/usr/lib/vmlinuz-lts",
                      "/boot/initramfs_fallback.img",
                      "/tmporary/dir/f.efi"),
-                 call.efi.sign("/etc/securebootkeys",
+                 call.efi.sign(KEY_DIR,
                                "/tmporary/dir/f.efi",
                                "/tmporary/dir/f.efi")])

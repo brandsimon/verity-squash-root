@@ -5,6 +5,7 @@ from secure_squash_root.exec import exec_binary
 
 
 TMPDIR = "/tmp/secure_squash_root"
+KEY_DIR = os.path.join(TMPDIR, "keys")
 KERNEL_PARAM_BASE = "secure_squash_root"
 CONFIG_FILE = "/etc/{}/config.ini".format(KERNEL_PARAM_BASE)
 DISTRI_FILE = os.path.join("/usr/share/", KERNEL_PARAM_BASE, "default.ini")

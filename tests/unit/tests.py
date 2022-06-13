@@ -3,6 +3,7 @@ from tests.unit.cmdline import CmdlineTest
 from tests.unit.config import ConfigTest
 from tests.unit.distributions.arch import ArchLinuxConfigTest
 from tests.unit.distributions.base import BaseDistributionTest
+from tests.unit.decrypt import DecryptTest
 from tests.unit.efi import EfiTest
 from tests.unit.exec import ExecTest
 from tests.unit.file_names import FileNamesTest
@@ -22,6 +23,7 @@ def test_suite():
         unittest.makeSuite(BaseDistributionTest),
         unittest.makeSuite(CmdlineTest),
         unittest.makeSuite(ConfigTest),
+        unittest.makeSuite(DecryptTest),
         unittest.makeSuite(EfiTest),
         unittest.makeSuite(ExecTest),
         unittest.makeSuite(FileNamesTest),

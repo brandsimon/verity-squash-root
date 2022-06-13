@@ -1,8 +1,8 @@
 import os
 from configparser import ConfigParser
 from tempfile import NamedTemporaryFile
+from secure_squash_root.config import KERNEL_PARAM_BASE, TMPDIR, KEY_DIR
 from secure_squash_root.exec import exec_binary
-from secure_squash_root.config import KERNEL_PARAM_BASE, TMPDIR
 from secure_squash_root.file_op import write_str_to
 
 
@@ -56,5 +56,4 @@ def build_and_sign_kernel(config: ConfigParser, vmlinuz: str, initramfs: str,
         vmlinuz,
         initramfs,
         tmp_efi_file)
-    key_dir = config["DEFAULT"]["SECURE_BOOT_KEYS"]
-    sign(key_dir, tmp_efi_file, tmp_efi_file)
+    sign(KEY_DIR, tmp_efi_file, tmp_efi_file)

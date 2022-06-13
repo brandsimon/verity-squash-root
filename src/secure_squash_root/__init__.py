@@ -6,6 +6,7 @@ import sys
 from configparser import ConfigParser
 from secure_squash_root.config import read_config, LOG_FILE, \
     check_config_and_system, config_str_to_stripped_arr, TMPDIR
+from secure_squash_root.decrypt import DecryptKeys
 from secure_squash_root.distributions.base import DistributionConfig, \
     calc_kernel_packages_not_unique
 from secure_squash_root.distributions.arch import ArchLinuxConfig
@@ -92,14 +93,17 @@ def parse_params_and_run():
     if args.command == "list":
         list_distribution_efi(config, distribution)
     elif args.command == "setup":
-        if args.boot_method == "uefi":
-            add_kernels_to_uefi(config, distribution,
-                                args.disk, args.partition_no)
-        if args.boot_method == "systemd":
-            setup_systemd_boot(config, distribution)
+        with TmpfsMount(TMPDIR):
+            with DecryptKeys(config):
+                if args.boot_method == "uefi":
+                    add_kernels_to_uefi(config, distribution,
+                                        args.disk, args.partition_no)
+                if args.boot_method == "systemd":
+                    setup_systemd_boot(config, distribution)
     elif args.command == "build":
         with TmpfsMount(TMPDIR):
-            create_image_and_sign_kernel(config, distribution)
+            with DecryptKeys(config):
+                create_image_and_sign_kernel(config, distribution)
 
 
 if __name__ == "__main__":
