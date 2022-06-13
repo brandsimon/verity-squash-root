@@ -1,8 +1,10 @@
 import unittest
 from unittest import mock
 from unittest.mock import call
+from tests.unit.distributions.base import distribution_mock
 from secure_squash_root import move_kernel_to, \
-    create_squashfs_return_verity_hash, build_and_move_kernel
+    create_squashfs_return_verity_hash, build_and_move_kernel, \
+    create_image_and_sign_kernel
 
 
 class MainTest(unittest.TestCase):
@@ -160,3 +162,110 @@ class MainTest(unittest.TestCase):
                      '/boot/efidir/EFI/Debian/linux_tmpfs.efi',
                      use_slot,
                      '/boot/efidir/EFI/Debian/linux_tmpfs_backup.efi')])
+
+    def test__create_image_and_sign_kernel(self):
+        base = "secure_squash_root"
+        all_mocks = mock.Mock()
+        cmdline = mock.Mock()
+        use_slot = mock.Mock()
+        root_hash = mock.Mock()
+
+        def initrdfunc(kernel, preset):
+            return "/path/initramfs_{}_{}.img".format(kernel, preset)
+
+        config = {
+            "DEFAULT": {
+                "EFI_PARTITION": "/boot/efi",
+                "IGNORE_KERNEL_EFIS":
+                    " linux_default ,linux_default_tmpfs ,linux_fallback_tmpfs"
+                    ",linux_lts_t",
+            }
+        }
+        ignored_efis = ["linux_default", "linux_default_tmpfs",
+                        "linux_fallback_tmpfs", "linux_lts_t"]
+        with mock.patch("{}.read_text_from".format(base),
+                        new=all_mocks.read_text_from), \
+             mock.patch("{}.cmdline".format(base),
+                        new=all_mocks.cmdline), \
+             mock.patch("{}.create_squashfs_return_verity_hash".format(base),
+                        new=all_mocks.create_squashfs_return_verity_hash), \
+             mock.patch("{}.build_and_move_kernel".format(base),
+                        new=all_mocks.build_and_move_kernel), \
+             mock.patch("{}.move_kernel_to".format(base),
+                        new=all_mocks.move_kernel_to):
+            distri_mock = distribution_mock()
+            distri_mock.build_initramfs_with_microcode.side_effect = initrdfunc
+            all_mocks.cmdline.unused_slot.return_value = use_slot
+            all_mocks.create_squashfs_return_verity_hash.return_value = \
+                root_hash
+            all_mocks.read_text_from.return_value = cmdline
+            create_image_and_sign_kernel(config, distri_mock)
+            self.assertEqual(
+                all_mocks.mock_calls,
+                [call.read_text_from('/proc/cmdline'),
+                 call.cmdline.unused_slot(cmdline),
+                 call.create_squashfs_return_verity_hash(config, use_slot),
+                 call.build_and_move_kernel(
+                     config,
+                     '/lib64/modules/5.19/vmlinuz',
+                     '/path/initramfs_5.19_fallback.img',
+                     use_slot,
+                     root_hash,
+                     '',
+                     'linux_fallback',
+                     '/boot/efi/EFI/Arch',
+                     'Distri Linux (fallback)',
+                     ignored_efis),
+                 call.build_and_move_kernel(
+                     config,
+                     '/lib64/modules/5.19/vmlinuz',
+                     '/path/initramfs_5.19_fallback.img',
+                     use_slot,
+                     root_hash,
+                     'secure_squash_root_volatile',
+                     'linux_fallback_tmpfs',
+                     '/boot/efi/EFI/Arch',
+                     'Distri Linux (fallback) tmpfs',
+                     ignored_efis),
+                 call.build_and_move_kernel(
+                     config,
+                     '/lib64/modules/5.14/vmlinuz',
+                     '/path/initramfs_5.14_default.img',
+                     use_slot,
+                     root_hash,
+                     '',
+                     'linux-lts_default',
+                     '/boot/efi/EFI/Arch',
+                     'Distri Linux-lts (default)',
+                     ignored_efis),
+                 call.build_and_move_kernel(
+                     config,
+                     '/lib64/modules/5.14/vmlinuz',
+                     '/path/initramfs_5.14_default.img',
+                     use_slot,
+                     root_hash,
+                     'secure_squash_root_volatile',
+                     'linux-lts_default_tmpfs',
+                     '/boot/efi/EFI/Arch',
+                     'Distri Linux-lts (default) tmpfs',
+                     ignored_efis)])
+            self.assertEqual(
+                distri_mock.mock_calls,
+                [call.efi_dirname(),
+                 call.list_kernels(),
+                 call.list_kernel_presets('5.19'),
+                 call.file_name('5.19', 'default'),
+                 call.vmlinuz('5.19'),
+                 call.file_name('5.19', 'default'),
+                 call.display_name('5.19', 'default'),
+                 call.file_name('5.19', 'fallback'),
+                 call.vmlinuz('5.19'),
+                 call.file_name('5.19', 'fallback'),
+                 call.display_name('5.19', 'fallback'),
+                 call.build_initramfs_with_microcode('5.19', 'fallback'),
+                 call.list_kernel_presets('5.14'),
+                 call.file_name('5.14', 'default'),
+                 call.vmlinuz('5.14'),
+                 call.file_name('5.14', 'default'),
+                 call.display_name('5.14', 'default'),
+                 call.build_initramfs_with_microcode('5.14', 'default')])

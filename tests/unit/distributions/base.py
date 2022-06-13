@@ -17,12 +17,16 @@ def distribution_mock():
     def display_name(kernel, preset):
         return "Distri {} ({})".format(obj_kernel[kernel].capitalize(), preset)
 
+    def vmlinuz(kernel):
+        return "/lib64/modules/{}/vmlinuz".format(kernel)
+
     distri_mock = mock.Mock()
     distri_mock.list_kernels.return_value = ["5.19", "5.14"]
     distri_mock.efi_dirname.return_value = "Arch"
     distri_mock.list_kernel_presets.side_effect = list_kernel_presets
     distri_mock.file_name.side_effect = file_name
     distri_mock.display_name.side_effect = display_name
+    distri_mock.vmlinuz.side_effect = vmlinuz
     return distri_mock
 
 
