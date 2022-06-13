@@ -8,7 +8,7 @@ from secure_squash_root.decrypt import format_cmd, TAR_FILE, KEY_DIR, \
 class DecryptTest(unittest.TestCase):
 
     def test__format_cmd(self):
-        self.assertEqual(format_cmd("age -d -o {} /etc/keys.tar.age",
+        self.assertEqual(format_cmd("\nage -d -o {}\n/etc/keys.tar.age",
                                     "/tmp/keys.tar"),
                          ["age", "-d", "-o", "/tmp/keys.tar",
                           "/etc/keys.tar.age"])

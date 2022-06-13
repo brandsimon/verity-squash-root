@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import tarfile
 from configparser import ConfigParser
@@ -10,7 +11,8 @@ TAR_FILE = os.path.join(KEY_DIR, "keys.tar")
 
 
 def format_cmd(cmd: str, file: str) -> List[str]:
-    return list(map(lambda x: x.format(file), cmd.split(" ")))
+    parts = re.split(" |\n", cmd.strip())
+    return list(map(lambda x: x.format(file), parts))
 
 
 def decrypt_secure_boot_keys(config: ConfigParser) -> None:
