@@ -10,13 +10,15 @@ class MountTest(unittest.TestCase):
         all_mocks = mock.Mock()
         with mock.patch("{}.exec_binary".format(base),
                         new=all_mocks.exec_binary), \
+             mock.patch("{}.os".format(base),
+                        new=all_mocks.os), \
              mock.patch("{}.shutil".format(base),
                         new=all_mocks.shutil):
             call = mock.call
             with TmpfsMount("/my_directory"):
                 self.assertEqual(
                     all_mocks.mock_calls,
-                    [call.exec_binary(['mkdir', '/my_directory']),
+                    [call.os.mkdir('/my_directory'),
                      call.exec_binary(['mount', '-t', 'tmpfs', '-o',
                                        'mode=0700,uid=0,gid=0', 'tmpfs',
                                        '/my_directory'])])
