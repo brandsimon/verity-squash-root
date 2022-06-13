@@ -5,7 +5,7 @@ import os
 import sys
 from configparser import ConfigParser
 from secure_squash_root.config import read_config, LOG_FILE, \
-    check_config_and_system, config_str_to_stripped_arr, TMPDIR
+    check_config_and_system, config_str_to_stripped_arr, TMPDIR, CONFIG_FILE
 from secure_squash_root.decrypt import DecryptKeys
 from secure_squash_root.distributions.base import DistributionConfig, \
     calc_kernel_packages_not_unique
@@ -65,20 +65,56 @@ def parse_params_and_run():
     config = read_config()
     distribution = ArchLinuxConfig()
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--verbose", action="store_true")
-    parser.add_argument("--ignore-warnings", action="store_true")
+    parser = argparse.ArgumentParser(
+        description="Create signed efi binaries which mount a verified "
+                    "squashfs (dm-verity) image\nas rootfs on boot "
+                    "(in the initramfs/initrd). "
+                    "On boot you can choose to boot\ninto a tmpfs overlay or "
+                    "a directory (/overlay and /workdir) on your\n"
+                    "root-partition.\n\n"
+                    "The configuration file is located at {}".format(
+                        CONFIG_FILE),
+                    formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument("--verbose",
+                        action="store_true",
+                        help="Show debug messages on the terminal")
+    parser.add_argument("--ignore-warnings",
+                        action="store_true",
+                        help="Do not exit if there are warnings")
     cmd_parser = parser.add_subparsers(dest="command", required=True)
-    cmd_parser.add_parser("list")
-    cmd_parser.add_parser("check")
-    cmd_parser.add_parser("build")
-    setup_parser = cmd_parser.add_parser("setup")
+    cmd_parser.add_parser("list",
+                          help="List all efi files to build and show "
+                               "which ones are\nbuilt and which ones "
+                               "are excluded via configfile.")
+    cmd_parser.add_parser("check",
+                          help="Check the system and print warnings if "
+                               "the\nconfiguration does not match the "
+                               "recommendation.")
+    cmd_parser.add_parser("build",
+                          help="Build squashfs, verity-info, efi binaries "
+                               "and sign\nthem.")
+    setup_parser = cmd_parser.add_parser("setup",
+                                         formatter_class=(
+                                             argparse.RawTextHelpFormatter),
+                                         help="Setup boot menu entries for "
+                                              "all efi binaries which are"
+                                              "\nnot excluded. Supported: \n"
+                                              " - systemd: systemd-boot\n"
+                                              " - uefi: efibootmgr")
     boot_parser = setup_parser.add_subparsers(dest="boot_method",
                                               required=True)
-    boot_parser.add_parser("systemd")
-    efi_parser = boot_parser.add_parser("uefi")
-    efi_parser.add_argument("disk")
-    efi_parser.add_argument("partition_no", type=int)
+    boot_parser.add_parser("systemd",
+                           help="Install and configure systemd-boot and "
+                                "register it in the\nuefi as bootable.")
+    efi_parser = boot_parser.add_parser("uefi",
+                                        help="Register all efi binaries in "
+                                             "the uefi as bootable via\n"
+                                             "efibootmgr.")
+    efi_parser.add_argument("disk",
+                            help="Parameter for efibootmgr --disk")
+    efi_parser.add_argument("partition_no",
+                            help="Parameter for efibootmgr --part",
+                            type=int)
     args = parser.parse_args()
     configure_logger(args.verbose)
 
