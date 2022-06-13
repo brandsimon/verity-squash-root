@@ -2,7 +2,7 @@ import unittest
 from unittest import mock
 from unittest.mock import call
 from tests.unit.distributions.base import distribution_mock
-from secure_squash_root import move_kernel_to, \
+from secure_squash_root.main import move_kernel_to, \
     create_squashfs_return_verity_hash, build_and_move_kernel, \
     create_image_and_sign_kernel
 
@@ -82,7 +82,7 @@ class MainTest(unittest.TestCase):
                                   "/boot/efi/linux_test.efi")])
 
     def test__create_squashfs_return_verity_hash(self):
-        base = "secure_squash_root"
+        base = "secure_squash_root.main"
         all_mocks = mock.Mock()
 
         config = {
@@ -110,7 +110,7 @@ class MainTest(unittest.TestCase):
                 all_mocks.veritysetup_image())
 
     def test__build_and_move_kernel(self):
-        base = "secure_squash_root"
+        base = "secure_squash_root.main"
         all_mocks = mock.Mock()
         config = mock.Mock()
         vmlinuz = mock.Mock()
@@ -164,7 +164,7 @@ class MainTest(unittest.TestCase):
                      '/boot/efidir/EFI/Debian/linux_tmpfs_backup.efi')])
 
     def test__create_image_and_sign_kernel(self):
-        base = "secure_squash_root"
+        base = "secure_squash_root.main"
         all_mocks = mock.Mock()
         cmdline = mock.Mock()
         use_slot = mock.Mock()
