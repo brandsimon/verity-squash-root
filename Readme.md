@@ -17,6 +17,7 @@ You can clone the repository, see [Development](development)
 binutils
 sbsigntools
 squashfs-tools
+tar
 ```
 
 ## Configuration
