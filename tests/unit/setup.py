@@ -1,5 +1,6 @@
 import unittest
 from unittest import mock
+from verify_squash_root.config import KEY_DIR
 from verify_squash_root.setup import add_uefi_boot_option, \
     add_kernels_to_uefi, setup_systemd_boot
 from tests.unit.distributions.base import distribution_mock
@@ -63,9 +64,9 @@ class SetupTest(unittest.TestCase):
         boot_efi = "/usr/lib/systemd/boot/efi/systemd-bootx64.efi"
         self.assertEqual(
             sign_mock.mock_calls,
-            [mock.call("/secure/path", boot_efi,
+            [mock.call(KEY_DIR, boot_efi,
                        "/boot/efi/EFI/systemd/systemd-bootx64.efi"),
-             mock.call("/secure/path", boot_efi,
+             mock.call(KEY_DIR, boot_efi,
                        "/boot/efi/EFI/BOOT/BOOTX64.EFI")])
         text = "title Distri {}\nlinux /EFI/Arch/{}\n"
         path = "/boot/efi_dir/loader/entries/{}"

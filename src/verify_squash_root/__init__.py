@@ -130,11 +130,11 @@ def parse_params_and_run():
         list_distribution_efi(config, distribution)
     elif args.command == "setup":
         with TmpfsMount(TMPDIR):
-            with DecryptKeys(config):
-                if args.boot_method == "uefi":
-                    add_kernels_to_uefi(config, distribution,
-                                        args.disk, args.partition_no)
-                if args.boot_method == "systemd":
+            if args.boot_method == "uefi":
+                add_kernels_to_uefi(config, distribution,
+                                    args.disk, args.partition_no)
+            if args.boot_method == "systemd":
+                with DecryptKeys(config):
                     setup_systemd_boot(config, distribution)
     elif args.command == "build":
         with TmpfsMount(TMPDIR):

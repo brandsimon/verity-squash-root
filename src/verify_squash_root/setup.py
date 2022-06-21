@@ -2,6 +2,7 @@ import os
 from configparser import ConfigParser
 from verify_squash_root.exec import exec_binary
 from verify_squash_root.distributions.base import DistributionConfig
+from verify_squash_root.config import KEY_DIR
 import verify_squash_root.efi as efi
 from verify_squash_root.file_op import write_str_to
 from verify_squash_root.file_names import iterate_non_ignored_kernel_variants
@@ -30,11 +31,10 @@ def add_kernels_to_uefi(config: ConfigParser, distribution: DistributionConfig,
 
 def setup_systemd_boot(config: ConfigParser,
                        distribution: DistributionConfig) -> None:
-    key_dir = config["DEFAULT"]["SECURE_BOOT_KEYS"]
     exec_binary(["bootctl", "install"])
     boot_efi = "/usr/lib/systemd/boot/efi/systemd-bootx64.efi"
-    efi.sign(key_dir, boot_efi, "/boot/efi/EFI/systemd/systemd-bootx64.efi")
-    efi.sign(key_dir, boot_efi, "/boot/efi/EFI/BOOT/BOOTX64.EFI")
+    efi.sign(KEY_DIR, boot_efi, "/boot/efi/EFI/systemd/systemd-bootx64.efi")
+    efi.sign(KEY_DIR, boot_efi, "/boot/efi/EFI/BOOT/BOOTX64.EFI")
 
     efi_dirname = distribution.efi_dirname()
     out_dir = os.path.join("/EFI", efi_dirname)
