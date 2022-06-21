@@ -1,10 +1,10 @@
 import os
 from configparser import ConfigParser
-from secure_squash_root.exec import exec_binary
-from secure_squash_root.distributions.base import DistributionConfig
-import secure_squash_root.efi as efi
-from secure_squash_root.file_op import write_str_to
-from secure_squash_root.file_names import iterate_non_ignored_kernel_variants
+from verify_squash_root.exec import exec_binary
+from verify_squash_root.distributions.base import DistributionConfig
+import verify_squash_root.efi as efi
+from verify_squash_root.file_op import write_str_to
+from verify_squash_root.file_names import iterate_non_ignored_kernel_variants
 
 
 def add_uefi_boot_option(disk: str, partition_no: int, label: str,

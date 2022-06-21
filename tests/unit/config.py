@@ -2,7 +2,7 @@ import os
 import unittest
 from unittest import mock
 from tests.unit.test_helper import PROJECT_ROOT
-from secure_squash_root.config import config_str_to_stripped_arr, \
+from verify_squash_root.config import config_str_to_stripped_arr, \
     read_config, check_config, is_volatile_boot, check_config_and_system
 
 
@@ -14,7 +14,7 @@ class ConfigTest(unittest.TestCase):
                 " var/!(lib) ,/mnt/test\n,another/dir/ ,testdir"),
             ["var/!(lib)", "/mnt/test", "another/dir/", "testdir"])
 
-    @mock.patch("secure_squash_root.config.ConfigParser")
+    @mock.patch("verify_squash_root.config.ConfigParser")
     def test__read_config(self, cp_mock):
         result = read_config()
         cp_mock.assert_called_once_with()
@@ -22,12 +22,12 @@ class ConfigTest(unittest.TestCase):
             mock.call(),
             mock.call().read(
                 os.path.join(PROJECT_ROOT,
-                             "src/secure_squash_root/default_config.ini")),
-            mock.call().read('/usr/share/secure_squash_root/default.ini'),
-            mock.call().read('/etc/secure_squash_root/config.ini')])
+                             "src/verify_squash_root/default_config.ini")),
+            mock.call().read('/usr/share/verify_squash_root/default.ini'),
+            mock.call().read('/etc/verify_squash_root/config.ini')])
         self.assertEqual(result, cp_mock())
 
-    @mock.patch("secure_squash_root.config.os.path.ismount")
+    @mock.patch("verify_squash_root.config.os.path.ismount")
     def test__check_config(self, mount_mock):
         config = {
             "DEFAULT": {
@@ -53,9 +53,9 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(run([False, True]), [mnt_error])
         self.assertEqual(run([False, False]), [mnt_error, efi_error])
 
-    @mock.patch("secure_squash_root.config.exec_binary")
+    @mock.patch("verify_squash_root.config.exec_binary")
     def test__is_volatile_boot(self, exec_mock):
-        cmdline = ("rw,relatime,lowerdir=/secure-squashfs-tmp/squashroot,"
+        cmdline = ("rw,relatime,lowerdir=/verify-squashfs-tmp/squashroot,"
                    "upperdir={},workdir=/sysroot/workdir,"
                    "index=off,xino=off,metacopy=off")
 
@@ -67,12 +67,12 @@ class ConfigTest(unittest.TestCase):
                 ["findmnt", "-uno", "OPTIONS", "/"])
 
         test("/sysroot/overlay", False)
-        test("/secure-squashfs-tmp/tmpfs/overlay", True)
+        test("/verify-squashfs-tmp/tmpfs/overlay", True)
 
     def test__check_config_and_system(self):
-        with mock.patch("secure_squash_root.config.is_volatile_boot") as \
+        with mock.patch("verify_squash_root.config.is_volatile_boot") as \
                 is_vol, \
-             mock.patch("secure_squash_root.config.check_config") as \
+             mock.patch("verify_squash_root.config.check_config") as \
                 check_config:
             check_config.return_value = ["some", "test", "values"]
             is_vol.return_value = True

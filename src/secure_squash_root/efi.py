@@ -1,8 +1,8 @@
 import os
 from configparser import ConfigParser
-from secure_squash_root.config import KERNEL_PARAM_BASE, TMPDIR, KEY_DIR
-from secure_squash_root.exec import exec_binary
-from secure_squash_root.file_op import write_str_to
+from verify_squash_root.config import KERNEL_PARAM_BASE, TMPDIR, KEY_DIR
+from verify_squash_root.exec import exec_binary
+from verify_squash_root.file_op import write_str_to
 
 
 def file_matches_slot(file: str, slot: str):

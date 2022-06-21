@@ -1,5 +1,5 @@
 import unittest
-from secure_squash_root.parsing import info_to_dict
+from verify_squash_root.parsing import info_to_dict
 
 
 class ParsingTest(unittest.TestCase):

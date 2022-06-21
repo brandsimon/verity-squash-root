@@ -1,9 +1,9 @@
 import os
 import unittest
 from unittest import mock
-from secure_squash_root.distributions.arch import ArchLinuxConfig
-from secure_squash_root.exec import exec_binary
-from secure_squash_root.config import TMPDIR
+from verify_squash_root.distributions.arch import ArchLinuxConfig
+from verify_squash_root.exec import exec_binary
+from verify_squash_root.config import TMPDIR
 from tests.unit.test_helper import PROJECT_ROOT, get_test_files_path
 
 TEST_FILES_DIR = get_test_files_path("distributions/arch")
@@ -11,7 +11,7 @@ TEST_FILES_DIR = get_test_files_path("distributions/arch")
 
 class ArchLinuxConfigTest(unittest.TestCase):
 
-    @mock.patch("secure_squash_root.distributions.arch.read_text_from")
+    @mock.patch("verify_squash_root.distributions.arch.read_text_from")
     def test__file_name(self, mock):
         def test_file_name(kernel, preset, mock_ret, expected_result):
             mock.reset_mock()
@@ -26,7 +26,7 @@ class ArchLinuxConfigTest(unittest.TestCase):
         test_file_name("5.2.44", "fallback", "linux", "linux_fallback")
         test_file_name("5.19.4", "test", "linux-lts", "linux-lts_test")
 
-    @mock.patch("secure_squash_root.distributions.arch.read_text_from")
+    @mock.patch("verify_squash_root.distributions.arch.read_text_from")
     def test__display_name(self, mock):
         def test_display_name(kernel, preset, mock_ret, expected_result):
             mock.reset_mock()
@@ -63,7 +63,7 @@ class ArchLinuxConfigTest(unittest.TestCase):
                 return preset_info
             raise ValueError(file)
 
-        base = "secure_squash_root.distributions.arch"
+        base = "verify_squash_root.distributions.arch"
         all_mocks = mock.Mock()
         all_mocks.read_text_from.side_effect = read
         with mock.patch("{}.merge_initramfs_images".format(base),
@@ -99,15 +99,15 @@ class ArchLinuxConfigTest(unittest.TestCase):
             self.assertEqual(
                 res, "{}/{}.image".format(TMPDIR, base_name))
 
-    @mock.patch("secure_squash_root.distributions.arch.os.listdir")
+    @mock.patch("verify_squash_root.distributions.arch.os.listdir")
     def test__list_kernels(self, mock):
         arch = ArchLinuxConfig()
         result = arch.list_kernels()
         mock.assert_called_once_with("/usr/lib/modules")
         self.assertEqual(result, mock())
 
-    @mock.patch("secure_squash_root.distributions.arch.read_text_from")
-    @mock.patch("secure_squash_root.distributions.arch.exec_binary")
+    @mock.patch("verify_squash_root.distributions.arch.read_text_from")
+    @mock.patch("verify_squash_root.distributions.arch.exec_binary")
     def test__list_kernel_presets(self, exec_mock, read_mock):
         def change_lib_path(cmd):
             cmd[0] = os.path.join(PROJECT_ROOT, cmd[0].strip('/'))
@@ -122,5 +122,5 @@ class ArchLinuxConfigTest(unittest.TestCase):
         self.assertEqual(result, ["default", "fallback", "test"])
         read_mock.assert_called_once_with("/usr/lib/modules/5.19.4/pkgbase")
         exec_mock.assert_called_once_with([
-            '/root/git/usr/lib/secure-squash-root/mkinitcpio_list_presets',
+            '/root/git/usr/lib/verify-squash-root/mkinitcpio_list_presets',
             '../../root/git/tests/unit/files/distributions/arch/linux_name'])

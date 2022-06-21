@@ -1,12 +1,12 @@
 import unittest
 from unittest import mock
-from secure_squash_root.mount import TmpfsMount
+from verify_squash_root.mount import TmpfsMount
 
 
 class MountTest(unittest.TestCase):
 
     def test__tmpfs_mount(self):
-        base = "secure_squash_root.mount"
+        base = "verify_squash_root.mount"
         all_mocks = mock.Mock()
         with mock.patch("{}.exec_binary".format(base),
                         new=all_mocks.exec_binary), \

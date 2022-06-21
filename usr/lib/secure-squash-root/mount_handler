@@ -11,13 +11,13 @@ get_kparam_set() {
 ${kernel_params}
 EOF
 }
-KP_NAME="secure_squash_root"
+KP_NAME="verify_squash_root"
 SLOT="$(get_kparam "${KP_NAME}_slot")"
 ROOTHASH="$(get_kparam "${KP_NAME}_hash")"
 VOLATILE="$(get_kparam_set "${KP_NAME}_volatile")"
 ROOT="${1}"
 DEST="${2}"
-TMP="/secure-squashfs-tmp"
+TMP="/verify-squashfs-tmp"
 if [ "${VOLATILE}" = "${KP_NAME}_volatile" ]; then
 	OLROOT="${TMP}/tmpfs"
 	mount -t tmpfs tmpfs "${OLROOT}"

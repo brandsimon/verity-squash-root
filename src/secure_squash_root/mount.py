@@ -1,6 +1,6 @@
 import os
 import shutil
-from secure_squash_root.exec import exec_binary
+from verify_squash_root.exec import exec_binary
 
 
 class TmpfsMount():

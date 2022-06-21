@@ -2,9 +2,9 @@ import os
 import unittest
 from .test_helper import get_test_files_path
 from unittest import mock
-from secure_squash_root.config import KEY_DIR
-from secure_squash_root.file_op import read_from
-from secure_squash_root.efi import file_matches_slot, sign, \
+from verify_squash_root.config import KEY_DIR
+from verify_squash_root.file_op import read_from
+from verify_squash_root.efi import file_matches_slot, sign, \
     create_efi_executable, build_and_sign_kernel
 
 TEST_FILES_DIR = get_test_files_path("efi")
@@ -30,7 +30,7 @@ class EfiTest(unittest.TestCase):
         self.assertFalse(wrapper("stub_slot_unkown.efi", "a"))
         self.assertFalse(wrapper("stub_slot_unkown.efi", "b"))
 
-    @mock.patch("secure_squash_root.efi.exec_binary")
+    @mock.patch("verify_squash_root.efi.exec_binary")
     def test__sign(self, mock):
         sign("my/key/dir", "my/in/file", "my/out/file")
         mock.assert_called_once_with(
@@ -40,7 +40,7 @@ class EfiTest(unittest.TestCase):
              "--output", "my/out/file",
              "my/in/file"])
 
-    @mock.patch("secure_squash_root.efi.exec_binary")
+    @mock.patch("verify_squash_root.efi.exec_binary")
     def test__create_efi_executable(self, mock):
         create_efi_executable(
             "/my/stub.efi", "/tmp/cmdline", "/usr/vmlinuz",
@@ -59,7 +59,7 @@ class EfiTest(unittest.TestCase):
 
     def test__build_and_sign_kernel(self):
         all_mocks = mock.Mock()
-        base = "secure_squash_root.efi"
+        base = "verify_squash_root.efi"
         config = {
             "DEFAULT": {
                 "CMDLINE": "rw encrypt=/dev/sda2 quiet",
@@ -80,13 +80,13 @@ class EfiTest(unittest.TestCase):
                                   "tmpfsparam")
             self.assertEqual(
                 all_mocks.mock_calls,
-                [call.write_str_to("/tmp/secure_squash_root/cmdline",
+                [call.write_str_to("/tmp/verify_squash_root/cmdline",
                                    ("rw encrypt=/dev/sda2 quiet tmpfsparam "
-                                    "secure_squash_root_slot=a "
-                                    "secure_squash_root_hash=567myhash234")),
+                                    "verify_squash_root_slot=a "
+                                    "verify_squash_root_hash=567myhash234")),
                  call.efi.create_efi_executable(
                      "/usr/lib/systemd/mystub.efi",
-                     "/tmp/secure_squash_root/cmdline",
+                     "/tmp/verify_squash_root/cmdline",
                      "/boot/vmlinuz", "/tmp/initramfs.img", "/tmp/file.efi"),
                  call.efi.sign(KEY_DIR, "/tmp/file.efi",
                                "/tmp/file.efi")])
@@ -100,12 +100,12 @@ class EfiTest(unittest.TestCase):
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.write_str_to(
-                     "/tmp/secure_squash_root/cmdline",
-                     ("rw encrypt=/dev/sda2 quiet  secure_squash_root_slot=b "
-                      "secure_squash_root_hash=853anotherhash723")),
+                     "/tmp/verify_squash_root/cmdline",
+                     ("rw encrypt=/dev/sda2 quiet  verify_squash_root_slot=b "
+                      "verify_squash_root_hash=853anotherhash723")),
                  call.efi.create_efi_executable(
                          "/usr/lib/systemd/mystub.efi",
-                         "/tmp/secure_squash_root/cmdline",
+                         "/tmp/verify_squash_root/cmdline",
                      "/usr/lib/vmlinuz-lts",
                      "/boot/initramfs_fallback.img",
                      "/tmporary/dir/f.efi"),

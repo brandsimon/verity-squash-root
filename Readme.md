@@ -1,4 +1,4 @@
-# secure-squash-root
+# verify-squash-root
 ## Build signed efi binaries which mount a dm-verity verified squashfs image as rootfs on boot.
 
 ### [Install](#install) - [Configuration](#configuration) - [Usage](#usage) - [Development](#development)
@@ -42,7 +42,7 @@ configuration files are stored there.
 ### Arch Linux
 
 Only mkinitcpio is supported under Arch Linux in systemd-mode.
-Add the hook `secure-squash-root` to `/etc/mkinitcpio.conf` directly after the autodetect hook.
+Add the hook `verify-squash-root` to `/etc/mkinitcpio.conf` directly after the autodetect hook.
 This is necessary, since the autodetect hook cannot handle overlayfs as rootfs (yet).
 
 ### Considerations / Recommendations

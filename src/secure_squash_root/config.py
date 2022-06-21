@@ -1,12 +1,12 @@
 import os
 from configparser import ConfigParser
 from typing import List
-from secure_squash_root.exec import exec_binary
+from verify_squash_root.exec import exec_binary
 
 
-TMPDIR = "/tmp/secure_squash_root"
+TMPDIR = "/tmp/verify_squash_root"
 KEY_DIR = os.path.join(TMPDIR, "keys")
-KERNEL_PARAM_BASE = "secure_squash_root"
+KERNEL_PARAM_BASE = "verify_squash_root"
 CONFIG_FILE = "/etc/{}/config.ini".format(KERNEL_PARAM_BASE)
 DISTRI_FILE = os.path.join("/usr/share/", KERNEL_PARAM_BASE, "default.ini")
 LOG_FILE = "/var/log/{}.log".format(KERNEL_PARAM_BASE)
@@ -29,7 +29,7 @@ def read_config() -> ConfigParser:
 def is_volatile_boot():
     res = exec_binary(["findmnt", "-uno", "OPTIONS", "/"])[0].decode()
     parts = res.split(",")
-    return "upperdir=/secure-squashfs-tmp/tmpfs/overlay" in parts
+    return "upperdir=/verify-squashfs-tmp/tmpfs/overlay" in parts
 
 
 def check_config(config: ConfigParser) -> List[str]:

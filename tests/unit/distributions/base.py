@@ -1,6 +1,6 @@
 import unittest
 from unittest import mock
-from secure_squash_root.distributions.base import iterate_distribution_efi, \
+from verify_squash_root.distributions.base import iterate_distribution_efi, \
     calc_kernel_packages_not_unique
 
 

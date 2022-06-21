@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 from unittest.mock import call
-from secure_squash_root.decrypt import format_cmd, TAR_FILE, KEY_DIR, \
+from verify_squash_root.decrypt import format_cmd, TAR_FILE, KEY_DIR, \
     decrypt_secure_boot_keys, DecryptKeys
 
 
@@ -14,7 +14,7 @@ class DecryptTest(unittest.TestCase):
                           "/etc/keys.tar.age"])
 
     def test__decrypt_secure_boot_keys(self):
-        base = "secure_squash_root.decrypt"
+        base = "verify_squash_root.decrypt"
         all_mocks = mock.MagicMock()
         with mock.patch("{}.exec_binary".format(base),
                         new=all_mocks.exec_binary), \
@@ -38,7 +38,7 @@ class DecryptTest(unittest.TestCase):
                  call.tarfile.open().__exit__(None, None, None)])
 
     def test__decrypt_keys(self):
-        base = "secure_squash_root.decrypt"
+        base = "verify_squash_root.decrypt"
         all_mocks = mock.Mock()
         config = mock.Mock()
         with mock.patch("{}.decrypt_secure_boot_keys".format(base),

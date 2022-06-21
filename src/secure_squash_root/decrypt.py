@@ -4,8 +4,8 @@ import shutil
 import tarfile
 from configparser import ConfigParser
 from typing import List
-from secure_squash_root.config import KEY_DIR
-from secure_squash_root.exec import exec_binary
+from verify_squash_root.config import KEY_DIR
+from verify_squash_root.exec import exec_binary
 
 TAR_FILE = os.path.join(KEY_DIR, "keys.tar")
 

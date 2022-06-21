@@ -2,11 +2,11 @@ import os
 from collections.abc import Mapping
 from functools import lru_cache
 from typing import List
-from secure_squash_root.config import TMPDIR
-from secure_squash_root.exec import exec_binary
-from secure_squash_root.file_op import read_text_from, write_str_to
-from secure_squash_root.initramfs import merge_initramfs_images
-from secure_squash_root.distributions.base import DistributionConfig
+from verify_squash_root.config import TMPDIR
+from verify_squash_root.exec import exec_binary
+from verify_squash_root.file_op import read_text_from, write_str_to
+from verify_squash_root.initramfs import merge_initramfs_images
+from verify_squash_root.distributions.base import DistributionConfig
 
 
 class ArchLinuxConfig(DistributionConfig):
@@ -66,6 +66,6 @@ class ArchLinuxConfig(DistributionConfig):
 
     def list_kernel_presets(self, kernel: str) -> List[str]:
         name = self._kernel_to_name(kernel)
-        run = "/usr/lib/secure-squash-root/mkinitcpio_list_presets"
+        run = "/usr/lib/verify-squash-root/mkinitcpio_list_presets"
         presets_str = exec_binary([run, name])[0].decode()
         return presets_str.strip().split("\n")

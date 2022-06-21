@@ -4,17 +4,17 @@ import logging
 import os
 import sys
 from configparser import ConfigParser
-from secure_squash_root.config import read_config, LOG_FILE, \
+from verify_squash_root.config import read_config, LOG_FILE, \
     check_config_and_system, config_str_to_stripped_arr, TMPDIR, CONFIG_FILE
-from secure_squash_root.decrypt import DecryptKeys
-from secure_squash_root.distributions.base import DistributionConfig, \
+from verify_squash_root.decrypt import DecryptKeys
+from verify_squash_root.distributions.base import DistributionConfig, \
     calc_kernel_packages_not_unique
-from secure_squash_root.distributions.arch import ArchLinuxConfig
-from secure_squash_root.file_names import iterate_kernel_variants, \
+from verify_squash_root.distributions.arch import ArchLinuxConfig
+from verify_squash_root.file_names import iterate_kernel_variants, \
     kernel_is_ignored
-from secure_squash_root.main import create_image_and_sign_kernel
-from secure_squash_root.mount import TmpfsMount
-from secure_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
+from verify_squash_root.main import create_image_and_sign_kernel
+from verify_squash_root.mount import TmpfsMount
+from verify_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
 
 
 def list_distribution_efi(config: ConfigParser,

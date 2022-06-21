@@ -2,7 +2,7 @@ import unittest
 from unittest import mock
 from unittest.mock import call
 from tests.unit.distributions.base import distribution_mock
-from secure_squash_root.main import move_kernel_to, \
+from verify_squash_root.main import move_kernel_to, \
     create_squashfs_return_verity_hash, build_and_move_kernel, \
     create_image_and_sign_kernel
 
@@ -10,7 +10,7 @@ from secure_squash_root.main import move_kernel_to, \
 class MainTest(unittest.TestCase):
 
     def test__move_kernel_to(self):
-        base = "secure_squash_root.main"
+        base = "verify_squash_root.main"
         all_mocks = mock.Mock()
 
         with mock.patch("{}.os".format(base),
@@ -82,7 +82,7 @@ class MainTest(unittest.TestCase):
                                   "/boot/efi/linux_test.efi")])
 
     def test__create_squashfs_return_verity_hash(self):
-        base = "secure_squash_root.main"
+        base = "verify_squash_root.main"
         all_mocks = mock.Mock()
 
         config = {
@@ -110,7 +110,7 @@ class MainTest(unittest.TestCase):
                 all_mocks.veritysetup_image())
 
     def test__build_and_move_kernel(self):
-        base = "secure_squash_root.main"
+        base = "verify_squash_root.main"
         all_mocks = mock.Mock()
         config = mock.Mock()
         vmlinuz = mock.Mock()
@@ -140,9 +140,9 @@ class MainTest(unittest.TestCase):
                 all_mocks.mock_calls,
                 [call.efi.build_and_sign_kernel(
                      config, vmlinuz, initramfs, use_slot, root_hash,
-                     '/tmp/secure_squash_root/tmp.efi', cmdline_add),
+                     '/tmp/verify_squash_root/tmp.efi', cmdline_add),
                  call.move_kernel_to(
-                     '/tmp/secure_squash_root/tmp.efi',
+                     '/tmp/verify_squash_root/tmp.efi',
                      '/boot/ef/EFI/Debian/linux_fallback.efi',
                      use_slot, None)])
 
@@ -156,15 +156,15 @@ class MainTest(unittest.TestCase):
                 all_mocks.mock_calls,
                 [call.efi.build_and_sign_kernel(
                      config, vmlinuz, initramfs, use_slot, root_hash,
-                     '/tmp/secure_squash_root/tmp.efi', cmdline_add),
+                     '/tmp/verify_squash_root/tmp.efi', cmdline_add),
                  call.move_kernel_to(
-                     '/tmp/secure_squash_root/tmp.efi',
+                     '/tmp/verify_squash_root/tmp.efi',
                      '/boot/efidir/EFI/Debian/linux_tmpfs.efi',
                      use_slot,
                      '/boot/efidir/EFI/Debian/linux_tmpfs_backup.efi')])
 
     def test__create_image_and_sign_kernel(self):
-        base = "secure_squash_root.main"
+        base = "verify_squash_root.main"
         all_mocks = mock.Mock()
         cmdline = mock.Mock()
         use_slot = mock.Mock()
@@ -222,7 +222,7 @@ class MainTest(unittest.TestCase):
                      '/path/initramfs_5.19_fallback.img',
                      use_slot,
                      root_hash,
-                     'secure_squash_root_volatile',
+                     'verify_squash_root_volatile',
                      'linux_fallback_tmpfs',
                      '/boot/efi/EFI/Arch',
                      'Distri Linux (fallback) tmpfs',
@@ -244,7 +244,7 @@ class MainTest(unittest.TestCase):
                      '/path/initramfs_5.14_default.img',
                      use_slot,
                      root_hash,
-                     'secure_squash_root_volatile',
+                     'verify_squash_root_volatile',
                      'linux-lts_default_tmpfs',
                      '/boot/efi/EFI/Arch',
                      'Distri Linux-lts (default) tmpfs',

@@ -5,7 +5,7 @@ with open('Readme.md', encoding='utf-8') as f:
 
 
 setup(
-    name='secure-squash-root',
+    name='verify-squash-root',
     version='0.0.1',
     description='Build a signed efi binary which mounts a '
                 'verified squashfs image as root',
@@ -36,7 +36,7 @@ setup(
     install_requires=[],
     entry_points={
         'console_scripts': [
-            'secure-squash-root=secure_squash_root:parse_params_and_run'
+            'verify-squash-root=verify_squash_root:parse_params_and_run'
         ]
     },
 )

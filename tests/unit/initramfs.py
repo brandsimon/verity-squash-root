@@ -1,8 +1,8 @@
 import os
 import unittest
 from .test_helper import wrap_tempdir
-from secure_squash_root.file_op import write_str_to, read_text_from
-from secure_squash_root.initramfs import merge_initramfs_images
+from verify_squash_root.file_op import write_str_to, read_text_from
+from verify_squash_root.initramfs import merge_initramfs_images
 
 
 class InitramfsTest(unittest.TestCase):

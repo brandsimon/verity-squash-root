@@ -1,6 +1,6 @@
 import os
 from typing import List
-from secure_squash_root.file_op import merge_files
+from verify_squash_root.file_op import merge_files
 
 
 def merge_initramfs_images(main_image: str, microcode_paths: List[str],

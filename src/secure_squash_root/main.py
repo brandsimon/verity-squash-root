@@ -3,15 +3,15 @@ import os
 import shutil
 from configparser import ConfigParser
 from typing import List, Union
-import secure_squash_root.cmdline as cmdline
-import secure_squash_root.efi as efi
-from secure_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
+import verify_squash_root.cmdline as cmdline
+import verify_squash_root.efi as efi
+from verify_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
     config_str_to_stripped_arr
-from secure_squash_root.distributions.base import DistributionConfig, \
+from verify_squash_root.distributions.base import DistributionConfig, \
     iterate_distribution_efi
-from secure_squash_root.file_names import backup_file, tmpfs_file, tmpfs_label
-from secure_squash_root.file_op import read_text_from
-from secure_squash_root.image import mksquashfs, veritysetup_image
+from verify_squash_root.file_names import backup_file, tmpfs_file, tmpfs_label
+from verify_squash_root.file_op import read_text_from
+from verify_squash_root.image import mksquashfs, veritysetup_image
 
 
 def move_kernel_to(src: str, dst: str, slot: str,

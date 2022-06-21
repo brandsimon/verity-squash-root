@@ -1,13 +1,13 @@
 import unittest
 from unittest import mock
-from secure_squash_root.setup import add_uefi_boot_option, \
+from verify_squash_root.setup import add_uefi_boot_option, \
     add_kernels_to_uefi, setup_systemd_boot
 from tests.unit.distributions.base import distribution_mock
 
 
 class SetupTest(unittest.TestCase):
 
-    @mock.patch("secure_squash_root.setup.exec_binary")
+    @mock.patch("verify_squash_root.setup.exec_binary")
     def test__add_uefi_boot_option(self, mock):
         add_uefi_boot_option("/dev/sda", 1, "Arch Linux",
                              "/EFI/Arch/linux.efi")
@@ -16,7 +16,7 @@ class SetupTest(unittest.TestCase):
              "--create", "--label", "Arch Linux", "--loader",
              "/EFI/Arch/linux.efi"])
 
-    @mock.patch("secure_squash_root.setup.add_uefi_boot_option")
+    @mock.patch("verify_squash_root.setup.add_uefi_boot_option")
     def test__add_kernels_to_uefi(self, boot_mock):
         distri_mock = distribution_mock()
         ignore = (" linux-lts_default_backup,"
@@ -44,9 +44,9 @@ class SetupTest(unittest.TestCase):
              mock.call('/dev/vda', 3, 'Distri Linux (default)',
                        '/EFI/Arch/linux_default.efi')])
 
-    @mock.patch("secure_squash_root.setup.exec_binary")
-    @mock.patch("secure_squash_root.setup.write_str_to")
-    @mock.patch("secure_squash_root.setup.efi.sign")
+    @mock.patch("verify_squash_root.setup.exec_binary")
+    @mock.patch("verify_squash_root.setup.write_str_to")
+    @mock.patch("verify_squash_root.setup.efi.sign")
     def test__setup_systemd_boot(self, sign_mock, write_to_mock, exec_mock):
         distri_mock = distribution_mock()
         ignore = (" linux-lts_default_tmpfs ,linux_fallback, "

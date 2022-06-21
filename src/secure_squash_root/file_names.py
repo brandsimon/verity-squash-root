@@ -1,7 +1,7 @@
 from typing import Generator, List, Tuple
 from configparser import ConfigParser
-from secure_squash_root.config import config_str_to_stripped_arr
-from secure_squash_root.distributions.base import DistributionConfig, \
+from verify_squash_root.config import config_str_to_stripped_arr
+from verify_squash_root.distributions.base import DistributionConfig, \
     iterate_distribution_efi
 
 BACKUP_SUFFIX = "_backup"
