@@ -122,5 +122,7 @@ class ArchLinuxConfigTest(unittest.TestCase):
         self.assertEqual(result, ["default", "fallback", "test"])
         read_mock.assert_called_once_with("/usr/lib/modules/5.19.4/pkgbase")
         exec_mock.assert_called_once_with([
-            '/root/git/usr/lib/verify-squash-root/mkinitcpio_list_presets',
-            '../../root/git/tests/unit/files/distributions/arch/linux_name'])
+            os.path.join(PROJECT_ROOT,
+                         'usr/lib/verify-squash-root/mkinitcpio_list_presets'),
+            os.path.join('../..', PROJECT_ROOT.strip('/'),
+                         'tests/unit/files/distributions/arch/linux_name')])
