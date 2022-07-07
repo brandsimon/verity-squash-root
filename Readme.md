@@ -25,24 +25,50 @@ be encrypted, if encryption of the root image is configured.
 
 ## Install
 
-There are no installation packages at the moment.
-You can clone the repository, see [Development](development)
+Make yourself familiar with the process of creating, installing and using
+custom Secure Boot keys. See:
+ - https://wiki.archlinux.org/index.php/Secure_Boot
+ - https://www.rodsbooks.com/efi-bootloaders/controlling-sb.html
 
-### Dependencies
-
+After you have generated your custom keys:
+ - Install [verify-squash-root](https://aur.archlinux.org/packages/verify-squash-root/) from AUR
+ - Install `age` and encrypt your secure boot keys
+```bash
+cd to/your/keys/direcory
+tar cf keys.tar db.key db.crt
+age -p -e -o keys.tar.age keys.tar
+mv keys.tar.age /etc/verify_squash_root/
+rm keys.tar
 ```
-age (only when used for decryption of secure-boot keys)
-binutils
-python
-sbsigntools
-squashfs-tools
-tar
+ - Remove your plaintext keys
+ - Create directories `/boot/efi` and `/mnt/root`
+ - Make sure your EFI parition is big enough (500 MB recommended)
+ - Mount your EFI partition to `/boot/efi` and configure it in fstab file
+ - Mount your root-partition to `/mnt/root` and configure it in fstab file
+ - Configure your current kernel cmdline in the config file (`CMDLINE`)
+ - Exclude every directory not wanted in the squashfs in the config file (`EXCLUDE_DIRS`)
+ - Configure a bind-mount for every excluded directory from `/mnt/root/...`
+ - Configure distribution specific options (see [Configuration](#configuration))
+ - Install systemd-boot, configure it and build the first image:
+```
+verify-squash-root --ignore-warnings setup systemd
+verify-squash-root --ignore-warnings build
+```
+ - Now reboot into the squashfs
+
+### Updates
+
+ - Boot into a tmpfs image.
+ - Update your distribution
+ - Create new squashfs image with signed efis:
+```
+verify-squash-root build
 ```
 
 ## Configuration
 
-The rootfs needs to be mounted to `ROOT_MOUNT` config path and configured in `/etc/fstab`.
-Make sure your EFI parition is big enough (500 MB recommended).
+The config file is located at `/etc/verify_squash_root/config.ini`.
+These config options are available:
 
 - `CMDLINE`: configures additional kernel cmdline.
 - `EFI_STUB`: path to efi stub, default is the one provided by systemd.
@@ -63,7 +89,7 @@ Only mkinitcpio wih systemd-hooks is supported under Arch Linux.
 Add the hook `verify-squash-root` to `/etc/mkinitcpio.conf` directly after the autodetect hook.
 This is necessary, since the autodetect hook cannot handle overlayfs as rootfs (yet).
 
-### Considerations / Recommendations
+## Considerations / Recommendations
 
  - Directly before updating, reboot into a tmpfs overlay, so modifications by
 an attacker are removed and you have your trusted environment from the last
@@ -108,14 +134,27 @@ The following files will be used on your root-partition:
 
 Images with verity info:
 
-`image_a.squashfs`, `image_a.squashfs.verity`,
-`image_b.squashfs` `image_b.squashfs.verity~
+- `image_a.squashfs`, `image_a.squashfs.verity`,
+- `image_b.squashfs` `image_b.squashfs.verity`
 
 Overlayfs directories:
 
-`overlay` `workdir`
+- `overlay` `workdir`
 
 ## Development
+
+### Dependencies
+
+```
+age (only when used for decryption of secure-boot keys)
+binutils
+python
+sbsigntools
+squashfs-tools
+tar
+```
+
+### Setup
 
 Setup a python3 virtual environment:
 
