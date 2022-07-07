@@ -101,6 +101,19 @@ verify-squash-root build
 If you are not yet booted in a verified image, you need `--ignore-warnings`,
 since there will be a warning if the root image is not fully verified.
 
+## Files
+
+The following files will be used on your root-partition:
+
+Images with verity info:
+
+`image_a.squashfs`, `image_a.squashfs.verity`,
+`image_b.squashfs` `image_b.squashfs.verity~
+
+Overlayfs directories:
+
+`overlay` `workdir`
+
 ## Development
 
 Setup a python3 virtual environment:
