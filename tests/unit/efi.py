@@ -68,12 +68,12 @@ class EfiTest(unittest.TestCase):
         }
         call = mock.call
 
-        with mock.patch("{}.sign".format(base),
-                        new=all_mocks.efi.sign), \
-             mock.patch("{}.create_efi_executable".format(base),
-                        new=all_mocks.efi.create_efi_executable), \
-             mock.patch("{}.write_str_to".format(base),
-                        new=all_mocks.write_str_to):
+        with (mock.patch("{}.sign".format(base),
+                         new=all_mocks.efi.sign),
+              mock.patch("{}.create_efi_executable".format(base),
+                         new=all_mocks.efi.create_efi_executable),
+              mock.patch("{}.write_str_to".format(base),
+                         new=all_mocks.write_str_to)):
             build_and_sign_kernel(config, "/boot/vmlinuz",
                                   "/tmp/initramfs.img", "a",
                                   "567myhash234", "/tmp/file.efi",

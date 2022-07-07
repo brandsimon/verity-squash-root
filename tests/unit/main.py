@@ -13,12 +13,12 @@ class MainTest(unittest.TestCase):
         base = "verify_squash_root.main"
         all_mocks = mock.Mock()
 
-        with mock.patch("{}.os".format(base),
-                        new=all_mocks.os), \
-             mock.patch("{}.shutil".format(base),
-                        new=all_mocks.shutil), \
-             mock.patch("{}.efi".format(base),
-                        new=all_mocks.efi):
+        with (mock.patch("{}.os".format(base),
+                         new=all_mocks.os),
+              mock.patch("{}.shutil".format(base),
+                         new=all_mocks.shutil),
+              mock.patch("{}.efi".format(base),
+                         new=all_mocks.efi)):
             # Kernel does not exist yet
             all_mocks.os.path.exists.return_value = False
             move_kernel_to("/tmp/test.efi",
@@ -93,10 +93,10 @@ class MainTest(unittest.TestCase):
             }
         }
 
-        with mock.patch("{}.veritysetup_image".format(base),
-                        new=all_mocks.veritysetup_image), \
-             mock.patch("{}.mksquashfs".format(base),
-                        new=all_mocks.mksquashfs):
+        with (mock.patch("{}.veritysetup_image".format(base),
+                         new=all_mocks.veritysetup_image),
+              mock.patch("{}.mksquashfs".format(base),
+                         new=all_mocks.mksquashfs)):
             result = create_squashfs_return_verity_hash(config, "c")
             self.assertEqual(
                 all_mocks.mock_calls,
@@ -119,10 +119,10 @@ class MainTest(unittest.TestCase):
         root_hash = mock.Mock()
         cmdline_add = mock.Mock()
 
-        with mock.patch("{}.efi".format(base),
-                        new=all_mocks.efi), \
-             mock.patch("{}.move_kernel_to".format(base),
-                        new=all_mocks.move_kernel_to):
+        with (mock.patch("{}.efi".format(base),
+                         new=all_mocks.efi),
+              mock.patch("{}.move_kernel_to".format(base),
+                         new=all_mocks.move_kernel_to)):
             # No install
             build_and_move_kernel(
                 config, vmlinuz, initramfs, use_slot, root_hash,
@@ -183,16 +183,16 @@ class MainTest(unittest.TestCase):
         }
         ignored_efis = ["linux_default", "linux_default_tmpfs",
                         "linux_fallback_tmpfs", "linux_lts_t"]
-        with mock.patch("{}.read_text_from".format(base),
-                        new=all_mocks.read_text_from), \
-             mock.patch("{}.cmdline".format(base),
-                        new=all_mocks.cmdline), \
-             mock.patch("{}.create_squashfs_return_verity_hash".format(base),
-                        new=all_mocks.create_squashfs_return_verity_hash), \
-             mock.patch("{}.build_and_move_kernel".format(base),
-                        new=all_mocks.build_and_move_kernel), \
-             mock.patch("{}.move_kernel_to".format(base),
-                        new=all_mocks.move_kernel_to):
+        with (mock.patch("{}.read_text_from".format(base),
+                         new=all_mocks.read_text_from),
+              mock.patch("{}.cmdline".format(base),
+                         new=all_mocks.cmdline),
+              mock.patch("{}.create_squashfs_return_verity_hash".format(base),
+                         new=all_mocks.create_squashfs_return_verity_hash),
+              mock.patch("{}.build_and_move_kernel".format(base),
+                         new=all_mocks.build_and_move_kernel),
+              mock.patch("{}.move_kernel_to".format(base),
+                         new=all_mocks.move_kernel_to)):
             distri_mock = distribution_mock()
             distri_mock.build_initramfs_with_microcode.side_effect = initrdfunc
             all_mocks.cmdline.unused_slot.return_value = use_slot

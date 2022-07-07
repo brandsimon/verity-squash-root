@@ -66,14 +66,14 @@ class ArchLinuxConfigTest(unittest.TestCase):
         base = "verify_squash_root.distributions.arch"
         all_mocks = mock.Mock()
         all_mocks.read_text_from.side_effect = read
-        with mock.patch("{}.merge_initramfs_images".format(base),
-                        new=all_mocks.merge_initramfs_images), \
-             mock.patch("{}.exec_binary".format(base),
-                        new=all_mocks.exec_binary), \
-             mock.patch("{}.read_text_from".format(base),
-                        new=all_mocks.read_text_from), \
-             mock.patch("{}.write_str_to".format(base),
-                        new=all_mocks.write_str_to):
+        with (mock.patch("{}.merge_initramfs_images".format(base),
+                         new=all_mocks.merge_initramfs_images),
+              mock.patch("{}.exec_binary".format(base),
+                         new=all_mocks.exec_binary),
+              mock.patch("{}.read_text_from".format(base),
+                         new=all_mocks.read_text_from),
+              mock.patch("{}.write_str_to".format(base),
+                         new=all_mocks.write_str_to)):
             arch = ArchLinuxConfig()
             res = arch.build_initramfs_with_microcode(
                 "5.14.3-arch", "x_preset")

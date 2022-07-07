@@ -70,10 +70,9 @@ class ConfigTest(unittest.TestCase):
         test("/verify-squashfs-tmp/tmpfs/overlay", True)
 
     def test__check_config_and_system(self):
-        with mock.patch("verify_squash_root.config.is_volatile_boot") as \
-                is_vol, \
-             mock.patch("verify_squash_root.config.check_config") as \
-                check_config:
+        base = "verify_squash_root.config"
+        with (mock.patch("{}.is_volatile_boot".format(base)) as is_vol,
+              mock.patch("{}.check_config".format(base)) as check_config):
             check_config.return_value = ["some", "test", "values"]
             is_vol.return_value = True
             config = mock.Mock()

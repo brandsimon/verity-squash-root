@@ -16,12 +16,12 @@ class DecryptTest(unittest.TestCase):
     def test__decrypt_secure_boot_keys(self):
         base = "verify_squash_root.decrypt"
         all_mocks = mock.MagicMock()
-        with mock.patch("{}.exec_binary".format(base),
-                        new=all_mocks.exec_binary), \
-             mock.patch("{}.os".format(base),
-                        new=all_mocks.os), \
-             mock.patch("{}.tarfile".format(base),
-                        new=all_mocks.tarfile):
+        with (mock.patch("{}.exec_binary".format(base),
+                         new=all_mocks.exec_binary),
+              mock.patch("{}.os".format(base),
+                         new=all_mocks.os),
+              mock.patch("{}.tarfile".format(base),
+                         new=all_mocks.tarfile)):
             config = {
                 "DEFAULT": {
                     "DECRYPT_SECURE_BOOT_KEYS_CMD": "cp /root/keys.tar {}",
@@ -41,10 +41,10 @@ class DecryptTest(unittest.TestCase):
         base = "verify_squash_root.decrypt"
         all_mocks = mock.Mock()
         config = mock.Mock()
-        with mock.patch("{}.decrypt_secure_boot_keys".format(base),
-                        new=all_mocks.decrypt_secure_boot_keys), \
-             mock.patch("{}.shutil".format(base),
-                        new=all_mocks.shutil):
+        with (mock.patch("{}.decrypt_secure_boot_keys".format(base),
+                         new=all_mocks.decrypt_secure_boot_keys),
+              mock.patch("{}.shutil".format(base),
+                         new=all_mocks.shutil)):
             with DecryptKeys(config):
                 all_mocks.inner_func()
             self.assertEqual(

@@ -8,12 +8,12 @@ class MountTest(unittest.TestCase):
     def test__tmpfs_mount(self):
         base = "verify_squash_root.mount"
         all_mocks = mock.Mock()
-        with mock.patch("{}.exec_binary".format(base),
-                        new=all_mocks.exec_binary), \
-             mock.patch("{}.os".format(base),
-                        new=all_mocks.os), \
-             mock.patch("{}.shutil".format(base),
-                        new=all_mocks.shutil):
+        with (mock.patch("{}.exec_binary".format(base),
+                         new=all_mocks.exec_binary),
+              mock.patch("{}.os".format(base),
+                         new=all_mocks.os),
+              mock.patch("{}.shutil".format(base),
+                         new=all_mocks.shutil)):
             call = mock.call
             with TmpfsMount("/my_directory"):
                 self.assertEqual(
