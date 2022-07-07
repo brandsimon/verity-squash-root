@@ -154,6 +154,13 @@ squashfs-tools
 tar
 ```
 
+#### Development
+
+```
+python-pyflakes
+python-pycodestyle
+```
+
 ### Setup
 
 Setup a python3 virtual environment:
