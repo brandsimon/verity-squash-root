@@ -24,7 +24,7 @@ setup(
     ],
     author='Simon Brand',
     author_email='simon.brand@postadigitale.de',
-    url='https://github.com/brandsimon/secure-squash-root',
+    url='https://github.com/brandsimon/verify-squash-root',
     keywords='Secure boot, squashfs, dm-verity',
     package_dir={'': 'src'},
     packages=find_packages('src/'),

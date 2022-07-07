@@ -119,7 +119,7 @@ Overlayfs directories:
 Setup a python3 virtual environment:
 
 ```shell
-git clone git@github.com:brandsimon/secure-squash-root.git
+git clone git@github.com:brandsimon/verify-squash-root.git
 python3 -m venv .venv
 .venv/bin/pip install -e . --no-deps
 ```
