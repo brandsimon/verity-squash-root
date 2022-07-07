@@ -1,0 +1,39 @@
+name: Test code
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.9', '3.10']
+    name: Tests
+    steps:
+      - uses: actions/checkout@v2
+      - name: Setup python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+          architecture: x64
+      # Setup
+      - run: sudo apt-get install binutils sbsigntool
+      # directory is needed for arch linux tests
+      - run: sudo mkdir -p /etc/mkinitcpio.d
+
+      # Setup workspace
+      - run: set -e
+      - run: python3 --version
+      - run: python3 -m venv .venv --system-site-packages
+      - run: .venv/bin/activate
+      - run: pip3 install --upgrade setuptools pip
+      - run: pip3 install pycodestyle pyflakes
+      - run: pip3 install -e . --no-deps
+
+      # Run Tests
+      - run: python3 -m unittest tests/unit/tests.py
+
+      # Check syntax
+      - run: sudo apt-get install shellcheck
+      - run: shellcheck usr/lib/initcpio/install/verify-squash-root usr/lib/verify-squash-root/*
+      - run: pip3 install flake8 mypy
+      - run: flake8 src/ tests/ setup.py
+      - run: mypy src
