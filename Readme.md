@@ -3,8 +3,25 @@
 
 ### [Install](#install) - [Configuration](#configuration) - [Usage](#usage) - [Development](#development)
 
-This library provides an easy way to create signed efi binaries which mount a
+This repository provides an easy way to create signed efi binaries which mount a
 verified squashfs (dm-verity) image as rootfs on boot (in the initramfs/initrd).
+Also it creates A/B-style image and efi files. The current booted image will not
+be overriden, so you can boot an old known-working image if there are problems.
+The A/B images are stored on the configured root-partition, so they will still
+be encrypted, if encryption of the root image is configured.
+
+#### What happens on boot?
+
+ - The initramfs mounts the root-partition as before.
+   This is why encryption of the root-partition still works.
+   Cmdline parameters to decrypt still need to be configured in the config file
+   as `CMDLINE`.
+ - Depending on the kernel cmdline, either the A or B image will be verified
+   via dm-verity and used. (The build command will set these automatically.)
+   If you boot a tmpfs image, a tmpfs will be used as overlay image for
+   volatile changes.
+   If you boot a non-tmpfs image, the folder overlay on the root-partition
+   will be used as overlayfs upper directory to save persistent changes.
 
 ## Install
 
@@ -41,7 +58,7 @@ configuration files are stored there.
 
 ### Arch Linux
 
-Only mkinitcpio is supported under Arch Linux in systemd-mode.
+Only mkinitcpio wih systemd-hooks is supported under Arch Linux.
 Add the hook `verify-squash-root` to `/etc/mkinitcpio.conf` directly after the autodetect hook.
 This is necessary, since the autodetect hook cannot handle overlayfs as rootfs (yet).
 
