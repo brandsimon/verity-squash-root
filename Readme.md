@@ -33,6 +33,7 @@ You can clone the repository, see [Development](development)
 ```
 age (only when used for decryption of secure-boot keys)
 binutils
+python
 sbsigntools
 squashfs-tools
 tar
