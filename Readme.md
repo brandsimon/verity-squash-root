@@ -77,7 +77,29 @@ image as well.
 
 ## Usage
 
-Under construction.
+To list all efi images, which will be created or ignored via
+`IGNORE_KERNEL_EFIS`:
+```
+verify-squash-root list
+```
+
+To install systemd-boot and create a UEFI Boot Manger entry for it:
+```
+verify-squash-root setup systemd
+```
+
+To add efi files to the UEFI Boot Manager with /dev/sda1 as EFI partition:
+```
+verify-squash-root setup uefi /dev/sda 1
+```
+
+To build a new squashfs image and efi files:
+```
+verify-squash-root build
+```
+
+If you are not yet booted in a verified image, you need `--ignore-warnings`,
+since there will be a warning if the root image is not fully verified.
 
 ## Development
 
