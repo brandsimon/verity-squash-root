@@ -142,7 +142,7 @@ def parse_params_and_run():
                 with DecryptKeys(config):
                     create_image_and_sign_kernel(config, distribution)
     except BaseException as e:
-        logging.error("Error occured: {}".format(e))
+        logging.error("Error: {}".format(e))
         logging.debug(e, exc_info=1)
         logging.error("For more info use the --verbose option "
                       "or look into the log file: {}".format(LOG_FILE))
