@@ -8,7 +8,7 @@ from verify_squash_root.file_op import write_str_to
 def file_matches_slot(file: str, slot: str):
     search_str = " {}_slot={} ".format(KERNEL_PARAM_BASE, slot)
     result = exec_binary(["objcopy", "-O", "binary", "--only-section",
-                          ".cmdline", file, "/dev/stdout"])
+                          ".cmdline", file, "/dev/fd/1"])
     text = result[0].decode()
     return search_str in text
 
