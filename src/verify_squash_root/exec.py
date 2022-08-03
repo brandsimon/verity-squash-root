@@ -9,6 +9,9 @@ class ExecBinaryError(ChildProcessError):
         self.__stderr = stderr
         super().__init__([cmd, (stdout, stderr)])
 
+    def stderr(self):
+        return self.__stderr
+
     def __str__(self):
         return "Failed to execute '{}', error: {}".format(
             " ".join(self.__cmd), str(self.__stderr)[1:])

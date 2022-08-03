@@ -17,12 +17,12 @@ from verify_squash_root.image import mksquashfs, veritysetup_image
 def move_kernel_to(src: str, dst: str, slot: str,
                    dst_backup: Union[str, None]) -> None:
     if os.path.exists(dst):
-        slot_matches = efi.file_matches_slot(dst, slot)
-        if slot_matches or dst_backup is None:
+        overwrite_file = efi.file_matches_slot_or_is_broken(dst, slot)
+        if overwrite_file or dst_backup is None:
             # if backup slot is booted, dont override it
             if dst_backup is None:
                 logging.debug("Backup ignored")
-            elif slot_matches:
+            elif overwrite_file:
                 logging.debug("Backup slot kept as is")
             os.unlink(dst)
         else:

@@ -4,7 +4,7 @@ from .test_helper import get_test_files_path
 from unittest import mock
 from verify_squash_root.config import KEY_DIR
 from verify_squash_root.file_op import read_from
-from verify_squash_root.efi import file_matches_slot, sign, \
+from verify_squash_root.efi import file_matches_slot_or_is_broken, sign, \
     create_efi_executable, build_and_sign_kernel
 
 TEST_FILES_DIR = get_test_files_path("efi")
@@ -12,12 +12,12 @@ TEST_FILES_DIR = get_test_files_path("efi")
 
 class EfiTest(unittest.TestCase):
 
-    def test__file_matches_slot(self):
+    def test__file_matches_slot_or_is_broken(self):
 
         def wrapper(path: str, slot: str):
             file = os.path.join(TEST_FILES_DIR, path)
             content_before = read_from(file)
-            result = file_matches_slot(file, slot)
+            result = file_matches_slot_or_is_broken(file, slot)
             self.assertEqual(content_before, read_from(file),
                              "objcopy modified file (breaks secure boot)")
             return result
@@ -29,6 +29,22 @@ class EfiTest(unittest.TestCase):
 
         self.assertFalse(wrapper("stub_slot_unkown.efi", "a"))
         self.assertFalse(wrapper("stub_slot_unkown.efi", "b"))
+
+        log_trunc = ["WARNING:root:Old efi file was truncated"]
+        with self.assertLogs() as logs:
+            self.assertTrue(wrapper("stub_broken.efi", "a"))
+        self.assertEqual(logs.output, log_trunc)
+        with self.assertLogs() as logs:
+            self.assertTrue(wrapper("stub_broken.efi", "b"))
+        self.assertEqual(logs.output, log_trunc)
+
+        log_empty = ["WARNING:root:Old efi file was empty"]
+        with self.assertLogs() as logs:
+            self.assertTrue(wrapper("stub_empty.efi", "a"))
+        self.assertEqual(logs.output, log_empty)
+        with self.assertLogs() as logs:
+            self.assertTrue(wrapper("stub_empty.efi", "b"))
+        self.assertEqual(logs.output, log_empty)
 
     @mock.patch("verify_squash_root.efi.exec_binary")
     def test__sign(self, mock):

@@ -40,7 +40,7 @@ class MainTest(unittest.TestCase):
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.os.path.exists("/boot/efi/EFI/linux-lts.efi"),
-                 call.efi.file_matches_slot(
+                 call.efi.file_matches_slot_or_is_broken(
                      "/boot/efi/EFI/linux-lts.efi", "a"),
                  call.os.unlink("/boot/efi/EFI/linux-lts.efi"),
                  call.shutil.move("/tmp/dir/linux.efi",
@@ -49,7 +49,7 @@ class MainTest(unittest.TestCase):
             all_mocks.reset_mock()
             # Kernel exist, slot does not match
             all_mocks.os.path.exists.return_value = True
-            all_mocks.efi.file_matches_slot.return_value = False
+            all_mocks.efi.file_matches_slot_or_is_broken.return_value = False
             move_kernel_to("/tmp/dir/tmp.efi",
                            "/boot/efi/EFI/linux_fb.efi",
                            "b",
@@ -57,7 +57,7 @@ class MainTest(unittest.TestCase):
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.os.path.exists("/boot/efi/EFI/linux_fb.efi"),
-                 call.efi.file_matches_slot(
+                 call.efi.file_matches_slot_or_is_broken(
                      "/boot/efi/EFI/linux_fb.efi", "b"),
                  call.os.rename("/boot/efi/EFI/linux_fb.efi",
                                 "/boot/efi/EFI/linux_fb_backup2.efi"),
@@ -67,7 +67,7 @@ class MainTest(unittest.TestCase):
             all_mocks.reset_mock()
             # Kernel exist, slot matches
             all_mocks.os.path.exists.return_value = True
-            all_mocks.efi.file_matches_slot.return_value = True
+            all_mocks.efi.file_matches_slot_or_is_broken.return_value = True
             move_kernel_to("/tmp/tmp_a5.efi",
                            "/boot/efi/linux_test.efi",
                            "a",
@@ -75,7 +75,7 @@ class MainTest(unittest.TestCase):
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.os.path.exists("/boot/efi/linux_test.efi"),
-                 call.efi.file_matches_slot(
+                 call.efi.file_matches_slot_or_is_broken(
                      "/boot/efi/linux_test.efi", "a"),
                  call.os.unlink("/boot/efi/linux_test.efi"),
                  call.shutil.move("/tmp/tmp_a5.efi",

@@ -1,14 +1,28 @@
+import logging
 import os
 from configparser import ConfigParser
 from verify_squash_root.config import KERNEL_PARAM_BASE, TMPDIR, KEY_DIR
-from verify_squash_root.exec import exec_binary
+from verify_squash_root.exec import exec_binary, ExecBinaryError
 from verify_squash_root.file_op import write_str_to
 
 
-def file_matches_slot(file: str, slot: str):
+def file_matches_slot_or_is_broken(file: str, slot: str):
     search_str = " {}_slot={} ".format(KERNEL_PARAM_BASE, slot)
-    result = exec_binary(["objcopy", "-O", "binary", "--only-section",
-                          ".cmdline", file, "/dev/fd/1"])
+    try:
+        result = exec_binary(["objcopy", "-O", "binary", "--only-section",
+                              ".cmdline", file, "/dev/fd/1"])
+    except ExecBinaryError as e:
+        err = e.stderr()
+        if err.startswith(b"objcopy:") and err.endswith(b": file truncated\n"):
+            logging.warning("Old efi file was truncated")
+            logging.debug(err)
+            return True
+        if err.startswith(b"objcopy: error: the input file '") and (
+                err.endswith(b"' is empty\n")):
+            logging.warning("Old efi file was empty")
+            logging.debug(err)
+            return True
+        raise e
     text = result[0].decode()
     return search_str in text
 
