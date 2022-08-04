@@ -1,6 +1,6 @@
 import logging
-import os
 import shutil
+from pathlib import Path
 from configparser import ConfigParser
 from typing import List, Union
 import verify_squash_root.cmdline as cmdline
@@ -14,9 +14,9 @@ from verify_squash_root.file_op import read_text_from
 from verify_squash_root.image import mksquashfs, veritysetup_image
 
 
-def move_kernel_to(src: str, dst: str, slot: str,
-                   dst_backup: Union[str, None]) -> None:
-    if os.path.exists(dst):
+def move_kernel_to(src: Path, dst: Path, slot: str,
+                   dst_backup: Union[Path, None]) -> None:
+    if dst.exists():
         overwrite_file = efi.file_matches_slot_or_is_broken(dst, slot)
         if overwrite_file or dst_backup is None:
             # if backup slot is booted, dont override it
@@ -24,20 +24,20 @@ def move_kernel_to(src: str, dst: str, slot: str,
                 logging.debug("Backup ignored")
             elif overwrite_file:
                 logging.debug("Backup slot kept as is")
-            os.unlink(dst)
+            dst.unlink()
         else:
             logging.info("Moving old efi to backup")
             logging.debug("Path: {}".format(dst_backup))
-            os.rename(dst, dst_backup)
+            dst.replace(dst_backup)
     shutil.move(src, dst)
 
 
 def create_squashfs_return_verity_hash(config: ConfigParser, use_slot: str) \
         -> str:
-    root_mount = config["DEFAULT"]["ROOT_MOUNT"]
-    image = os.path.join(root_mount, "image_{}.squashfs".format(use_slot))
+    root_mount = Path(config["DEFAULT"]["ROOT_MOUNT"])
+    image = root_mount / "image_{}.squashfs".format(use_slot)
     logging.debug("Image path: {}".format(image))
-    efi_partition = config["DEFAULT"]["EFI_PARTITION"]
+    efi_partition = Path(config["DEFAULT"]["EFI_PARTITION"])
     exclude_dirs = config_str_to_stripped_arr(
         config["DEFAULT"]["EXCLUDE_DIRS"])
     logging.info("Creating squashfs...")
@@ -48,23 +48,22 @@ def create_squashfs_return_verity_hash(config: ConfigParser, use_slot: str) \
 
 
 def build_and_move_kernel(config: ConfigParser,
-                          vmlinuz: str, initramfs: str,
+                          vmlinuz: Path, initramfs: Path,
                           use_slot: str, root_hash: str, cmdline_add: str,
-                          base_name: str, out_dir: str,
+                          base_name: str, out_dir: Path,
                           label: str,
                           ignore_efis: List[str]):
     if base_name in ignore_efis:
         return
     logging.info("Processing {}".format(label))
-    out = os.path.join(out_dir, "{}.efi".format(base_name))
+    out = out_dir / "{}.efi".format(base_name)
     backup_out = None
     backup_base_name = backup_file(base_name)
     if backup_base_name not in ignore_efis:
-        backup_out = os.path.join(
-            out_dir, "{}.efi".format(backup_base_name))
+        backup_out = out_dir / "{}.efi".format(backup_base_name)
     logging.debug("Write efi to {}".format(out))
     # Store files to sign on trusted tmpfs
-    tmp_efi_file = os.path.join(TMPDIR, "tmp.efi")
+    tmp_efi_file = TMPDIR / "tmp.efi"
     efi.build_and_sign_kernel(config, vmlinuz, initramfs, use_slot,
                               root_hash, tmp_efi_file,
                               cmdline_add)
@@ -73,11 +72,11 @@ def build_and_move_kernel(config: ConfigParser,
 
 def create_image_and_sign_kernel(config: ConfigParser,
                                  distribution: DistributionConfig):
-    kernel_cmdline = read_text_from("/proc/cmdline")
+    kernel_cmdline = read_text_from(Path("/proc/cmdline"))
     use_slot = cmdline.unused_slot(kernel_cmdline)
-    efi_partition = config["DEFAULT"]["EFI_PARTITION"]
+    efi_partition = Path(config["DEFAULT"]["EFI_PARTITION"])
     efi_dirname = distribution.efi_dirname()
-    out_dir = os.path.join(efi_partition, "EFI", efi_dirname)
+    out_dir = efi_partition / "EFI" / efi_dirname
     logging.info("Using slot {} for new image".format(use_slot))
     root_hash = create_squashfs_return_verity_hash(config, use_slot)
     logging.debug("Calculated root hash: {}".format(root_hash))

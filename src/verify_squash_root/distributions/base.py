@@ -1,9 +1,10 @@
+from pathlib import Path
 from typing import Generator, List, MutableMapping, Tuple
 
 
 class DistributionConfig:
 
-    _modules_dir: str = "/usr/lib/modules"
+    _modules_dir: Path = Path("/usr/lib/modules")
 
     def file_name(self, kernel: str, preset: str) -> str:
         raise NotImplementedError("Base class")
@@ -14,11 +15,11 @@ class DistributionConfig:
     def efi_dirname(self) -> str:
         raise NotImplementedError("Base class")
 
-    def vmlinuz(self, kernel: str) -> str:
+    def vmlinuz(self, kernel: str) -> Path:
         raise NotImplementedError("Base class")
 
     def build_initramfs_with_microcode(self, kernel: str,
-                                       preset: str) -> str:
+                                       preset: str) -> Path:
         raise NotImplementedError("Base class")
 
     def list_kernels(self) -> List[str]:
