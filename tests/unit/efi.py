@@ -1,6 +1,6 @@
-import os
 import unittest
 from .test_helper import get_test_files_path
+from pathlib import Path
 from unittest import mock
 from verify_squash_root.config import KEY_DIR
 from verify_squash_root.file_op import read_from
@@ -15,7 +15,7 @@ class EfiTest(unittest.TestCase):
     def test__file_matches_slot_or_is_broken(self):
 
         def wrapper(path: str, slot: str):
-            file = os.path.join(TEST_FILES_DIR, path)
+            file = TEST_FILES_DIR / path
             content_before = read_from(file)
             result = file_matches_slot_or_is_broken(file, slot)
             self.assertEqual(content_before, read_from(file),
@@ -48,7 +48,7 @@ class EfiTest(unittest.TestCase):
 
     @mock.patch("verify_squash_root.efi.exec_binary")
     def test__sign(self, mock):
-        sign("my/key/dir", "my/in/file", "my/out/file")
+        sign(Path("my/key/dir"), Path("my/in/file"), Path("my/out/file"))
         mock.assert_called_once_with(
             ["sbsign",
              "--key", "my/key/dir/db.key",
@@ -90,41 +90,43 @@ class EfiTest(unittest.TestCase):
                          new=all_mocks.efi.create_efi_executable),
               mock.patch("{}.write_str_to".format(base),
                          new=all_mocks.write_str_to)):
-            build_and_sign_kernel(config, "/boot/vmlinuz",
-                                  "/tmp/initramfs.img", "a",
-                                  "567myhash234", "/tmp/file.efi",
+            build_and_sign_kernel(config, Path("/boot/vmlinuz"),
+                                  Path("/tmp/initramfs.img"), "a",
+                                  "567myhash234", Path("/tmp/file.efi"),
                                   "tmpfsparam")
             self.assertEqual(
                 all_mocks.mock_calls,
-                [call.write_str_to("/tmp/verify_squash_root/cmdline",
+                [call.write_str_to(Path("/tmp/verify_squash_root/cmdline"),
                                    ("rw encrypt=/dev/sda2 quiet tmpfsparam "
                                     "verify_squash_root_slot=a "
                                     "verify_squash_root_hash=567myhash234")),
                  call.efi.create_efi_executable(
-                     "/usr/lib/systemd/mystub.efi",
-                     "/tmp/verify_squash_root/cmdline",
-                     "/boot/vmlinuz", "/tmp/initramfs.img", "/tmp/file.efi"),
-                 call.efi.sign(KEY_DIR, "/tmp/file.efi",
-                               "/tmp/file.efi")])
+                     Path("/usr/lib/systemd/mystub.efi"),
+                     Path("/tmp/verify_squash_root/cmdline"),
+                     Path("/boot/vmlinuz"), Path("/tmp/initramfs.img"),
+                     Path("/tmp/file.efi")),
+                 call.efi.sign(KEY_DIR, Path("/tmp/file.efi"),
+                               Path("/tmp/file.efi"))])
 
             all_mocks.reset_mock()
 
-            build_and_sign_kernel(config, "/usr/lib/vmlinuz-lts",
-                                  "/boot/initramfs_fallback.img", "b",
-                                  "853anotherhash723", "/tmporary/dir/f.efi",
+            build_and_sign_kernel(config, Path("/usr/lib/vmlinuz-lts"),
+                                  Path("/boot/initramfs_fallback.img"), "b",
+                                  "853anotherhash723",
+                                  Path("/tmporary/dir/f.efi"),
                                   "")
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.write_str_to(
-                     "/tmp/verify_squash_root/cmdline",
+                     Path("/tmp/verify_squash_root/cmdline"),
                      ("rw encrypt=/dev/sda2 quiet  verify_squash_root_slot=b "
                       "verify_squash_root_hash=853anotherhash723")),
                  call.efi.create_efi_executable(
-                         "/usr/lib/systemd/mystub.efi",
-                         "/tmp/verify_squash_root/cmdline",
-                     "/usr/lib/vmlinuz-lts",
-                     "/boot/initramfs_fallback.img",
-                     "/tmporary/dir/f.efi"),
+                         Path("/usr/lib/systemd/mystub.efi"),
+                         Path("/tmp/verify_squash_root/cmdline"),
+                         Path("/usr/lib/vmlinuz-lts"),
+                         Path("/boot/initramfs_fallback.img"),
+                         Path("/tmporary/dir/f.efi")),
                  call.efi.sign(KEY_DIR,
-                               "/tmporary/dir/f.efi",
-                               "/tmporary/dir/f.efi")])
+                               Path("/tmporary/dir/f.efi"),
+                               Path("/tmporary/dir/f.efi"))])

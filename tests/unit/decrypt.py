@@ -3,6 +3,7 @@ from unittest import mock
 from unittest.mock import call
 from verify_squash_root.decrypt import format_cmd, TAR_FILE, KEY_DIR, \
     decrypt_secure_boot_keys, DecryptKeys
+from .test_helper import wrap_tempdir
 
 
 class DecryptTest(unittest.TestCase):
@@ -13,13 +14,15 @@ class DecryptTest(unittest.TestCase):
                          ["age", "-d", "-o", "/tmp/keys.tar",
                           "/etc/keys.tar.age"])
 
-    def test__decrypt_secure_boot_keys(self):
+    @wrap_tempdir
+    def test__decrypt_secure_boot_keys(self, tempdir):
         base = "verify_squash_root.decrypt"
+        key_dir = tempdir / "keys"
         all_mocks = mock.MagicMock()
         with (mock.patch("{}.exec_binary".format(base),
                          new=all_mocks.exec_binary),
-              mock.patch("{}.os".format(base),
-                         new=all_mocks.os),
+              mock.patch("{}.KEY_DIR".format(base),
+                         new=key_dir),
               mock.patch("{}.tarfile".format(base),
                          new=all_mocks.tarfile)):
             config = {
@@ -27,15 +30,16 @@ class DecryptTest(unittest.TestCase):
                     "DECRYPT_SECURE_BOOT_KEYS_CMD": "cp /root/keys.tar {}",
                 }
             }
+            self.assertEqual(key_dir.is_dir(), False)
             decrypt_secure_boot_keys(config)
             self.assertEqual(
                 all_mocks.mock_calls,
-                [call.os.mkdir(KEY_DIR),
-                 call.exec_binary(["cp", "/root/keys.tar", TAR_FILE]),
+                [call.exec_binary(["cp", "/root/keys.tar", str(TAR_FILE)]),
                  call.tarfile.open(TAR_FILE),
                  call.tarfile.open().__enter__(),
-                 call.tarfile.open().__enter__().extractall(KEY_DIR),
+                 call.tarfile.open().__enter__().extractall(key_dir),
                  call.tarfile.open().__exit__(None, None, None)])
+            self.assertEqual(key_dir.is_dir(), True)
 
     def test__decrypt_keys(self):
         base = "verify_squash_root.decrypt"

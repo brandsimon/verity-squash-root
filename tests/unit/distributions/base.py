@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 from unittest import mock
 from verify_squash_root.distributions.base import iterate_distribution_efi, \
     calc_kernel_packages_not_unique
@@ -18,7 +19,7 @@ def distribution_mock():
         return "Distri {} ({})".format(obj_kernel[kernel].capitalize(), preset)
 
     def vmlinuz(kernel):
-        return "/lib64/modules/{}/vmlinuz".format(kernel)
+        return Path("/lib64/modules/{}/vmlinuz".format(kernel))
 
     distri_mock = mock.Mock()
     distri_mock.list_kernels.return_value = ["5.19", "5.14"]

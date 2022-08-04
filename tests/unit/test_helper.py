@@ -1,17 +1,17 @@
-import os
 import shutil
 import tempfile
+from pathlib import Path
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 
 
-def get_test_files_path(extra: str) -> str:
-    return os.path.join(os.path.dirname(__file__), "files", extra)
+def get_test_files_path(extra: str) -> Path:
+    return Path(__file__).resolve().parent / "files" / extra
 
 
 def wrap_tempdir(func):
     def f(*args, **kwargs):
-        tempdir = tempfile.mkdtemp()
+        tempdir = Path(tempfile.mkdtemp())
         try:
             return func(*args, **kwargs, tempdir=tempdir)
         finally:
