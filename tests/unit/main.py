@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 from unittest import mock
 from unittest.mock import call
 from tests.unit.distributions.base import distribution_mock
@@ -13,73 +14,69 @@ class MainTest(unittest.TestCase):
         base = "verify_squash_root.main"
         all_mocks = mock.Mock()
 
-        with (mock.patch("{}.os".format(base),
-                         new=all_mocks.os),
-              mock.patch("{}.shutil".format(base),
+        with (mock.patch("{}.shutil".format(base),
                          new=all_mocks.shutil),
               mock.patch("{}.efi".format(base),
                          new=all_mocks.efi)):
             # Kernel does not exist yet
-            all_mocks.os.path.exists.return_value = False
-            move_kernel_to("/tmp/test.efi",
-                           "/boot/efi/EFI/linux.efi",
+            all_mocks.dest.exists.return_value = False
+            move_kernel_to(all_mocks.src,
+                           all_mocks.dest,
                            "a",
-                           "/boot/efi/EFI/linux_backup.efi")
+                           all_mocks.backup)
             self.assertEqual(
                 all_mocks.mock_calls,
-                [call.os.path.exists("/boot/efi/EFI/linux.efi"),
-                 call.shutil.move("/tmp/test.efi", "/boot/efi/EFI/linux.efi")])
+                [call.dest.exists(),
+                 call.shutil.move(all_mocks.src,
+                                  all_mocks.dest)])
 
             all_mocks.reset_mock()
             # Kernel exist, backup not supplied
-            all_mocks.os.path.exists.return_value = True
-            move_kernel_to("/tmp/dir/linux.efi",
-                           "/boot/efi/EFI/linux-lts.efi",
+            all_mocks.dest.exists.return_value = True
+            move_kernel_to(all_mocks.src,
+                           all_mocks.dest,
                            "a",
                            None)
             self.assertEqual(
-                all_mocks.mock_calls,
-                [call.os.path.exists("/boot/efi/EFI/linux-lts.efi"),
+                list(all_mocks.mock_calls),
+                [call.dest.exists(),
                  call.efi.file_matches_slot_or_is_broken(
-                     "/boot/efi/EFI/linux-lts.efi", "a"),
-                 call.os.unlink("/boot/efi/EFI/linux-lts.efi"),
-                 call.shutil.move("/tmp/dir/linux.efi",
-                                  "/boot/efi/EFI/linux-lts.efi")])
+                     all_mocks.dest, "a"),
+                 call.dest.unlink(),
+                 call.shutil.move(all_mocks.src,
+                                  all_mocks.dest)])
 
             all_mocks.reset_mock()
             # Kernel exist, slot does not match
-            all_mocks.os.path.exists.return_value = True
+            all_mocks.dest.exists.return_value = True
             all_mocks.efi.file_matches_slot_or_is_broken.return_value = False
-            move_kernel_to("/tmp/dir/tmp.efi",
-                           "/boot/efi/EFI/linux_fb.efi",
+            move_kernel_to(all_mocks.src,
+                           all_mocks.dest,
                            "b",
-                           "/boot/efi/EFI/linux_fb_backup2.efi")
+                           all_mocks.backup)
             self.assertEqual(
                 all_mocks.mock_calls,
-                [call.os.path.exists("/boot/efi/EFI/linux_fb.efi"),
-                 call.efi.file_matches_slot_or_is_broken(
-                     "/boot/efi/EFI/linux_fb.efi", "b"),
-                 call.os.rename("/boot/efi/EFI/linux_fb.efi",
-                                "/boot/efi/EFI/linux_fb_backup2.efi"),
-                 call.shutil.move("/tmp/dir/tmp.efi",
-                                  "/boot/efi/EFI/linux_fb.efi")])
+                [call.dest.exists(),
+                 call.efi.file_matches_slot_or_is_broken(all_mocks.dest, "b"),
+                 call.dest.replace(all_mocks.backup),
+                 call.shutil.move(all_mocks.src,
+                                  all_mocks.dest)])
 
             all_mocks.reset_mock()
             # Kernel exist, slot matches
-            all_mocks.os.path.exists.return_value = True
+            all_mocks.dest.exists.return_value = True
             all_mocks.efi.file_matches_slot_or_is_broken.return_value = True
-            move_kernel_to("/tmp/tmp_a5.efi",
-                           "/boot/efi/linux_test.efi",
+            move_kernel_to(all_mocks.src,
+                           all_mocks.dest,
                            "a",
-                           "/boot/efi/EFI/linux_test_backup.efi")
+                           all_mocks.backup)
             self.assertEqual(
                 all_mocks.mock_calls,
-                [call.os.path.exists("/boot/efi/linux_test.efi"),
-                 call.efi.file_matches_slot_or_is_broken(
-                     "/boot/efi/linux_test.efi", "a"),
-                 call.os.unlink("/boot/efi/linux_test.efi"),
-                 call.shutil.move("/tmp/tmp_a5.efi",
-                                  "/boot/efi/linux_test.efi")])
+                [call.dest.exists(),
+                 call.efi.file_matches_slot_or_is_broken(all_mocks.dest, "a"),
+                 call.dest.unlink(),
+                 call.shutil.move(all_mocks.src,
+                                  all_mocks.dest)])
 
     def test__create_squashfs_return_verity_hash(self):
         base = "verify_squash_root.main"
@@ -101,10 +98,11 @@ class MainTest(unittest.TestCase):
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.mksquashfs(['var/lib', 'opt/var'],
-                                 '/opt/mnt/root/image_c.squashfs',
-                                 '/opt/mnt/root',
-                                 '/boot/second/efi'),
-                 call.veritysetup_image('/opt/mnt/root/image_c.squashfs')])
+                                 Path('/opt/mnt/root/image_c.squashfs'),
+                                 Path('/opt/mnt/root'),
+                                 Path('/boot/second/efi')),
+                 call.veritysetup_image(
+                     Path('/opt/mnt/root/image_c.squashfs'))])
             self.assertEqual(
                 result,
                 all_mocks.veritysetup_image())
@@ -126,42 +124,42 @@ class MainTest(unittest.TestCase):
             # No install
             build_and_move_kernel(
                 config, vmlinuz, initramfs, use_slot, root_hash,
-                cmdline_add, "linux_fallback", "/boot/ef/EFI/Debian",
+                cmdline_add, "linux_fallback", Path("/boot/ef/EFI/Debian"),
                 "Debian Linux", ["linux", "linux_fallback", "linux-lts"])
             self.assertEqual(all_mocks.mock_calls, [])
 
             # No backup
             build_and_move_kernel(
                 config, vmlinuz, initramfs, use_slot, root_hash,
-                cmdline_add, "linux_fallback", "/boot/ef/EFI/Debian",
+                cmdline_add, "linux_fallback", Path("/boot/ef/EFI/Debian"),
                 "Debian Linux", ["linux", "linux_fallback_backup", "lts_lin"])
 
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.efi.build_and_sign_kernel(
                      config, vmlinuz, initramfs, use_slot, root_hash,
-                     '/tmp/verify_squash_root/tmp.efi', cmdline_add),
+                     Path('/tmp/verify_squash_root/tmp.efi'), cmdline_add),
                  call.move_kernel_to(
-                     '/tmp/verify_squash_root/tmp.efi',
-                     '/boot/ef/EFI/Debian/linux_fallback.efi',
+                     Path('/tmp/verify_squash_root/tmp.efi'),
+                     Path('/boot/ef/EFI/Debian/linux_fallback.efi'),
                      use_slot, None)])
 
             all_mocks.reset_mock()
             # Backup
             build_and_move_kernel(
                 config, vmlinuz, initramfs, use_slot, root_hash,
-                cmdline_add, "linux_tmpfs", "/boot/efidir/EFI/Debian",
+                cmdline_add, "linux_tmpfs", Path("/boot/efidir/EFI/Debian"),
                 "Debian Linux 11", ["linux", "linux_tmp", "lts_lin"])
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.efi.build_and_sign_kernel(
                      config, vmlinuz, initramfs, use_slot, root_hash,
-                     '/tmp/verify_squash_root/tmp.efi', cmdline_add),
+                     Path('/tmp/verify_squash_root/tmp.efi'), cmdline_add),
                  call.move_kernel_to(
-                     '/tmp/verify_squash_root/tmp.efi',
-                     '/boot/efidir/EFI/Debian/linux_tmpfs.efi',
+                     Path('/tmp/verify_squash_root/tmp.efi'),
+                     Path('/boot/efidir/EFI/Debian/linux_tmpfs.efi'),
                      use_slot,
-                     '/boot/efidir/EFI/Debian/linux_tmpfs_backup.efi')])
+                     Path('/boot/efidir/EFI/Debian/linux_tmpfs_backup.efi'))])
 
     def test__create_image_and_sign_kernel(self):
         base = "verify_squash_root.main"
@@ -171,7 +169,7 @@ class MainTest(unittest.TestCase):
         root_hash = mock.Mock()
 
         def initrdfunc(kernel, preset):
-            return "/path/initramfs_{}_{}.img".format(kernel, preset)
+            return Path("/path/initramfs_{}_{}.img".format(kernel, preset))
 
         config = {
             "DEFAULT": {
@@ -202,51 +200,51 @@ class MainTest(unittest.TestCase):
             create_image_and_sign_kernel(config, distri_mock)
             self.assertEqual(
                 all_mocks.mock_calls,
-                [call.read_text_from('/proc/cmdline'),
+                [call.read_text_from(Path('/proc/cmdline')),
                  call.cmdline.unused_slot(cmdline),
                  call.create_squashfs_return_verity_hash(config, use_slot),
                  call.build_and_move_kernel(
                      config,
-                     '/lib64/modules/5.19/vmlinuz',
-                     '/path/initramfs_5.19_fallback.img',
+                     Path('/lib64/modules/5.19/vmlinuz'),
+                     Path('/path/initramfs_5.19_fallback.img'),
                      use_slot,
                      root_hash,
                      '',
                      'linux_fallback',
-                     '/boot/efi/EFI/Arch',
+                     Path('/boot/efi/EFI/Arch'),
                      'Distri Linux (fallback)',
                      ignored_efis),
                  call.build_and_move_kernel(
                      config,
-                     '/lib64/modules/5.19/vmlinuz',
-                     '/path/initramfs_5.19_fallback.img',
+                     Path('/lib64/modules/5.19/vmlinuz'),
+                     Path('/path/initramfs_5.19_fallback.img'),
                      use_slot,
                      root_hash,
                      'verify_squash_root_volatile',
                      'linux_fallback_tmpfs',
-                     '/boot/efi/EFI/Arch',
+                     Path('/boot/efi/EFI/Arch'),
                      'Distri Linux (fallback) tmpfs',
                      ignored_efis),
                  call.build_and_move_kernel(
                      config,
-                     '/lib64/modules/5.14/vmlinuz',
-                     '/path/initramfs_5.14_default.img',
+                     Path('/lib64/modules/5.14/vmlinuz'),
+                     Path('/path/initramfs_5.14_default.img'),
                      use_slot,
                      root_hash,
                      '',
                      'linux-lts_default',
-                     '/boot/efi/EFI/Arch',
+                     Path('/boot/efi/EFI/Arch'),
                      'Distri Linux-lts (default)',
                      ignored_efis),
                  call.build_and_move_kernel(
                      config,
-                     '/lib64/modules/5.14/vmlinuz',
-                     '/path/initramfs_5.14_default.img',
+                     Path('/lib64/modules/5.14/vmlinuz'),
+                     Path('/path/initramfs_5.14_default.img'),
                      use_slot,
                      root_hash,
                      'verify_squash_root_volatile',
                      'linux-lts_default_tmpfs',
-                     '/boot/efi/EFI/Arch',
+                     Path('/boot/efi/EFI/Arch'),
                      'Distri Linux-lts (default) tmpfs',
                      ignored_efis)])
             self.assertEqual(

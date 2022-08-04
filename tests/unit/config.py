@@ -1,5 +1,5 @@
-import os
 import unittest
+from pathlib import Path
 from unittest import mock
 from tests.unit.test_helper import PROJECT_ROOT
 from verify_squash_root.config import config_str_to_stripped_arr, \
@@ -21,14 +21,14 @@ class ConfigTest(unittest.TestCase):
         self.assertEqual(cp_mock.mock_calls, [
             mock.call(),
             mock.call().read(
-                os.path.join(PROJECT_ROOT,
-                             "src/verify_squash_root/default_config.ini")),
-            mock.call().read('/usr/share/verify_squash_root/default.ini'),
-            mock.call().read('/etc/verify_squash_root/config.ini')])
+                PROJECT_ROOT / "src/verify_squash_root/default_config.ini"),
+            mock.call().read(
+                Path('/usr/share/verify_squash_root/default.ini')),
+            mock.call().read(Path('/etc/verify_squash_root/config.ini'))])
         self.assertEqual(result, cp_mock())
 
-    @mock.patch("verify_squash_root.config.os.path.ismount")
-    def test__check_config(self, mount_mock):
+    @mock.patch("verify_squash_root.config.Path")
+    def test__check_config(self, path_mock):
         config = {
             "DEFAULT": {
                 "ROOT_MOUNT": "/opt/root",
@@ -37,13 +37,26 @@ class ConfigTest(unittest.TestCase):
         }
 
         def run(mount_result):
-            mount_mock.side_effect = mount_result
+            root_mock = mock.Mock()
+            root_mock.is_mount.return_value = mount_result[0]
+            efi_mock = mock.Mock()
+            efi_mock.is_mount.return_value = mount_result[1]
+
+            def ret_mock(name):
+                pm = mock.Mock()
+                pm.resolve.return_value = \
+                    root_mock if name == "/opt/root" else efi_mock
+                pm.__str__ = mock.Mock()
+                pm.__str__.return_value = name
+                return pm
+
+            path_mock.side_effect = ret_mock
             result = check_config(config)
             self.assertEqual(
-                mount_mock.mock_calls,
+                path_mock.mock_calls,
                 [mock.call("/opt/root"),
                  mock.call("/boot/efimnt")])
-            mount_mock.reset_mock()
+            path_mock.reset_mock()
             return result
 
         mnt_error = "Directory '/opt/root' is not a mount point"
