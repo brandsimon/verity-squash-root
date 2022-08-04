@@ -1,15 +1,15 @@
-import os
 from configparser import ConfigParser
+from pathlib import Path
 from typing import List
 from verify_squash_root.exec import exec_binary
 
 
-TMPDIR = "/tmp/verify_squash_root"
-KEY_DIR = os.path.join(TMPDIR, "keys")
+TMPDIR = Path("/tmp/verify_squash_root")
+KEY_DIR = TMPDIR / "keys"
 KERNEL_PARAM_BASE = "verify_squash_root"
-CONFIG_FILE = "/etc/{}/config.ini".format(KERNEL_PARAM_BASE)
-DISTRI_FILE = os.path.join("/usr/share/", KERNEL_PARAM_BASE, "default.ini")
-LOG_FILE = "/var/log/{}.log".format(KERNEL_PARAM_BASE)
+CONFIG_FILE = Path("/etc/{}/config.ini".format(KERNEL_PARAM_BASE))
+DISTRI_FILE = Path("/usr/share") / KERNEL_PARAM_BASE / "default.ini"
+LOG_FILE = Path("/var/log/{}.log".format(KERNEL_PARAM_BASE))
 
 
 def config_str_to_stripped_arr(s: str) -> List[str]:
@@ -18,8 +18,8 @@ def config_str_to_stripped_arr(s: str) -> List[str]:
 
 def read_config() -> ConfigParser:
     config = ConfigParser()
-    directory = os.path.dirname(__file__)
-    defconfig = os.path.join(directory, "default_config.ini")
+    directory = Path(__file__).resolve().parent
+    defconfig = directory / "default_config.ini"
     config.read(defconfig)
     config.read(DISTRI_FILE)
     config.read(CONFIG_FILE)
@@ -33,11 +33,11 @@ def is_volatile_boot():
 
 
 def check_config(config: ConfigParser) -> List[str]:
-    root_mount = config["DEFAULT"]["ROOT_MOUNT"]
-    efi_partition = config["DEFAULT"]["EFI_PARTITION"]
+    root_mount = Path(config["DEFAULT"]["ROOT_MOUNT"])
+    efi_partition = Path(config["DEFAULT"]["EFI_PARTITION"])
     result = []
     for d in [root_mount, efi_partition]:
-        if not os.path.ismount(d):
+        if not d.resolve().is_mount():
             result.append("Directory '{}' is not a mount point".format(d))
     return result
 
