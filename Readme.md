@@ -86,8 +86,7 @@ configuration files are stored there.
 ### Arch Linux
 
 Only mkinitcpio wih systemd-hooks is supported under Arch Linux.
-Add the hook `verify-squash-root` to `/etc/mkinitcpio.conf` directly after the autodetect hook.
-This is necessary, since the autodetect hook cannot handle overlayfs as rootfs (yet).
+Add the hook `verify-squash-root` to `/etc/mkinitcpio.conf`.
 
 ## Considerations / Recommendations
 
