@@ -21,7 +21,10 @@ TMP="/verify-squashfs-tmp"
 if [ "${VOLATILE}" = "${KP_NAME}_volatile" ]; then
 	OLROOT="${TMP}/tmpfs"
 	mount -t tmpfs tmpfs "${OLROOT}"
-	printf "You are booting a tmpfs overlay, press enter to continue\\n"
+	# Print date so rollback attacks can be detected
+	printf "You are booting a tmpfs overlay built at "
+	cat "/VERIFY_SQUASH_ROOT_DATE"
+	printf "Press enter to continue\\n"
 	read -r _
 else
 	OLROOT="${ROOT}"

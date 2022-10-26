@@ -1,5 +1,14 @@
 #!/bin/bash
 
+date_or_override() {
+	# allow override for reproducible builds
+	if [ "${DATE_OVERRIDE}" != "" ]; then
+		printf "%s\\n" "${DATE_OVERRIDE}"
+	else
+		date "+%Y-%m-%d %H:%M:%S %Z"
+	fi
+}
+
 build() {
 	add_binary mount
 	add_binary uname
@@ -8,6 +17,8 @@ build() {
 	add_dir /verify-squashfs-tmp/squashroot
 	add_dir /verify-squashfs-tmp/tmpfs
 	add_file "/usr/lib/verify-squash-root/mount_handler"
+	date_or_override > "${BUILDROOT}/VERIFY_SQUASH_ROOT_DATE"
+
 	add_module dm_mod
 	add_module dm_verity
 	add_module loop
