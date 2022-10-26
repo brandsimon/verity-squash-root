@@ -25,10 +25,6 @@ build() {
 	add_module overlay
 	add_module squashfs
 
-	rootfs="$(findmnt -uno fstype -T /mnt/root)"
-	add_module "${rootfs}"
-	add_binary "fsck.${rootfs}"
-
 	if type add_systemd_unit &> /dev/null; then
 		# add_systemd_unit otpboot.service
 		cat <<EOF | add_systemd_drop_in initrd-switch-root.service squashroot
