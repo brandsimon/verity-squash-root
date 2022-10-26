@@ -23,7 +23,7 @@ jobs:
       - run: set -e
       - run: python3 --version
       - run: python3 -m venv .venv --system-site-packages
-      - run: .venv/bin/activate
+      - run: . .venv/bin/activate
       - run: pip3 install --upgrade setuptools pip
       - run: pip3 install pycodestyle pyflakes
       - run: pip3 install -e . --no-deps
