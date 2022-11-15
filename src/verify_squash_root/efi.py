@@ -5,6 +5,9 @@ from verify_squash_root.config import KERNEL_PARAM_BASE, TMPDIR, KEY_DIR
 from verify_squash_root.exec import exec_binary, ExecBinaryError
 from verify_squash_root.file_op import write_str_to
 
+DB_CERT_FILE = "db.crt"
+DB_KEY_FILE = "db.key"
+
 
 def file_matches_slot_or_is_broken(file: Path, slot: str):
     search_str = " {}_slot={} ".format(KERNEL_PARAM_BASE, slot)
@@ -30,8 +33,8 @@ def file_matches_slot_or_is_broken(file: Path, slot: str):
 def sign(key_dir: Path, in_file: Path, out_file: Path) -> None:
     exec_binary([
         "sbsign",
-        "--key", str(key_dir / "db.key"),
-        "--cert",  str(key_dir / "db.crt"),
+        "--key", str(key_dir / DB_KEY_FILE),
+        "--cert",  str(key_dir / DB_CERT_FILE),
         "--output", str(out_file), str(in_file)])
 
 
