@@ -21,6 +21,8 @@ def decrypt_secure_boot_keys(config: ConfigParser) -> None:
     KEY_DIR.mkdir()
     exec_binary(cmd_arr)
     with tarfile.open(TAR_FILE) as t:
+        # Only extract needed files to avoid python extract/extractall
+        # vulnerability
         t.extract(DB_CERT_FILE, KEY_DIR)
         t.extract(DB_KEY_FILE, KEY_DIR)
 

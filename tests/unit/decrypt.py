@@ -3,7 +3,9 @@ from unittest import mock
 from unittest.mock import call
 from verify_squash_root.decrypt import format_cmd, TAR_FILE, KEY_DIR, \
     decrypt_secure_boot_keys, DecryptKeys
-from .test_helper import wrap_tempdir
+from .test_helper import wrap_tempdir, get_test_files_path
+
+TEST_FILES_DIR = get_test_files_path("decrypt")
 
 
 class DecryptTest(unittest.TestCase):
@@ -57,3 +59,33 @@ class DecryptTest(unittest.TestCase):
                 [call.decrypt_secure_boot_keys(config),
                  call.inner_func(),
                  call.shutil.rmtree(KEY_DIR)])
+
+    @wrap_tempdir
+    def test__decrypt_keys__real_file(self, tempdir):
+        cmd = "cp {} {{}}".format(TEST_FILES_DIR / "keys.tar")
+        config = {
+            "DEFAULT": {
+                "DECRYPT_SECURE_BOOT_KEYS_CMD": cmd
+            }
+        }
+        key_dir = tempdir / "keys"
+        tar_file = key_dir / "keys.tar"
+        base = "verify_squash_root.decrypt"
+        with (mock.patch("{}.TAR_FILE".format(base),
+                         new=tar_file),
+              mock.patch("{}.KEY_DIR".format(base),
+                         new=key_dir)):
+            with DecryptKeys(config):
+                key_file = key_dir / "db.key"
+                cert_file = key_dir / "db.crt"
+                self.assertEqual(
+                    key_file.read_text(),
+                    "DB Key File 842\n")
+                self.assertEqual(
+                    cert_file.read_text(),
+                    "22 DB Cert File 7\n")
+                # Test that no other file got extracted to avoid python
+                # extract / extractall vulnerability
+                self.assertEqual(
+                    sorted(list(key_dir.iterdir())),
+                    [cert_file, key_file, tar_file])
