@@ -2,6 +2,7 @@
 import argparse
 import logging
 import os
+import shutil
 import sys
 import verify_squash_root.encrypt as encrypt
 from configparser import ConfigParser
@@ -132,6 +133,9 @@ def parse_params_and_run():
 
     try:
         if args.command == "create-keys":
+            if shutil.which("age") is None:
+                raise FileNotFoundError("age is not installed, but needed "
+                                        "for encryption")
             with TmpfsMount(TMPDIR):
                 encrypt.check_if_archives_exist()
                 encrypt.create_and_pack_secure_boot_keys()
