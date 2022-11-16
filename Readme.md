@@ -25,24 +25,14 @@ be encrypted, if encryption of the root image is configured.
 
 ## Install
 
-Make yourself familiar with the process of creating, installing and using
-custom Secure Boot keys. See:
- - https://wiki.archlinux.org/index.php/Secure_Boot
- - https://www.rodsbooks.com/efi-bootloaders/controlling-sb.html
-
-After you have generated your custom keys:
  - Install [verify-squash-root](https://aur.archlinux.org/packages/verify-squash-root/) from AUR
- - Install `age` and encrypt your secure boot keys
+ - Install `age` and create your encrypted secure-boot keys:
 ```bash
-cd to/your/keys/direcory
-tar cf keys.tar db.key db.crt
-age -p -e -o keys.tar.age keys.tar
-mv keys.tar.age /etc/verify_squash_root/
-rm keys.tar
+pacman -S age
+verify-squash-root --ignore-warnings create-keys
 ```
- - Remove your plaintext keys
  - Create directories `/boot/efi` and `/mnt/root`
- - Make sure your EFI parition is big enough (500 MB recommended)
+ - Make sure your EFI parition is big enough (1 GB recommended)
  - Mount your EFI partition to `/boot/efi` and configure it in fstab file
  - Mount your root-partition to `/mnt/root` and configure it in fstab file
  - Configure your current kernel cmdline in the config file (`CMDLINE`)
@@ -55,6 +45,8 @@ verify-squash-root --ignore-warnings setup systemd
 verify-squash-root --ignore-warnings build
 ```
  - Now reboot into the squashfs
+ - If everything works as expected, enable secure-boot with the keys
+   from `/etc/verify_squash_root/public_keys.tar`.
 
 ### Updates
 
@@ -64,6 +56,23 @@ verify-squash-root --ignore-warnings build
 ```
 verify-squash-root build
 ```
+
+### Using custom keys
+
+Make yourself familiar with the process of creating, installing and using
+custom Secure Boot keys. See:
+ - https://wiki.archlinux.org/index.php/Secure_Boot
+ - https://www.rodsbooks.com/efi-bootloaders/controlling-sb.html
+
+After you have generated your custom keys:
+```bash
+cd to/your/keys/direcory
+tar cf keys.tar db.key db.crt
+age -p -e -o keys.tar.age keys.tar
+mv keys.tar.age /etc/verify_squash_root/
+rm keys.tar
+```
+ - Remove your plaintext keys
 
 ## Configuration
 
