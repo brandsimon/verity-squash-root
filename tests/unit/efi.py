@@ -5,7 +5,7 @@ from unittest import mock
 from verify_squash_root.config import KEY_DIR
 from verify_squash_root.file_op import read_from
 from verify_squash_root.efi import file_matches_slot_or_is_broken, sign, \
-    create_efi_executable, build_and_sign_kernel
+    create_efi_executable, build_and_sign_kernel, get_cmdline
 
 TEST_FILES_DIR = get_test_files_path("efi")
 
@@ -73,12 +73,49 @@ class EfiTest(unittest.TestCase):
             '--change-section-vma', '.initrd=0x3000000',
             '/my/stub.efi', '/tmp/file.efi'])
 
+    def test__get_cmdline__configfile(self):
+        all_mocks = mock.Mock()
+        cmdline = "rw encrypt=/dev/sda2 quiet"
+        config = {
+            "DEFAULT": {
+                "CMDLINE": cmdline,
+                "EFI_STUB": "/usr/lib/systemd/mystub.efi",
+            }
+        }
+        base = "verify_squash_root.efi"
+        with mock.patch("{}.CMDLINE_FILE".format(base),
+                        new=all_mocks.efi.CMDLINE_FILE):
+            self.assertEqual(get_cmdline(config), cmdline)
+            self.assertEqual(all_mocks.mock_calls, [])
+
+    def test__get_cmdline__etc_file(self):
+        all_mocks = mock.Mock()
+        config = {
+            "DEFAULT": {
+                "EFI_STUB": "/usr/lib/systemd/mystub.efi",
+            }
+        }
+        base = "verify_squash_root.efi"
+        call = mock.call
+        with mock.patch("{}.CMDLINE_FILE".format(base),
+                        new=all_mocks.efi.CMDLINE_FILE):
+            all_mocks.efi.CMDLINE_FILE.exists.return_value = True
+            all_mocks.efi.CMDLINE_FILE.read_text.return_value = \
+                " ro param=val\nroot=UUID=x\n kpti=on debugfs=off"
+            self.assertEqual(
+                get_cmdline(config),
+                " ro param=val root=UUID=x  kpti=on debugfs=off")
+            self.assertEqual(
+                all_mocks.mock_calls,
+                [call.efi.CMDLINE_FILE.exists(),
+                 call.efi.CMDLINE_FILE.read_text()])
+
     def test__build_and_sign_kernel(self):
         all_mocks = mock.Mock()
         base = "verify_squash_root.efi"
         config = {
             "DEFAULT": {
-                "CMDLINE": "rw encrypt=/dev/sda2 quiet",
+                "CMDLINE": "rw encrypt=/dev/sda2 quiet check=on",
                 "EFI_STUB": "/usr/lib/systemd/mystub.efi",
             }
         }
@@ -86,17 +123,21 @@ class EfiTest(unittest.TestCase):
 
         with (mock.patch("{}.sign".format(base),
                          new=all_mocks.efi.sign),
+              mock.patch("{}.get_cmdline".format(base),
+                         new=all_mocks.get_cmdline),
               mock.patch("{}.create_efi_executable".format(base),
                          new=all_mocks.efi.create_efi_executable),
               mock.patch("{}.write_str_to".format(base),
                          new=all_mocks.write_str_to)):
+            all_mocks.get_cmdline.return_value = "rw encrypt=/dev/sda2 quiet"
             build_and_sign_kernel(config, Path("/boot/vmlinuz"),
                                   Path("/tmp/initramfs.img"), "a",
                                   "567myhash234", Path("/tmp/file.efi"),
                                   "tmpfsparam")
             self.assertEqual(
                 all_mocks.mock_calls,
-                [call.write_str_to(Path("/tmp/verify_squash_root/cmdline"),
+                [call.get_cmdline(config),
+                 call.write_str_to(Path("/tmp/verify_squash_root/cmdline"),
                                    ("rw encrypt=/dev/sda2 quiet tmpfsparam "
                                     "verify_squash_root_slot=a "
                                     "verify_squash_root_hash=567myhash234")),
@@ -117,7 +158,8 @@ class EfiTest(unittest.TestCase):
                                   "")
             self.assertEqual(
                 all_mocks.mock_calls,
-                [call.write_str_to(
+                [call.get_cmdline(config),
+                 call.write_str_to(
                      Path("/tmp/verify_squash_root/cmdline"),
                      ("rw encrypt=/dev/sda2 quiet  verify_squash_root_slot=b "
                       "verify_squash_root_hash=853anotherhash723")),

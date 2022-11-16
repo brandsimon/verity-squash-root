@@ -7,6 +7,7 @@ from verify_squash_root.file_op import write_str_to
 
 DB_CERT_FILE = "db.crt"
 DB_KEY_FILE = "db.key"
+CMDLINE_FILE = Path("/etc/kernel/cmdline")
 
 
 def file_matches_slot_or_is_broken(file: Path, slot: str):
@@ -53,11 +54,21 @@ def create_efi_executable(stub: Path, cmdline_file: Path, linux: Path,
         str(stub), str(dest)])
 
 
+def get_cmdline(config: ConfigParser) -> str:
+    con_line = config["DEFAULT"].get("CMDLINE")
+    if con_line is not None:
+        return con_line
+    if CMDLINE_FILE.exists():
+        return CMDLINE_FILE.read_text().replace("\n", " ")
+    raise RuntimeError("CMDLINE not configured, either configure it in the "
+                       "config file or in {}".format(CMDLINE_FILE))
+
+
 def build_and_sign_kernel(config: ConfigParser, vmlinuz: Path, initramfs: Path,
                           slot: str, root_hash: str,
                           tmp_efi_file: Path, add_cmdline: str = "") -> None:
     cmdline = "{} {} {p}_slot={} {p}_hash={}".format(
-        config["DEFAULT"]["CMDLINE"],
+        get_cmdline(config),
         add_cmdline,
         slot,
         root_hash,

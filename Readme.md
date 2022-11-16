@@ -14,8 +14,7 @@ be encrypted, if encryption of the root image is configured.
 
  - The initramfs mounts the root-partition as before.
    This is why encryption of the root-partition still works.
-   Cmdline parameters to decrypt still need to be configured in the config file
-   as `CMDLINE`.
+   Cmdline parameters to decrypt still need to be configured.
  - Depending on the kernel cmdline, either the A or B image will be verified
    via dm-verity and used. (The build command will set these automatically.)
    If you boot a tmpfs image, a tmpfs will be used as overlay image for
@@ -35,7 +34,7 @@ verify-squash-root --ignore-warnings create-keys
  - Make sure your EFI parition is big enough (1 GB recommended)
  - Mount your EFI partition to `/boot/efi` and configure it in fstab file
  - Mount your root-partition to `/mnt/root` and configure it in fstab file
- - Configure your current kernel cmdline in the config file (`CMDLINE`)
+ - Configure your kernel cmdline  (see: [Configuration](#configuration))
  - Exclude every directory not wanted in the squashfs in the config file (`EXCLUDE_DIRS`)
  - Configure a bind-mount for every excluded directory from `/mnt/root/...`
  - Configure distribution specific options (see [Configuration](#configuration))
@@ -79,7 +78,8 @@ rm keys.tar
 The config file is located at `/etc/verify_squash_root/config.ini`.
 These config options are available:
 
-- `CMDLINE`: configures additional kernel cmdline.
+- `CMDLINE`: configures kernel cmdline, if not configured,
+fallback to `/etc/kernel/cmdline`.
 - `EFI_STUB`: path to efi stub, default is the one provided by systemd.
 - `DECRYPT_SECURE_BOOT_KEYS_CMD`: Command to decrypt your secure-boot keys
 tarfile, {} will be replaced with the output tar file. `db.key` and `db.crt`
