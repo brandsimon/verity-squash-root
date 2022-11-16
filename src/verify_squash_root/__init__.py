@@ -3,6 +3,7 @@ import argparse
 import logging
 import os
 import sys
+import verify_squash_root.encrypt as encrypt
 from configparser import ConfigParser
 from verify_squash_root.config import read_config, LOG_FILE, \
     check_config_and_system, config_str_to_stripped_arr, TMPDIR, CONFIG_FILE
@@ -82,6 +83,9 @@ def parse_params_and_run():
                         action="store_true",
                         help="Do not exit if there are warnings")
     cmd_parser = parser.add_subparsers(dest="command", required=True)
+    cmd_parser.add_parser("create-keys",
+                          help="Create secure boot keys and store them "
+                               "(age needs to be installed)")
     cmd_parser.add_parser("list",
                           help="List all efi files to build and show "
                                "which ones are\nbuilt and which ones "
@@ -127,7 +131,11 @@ def parse_params_and_run():
         sys.exit(1)
 
     try:
-        if args.command == "list":
+        if args.command == "create-keys":
+            with TmpfsMount(TMPDIR):
+                encrypt.check_if_archives_exist()
+                encrypt.create_and_pack_secure_boot_keys()
+        elif args.command == "list":
             list_distribution_efi(config, distribution)
         elif args.command == "setup":
             with TmpfsMount(TMPDIR):

@@ -1,0 +1,4 @@
+#!/usr/bin/sh
+TARGET="${1}"
+shift
+tar cf - "${@}" | age --encrypt --passphrase -o "${TARGET}"

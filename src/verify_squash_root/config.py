@@ -7,7 +7,8 @@ from verify_squash_root.exec import exec_binary
 TMPDIR = Path("/tmp/verify_squash_root")
 KEY_DIR = TMPDIR / "keys"
 KERNEL_PARAM_BASE = "verify_squash_root"
-CONFIG_FILE = Path("/etc/{}/config.ini".format(KERNEL_PARAM_BASE))
+CONFIG_DIR = Path("/etc/{}".format(KERNEL_PARAM_BASE))
+CONFIG_FILE = CONFIG_DIR / "config.ini"
 DISTRI_FILE = Path("/usr/share") / KERNEL_PARAM_BASE / "default.ini"
 LOG_FILE = Path("/var/log/{}.log".format(KERNEL_PARAM_BASE))
 
