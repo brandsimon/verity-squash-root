@@ -11,6 +11,44 @@ TEST_FILES_DIR = get_test_files_path("distributions/arch")
 
 class ArchLinuxConfigTest(unittest.TestCase):
 
+    def test__efi_dirname(self):
+        arch = ArchLinuxConfig()
+        self.assertEqual(arch.efi_dirname(), "Arch")
+
+    @mock.patch("verify_squash_root.distributions.arch.read_text_from")
+    def test__kernel_to_name(self, mock):
+        arch = ArchLinuxConfig()
+        mock.return_value = " kernel Nom "
+        result = arch.kernel_to_name("5.12.2")
+        mock.assert_called_once_with(
+            Path("/usr/lib/modules") / "5.12.2" / "pkgbase")
+        self.assertEqual(result, "kernel Nom")
+
+    def test__vmlinuz(self):
+        arch = ArchLinuxConfig()
+        self.assertEqual(arch.vmlinuz("5.17.2-arch"),
+                         Path("/usr/lib/modules/5.17.2-arch/vmlinuz"))
+
+    def test__display_name(self):
+        arch = ArchLinuxConfig()
+        self.assertEqual(arch.display_name(), "Arch")
+
+    @mock.patch("verify_squash_root.distributions.arch.os.listdir")
+    def test__list_kernels(self, mock):
+        arch = ArchLinuxConfig()
+        result = arch.list_kernels()
+        mock.assert_called_once_with(Path("/usr/lib/modules"))
+        self.assertEqual(result, mock())
+
+    def test__microcode_paths(self):
+        arch = ArchLinuxConfig()
+        self.assertEqual(arch.microcode_paths(),
+                         [Path("/boot/amd-ucode.img"),
+                          Path("/boot/intel-ucode.img")])
+
+
+class MkinitcpioTest(unittest.TestCase):
+
     @mock.patch("verify_squash_root.distributions.arch.read_text_from")
     def test__file_name(self, mock):
         def test_file_name(kernel, preset, mock_ret, expected_result):
@@ -43,15 +81,6 @@ class ArchLinuxConfigTest(unittest.TestCase):
                           "Arch Linux (fallback)")
         test_display_name("5.19.4", "test", "linux-lts",
                           "Arch Linux lts (test)")
-
-    def test__efi_dirname(self):
-        arch = ArchLinuxConfig()
-        self.assertEqual(arch.efi_dirname(), "Arch")
-
-    def test__vmlinuz(self):
-        arch = ArchLinuxConfig()
-        self.assertEqual(arch.vmlinuz("5.17.2-arch"),
-                         Path("/usr/lib/modules/5.17.2-arch/vmlinuz"))
 
     def test__build_initramfs_with_microcode(self):
         preset_info = "some info\npreset_image = /test\nsome more info\nx=y\n"
@@ -99,13 +128,6 @@ class ArchLinuxConfigTest(unittest.TestCase):
                                              TMPDIR / "{}.image".format(
                                                  base_name))])
             self.assertEqual(res, TMPDIR / "{}.image".format(base_name))
-
-    @mock.patch("verify_squash_root.distributions.arch.os.listdir")
-    def test__list_kernels(self, mock):
-        arch = ArchLinuxConfig()
-        result = arch.list_kernels()
-        mock.assert_called_once_with(Path("/usr/lib/modules"))
-        self.assertEqual(result, mock())
 
     @mock.patch("verify_squash_root.distributions.arch.read_text_from")
     @mock.patch("verify_squash_root.distributions.arch.exec_binary")

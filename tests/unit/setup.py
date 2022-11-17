@@ -4,7 +4,8 @@ from unittest import mock
 from verify_squash_root.config import KEY_DIR
 from verify_squash_root.setup import add_uefi_boot_option, \
     add_kernels_to_uefi, setup_systemd_boot
-from tests.unit.distributions.base import distribution_mock
+from tests.unit.distributions.base import distribution_mock, \
+    create_initramfs_mock
 
 
 class SetupTest(unittest.TestCase):
@@ -21,6 +22,7 @@ class SetupTest(unittest.TestCase):
     @mock.patch("verify_squash_root.setup.add_uefi_boot_option")
     def test__add_kernels_to_uefi(self, boot_mock):
         distri_mock = distribution_mock()
+        initramfs_mock = create_initramfs_mock(distri_mock)
         ignore = (" linux-lts_default_backup,"
                   "linux-lts_default_tmpfs ,linux_fallback")
         config = {
@@ -28,29 +30,30 @@ class SetupTest(unittest.TestCase):
                 "IGNORE_KERNEL_EFIS": ignore,
             }
         }
-        add_kernels_to_uefi(config, distri_mock, "/dev/vda", 3)
+        add_kernels_to_uefi(config, distri_mock, initramfs_mock, "/dev/vda", 3)
         self.assertEqual(
             boot_mock.mock_calls,
-            [mock.call('/dev/vda', 3, 'Distri Linux-lts (default)',
-                       Path('/EFI/Arch/linux-lts_default.efi')),
-             mock.call('/dev/vda', 3, 'Distri Linux (fallback) tmpfs Backup',
-                       Path('/EFI/Arch/linux_fallback_tmpfs_backup.efi')),
-             mock.call('/dev/vda', 3, 'Distri Linux (fallback) tmpfs',
-                       Path('/EFI/Arch/linux_fallback_tmpfs.efi')),
-             mock.call('/dev/vda', 3, 'Distri Linux (default) tmpfs Backup',
-                       Path('/EFI/Arch/linux_default_tmpfs_backup.efi')),
-             mock.call('/dev/vda', 3, 'Distri Linux (default) tmpfs',
-                       Path('/EFI/Arch/linux_default_tmpfs.efi')),
-             mock.call('/dev/vda', 3, 'Distri Linux (default) Backup',
-                       Path('/EFI/Arch/linux_default_backup.efi')),
-             mock.call('/dev/vda', 3, 'Distri Linux (default)',
-                       Path('/EFI/Arch/linux_default.efi'))])
+            [mock.call('/dev/vda', 3, 'Display Linux-lts (default)',
+                       Path('/EFI/ArchEfi/linux-lts_default.efi')),
+             mock.call('/dev/vda', 3, 'Display Linux (fallback) tmpfs Backup',
+                       Path('/EFI/ArchEfi/linux_fallback_tmpfs_backup.efi')),
+             mock.call('/dev/vda', 3, 'Display Linux (fallback) tmpfs',
+                       Path('/EFI/ArchEfi/linux_fallback_tmpfs.efi')),
+             mock.call('/dev/vda', 3, 'Display Linux (default) tmpfs Backup',
+                       Path('/EFI/ArchEfi/linux_default_tmpfs_backup.efi')),
+             mock.call('/dev/vda', 3, 'Display Linux (default) tmpfs',
+                       Path('/EFI/ArchEfi/linux_default_tmpfs.efi')),
+             mock.call('/dev/vda', 3, 'Display Linux (default) Backup',
+                       Path('/EFI/ArchEfi/linux_default_backup.efi')),
+             mock.call('/dev/vda', 3, 'Display Linux (default)',
+                       Path('/EFI/ArchEfi/linux_default.efi'))])
 
     @mock.patch("verify_squash_root.setup.exec_binary")
     @mock.patch("verify_squash_root.setup.write_str_to")
     @mock.patch("verify_squash_root.setup.efi.sign")
     def test__setup_systemd_boot(self, sign_mock, write_to_mock, exec_mock):
         distri_mock = distribution_mock()
+        initramfs_mock = create_initramfs_mock(distri_mock)
         ignore = (" linux-lts_default_tmpfs ,linux_fallback, "
                   "linux_default_backup")
         config = {
@@ -60,7 +63,7 @@ class SetupTest(unittest.TestCase):
                 "EFI_PARTITION": "/boot/efi_dir",
             }
         }
-        setup_systemd_boot(config, distri_mock)
+        setup_systemd_boot(config, distri_mock, initramfs_mock)
         exec_mock.assert_called_once_with(["bootctl", "install"])
         boot_efi = Path("/usr/lib/systemd/boot/efi/systemd-bootx64.efi")
         self.assertEqual(
@@ -69,7 +72,7 @@ class SetupTest(unittest.TestCase):
                        Path("/boot/efi/EFI/systemd/systemd-bootx64.efi")),
              mock.call(KEY_DIR, boot_efi,
                        Path("/boot/efi/EFI/BOOT/BOOTX64.EFI"))])
-        text = "title Distri {}\nlinux /EFI/Arch/{}\n"
+        text = "title Display {}\nlinux /EFI/ArchEfi/{}\n"
         path = Path("/boot/efi_dir/loader/entries")
         self.assertEqual(
             write_to_mock.mock_calls,

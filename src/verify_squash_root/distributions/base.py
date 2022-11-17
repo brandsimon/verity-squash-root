@@ -6,10 +6,13 @@ class DistributionConfig:
 
     _modules_dir: Path = Path("/usr/lib/modules")
 
-    def file_name(self, kernel: str, preset: str) -> str:
+    def kernel_to_name(self, kernel: str) -> str:
         raise NotImplementedError("Base class")
 
-    def display_name(self, kernel: str, preset: str) -> str:
+    def file_name(self, kernel: str) -> str:
+        raise NotImplementedError("Base class")
+
+    def display_name(self) -> str:
         raise NotImplementedError("Base class")
 
     def efi_dirname(self) -> str:
@@ -18,22 +21,35 @@ class DistributionConfig:
     def vmlinuz(self, kernel: str) -> Path:
         raise NotImplementedError("Base class")
 
-    def build_initramfs_with_microcode(self, kernel: str,
-                                       preset: str) -> Path:
+    def list_kernels(self) -> List[str]:
         raise NotImplementedError("Base class")
 
-    def list_kernels(self) -> List[str]:
+    def microcode_paths(self) -> List[Path]:
+        raise NotImplementedError("Base class")
+
+
+class InitramfsBuilder:
+
+    def file_name(self, kernel: str, preset: str) -> str:
+        raise NotImplementedError("Base class")
+
+    def display_name(self, kernel: str, preset: str) -> str:
+        raise NotImplementedError("Base class")
+
+    def build_initramfs_with_microcode(self, kernel: str,
+                                       preset: str) -> Path:
         raise NotImplementedError("Base class")
 
     def list_kernel_presets(self, kernel: str) -> List[str]:
         raise NotImplementedError("Base class")
 
 
-def iterate_distribution_efi(distribution: DistributionConfig) \
+def iterate_distribution_efi(distribution: DistributionConfig,
+                             initramfs: InitramfsBuilder) \
         -> Generator[Tuple[str, str, str], None, None]:
     for kernel in distribution.list_kernels():
-        for preset in distribution.list_kernel_presets(kernel):
-            base_name = distribution.file_name(kernel, preset)
+        for preset in initramfs.list_kernel_presets(kernel):
+            base_name = initramfs.file_name(kernel, preset)
             yield (kernel, preset, base_name)
 
 
@@ -42,7 +58,7 @@ def calc_kernel_packages_not_unique(distribution: DistributionConfig) \
     mapping: MutableMapping[str, str] = {}
     result = []
     for kernel in distribution.list_kernels():
-        file_name = distribution.file_name(kernel, "")
+        file_name = distribution.kernel_to_name(kernel)
         if file_name in mapping:
             result.append("Package {} has multiple kernel versions: {}, {}"
                           .format(file_name, kernel, mapping[file_name]))

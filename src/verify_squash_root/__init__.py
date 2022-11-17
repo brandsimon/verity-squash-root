@@ -11,7 +11,8 @@ from verify_squash_root.config import read_config, LOG_FILE, \
 from verify_squash_root.decrypt import DecryptKeys
 from verify_squash_root.distributions.base import DistributionConfig, \
     calc_kernel_packages_not_unique
-from verify_squash_root.distributions.arch import ArchLinuxConfig
+from verify_squash_root.distributions.arch import ArchLinuxConfig, \
+    InitramfsBuilder, Mkinitcpio
 from verify_squash_root.file_names import iterate_kernel_variants, \
     kernel_is_ignored
 from verify_squash_root.main import create_image_and_sign_kernel, \
@@ -21,13 +22,14 @@ from verify_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
 
 
 def list_distribution_efi(config: ConfigParser,
-                          distribution: DistributionConfig) -> None:
+                          distribution: DistributionConfig,
+                          initramfs: InitramfsBuilder) -> None:
     ignore_efis = config_str_to_stripped_arr(
         config["DEFAULT"]["IGNORE_KERNEL_EFIS"])
     last = ("", "")
 
     for (kernel, preset, base_name, display) in iterate_kernel_variants(
-            distribution):
+            distribution, initramfs):
         ident = (kernel, preset)
         if ident != last:
             print("{}: kernel: {}, preset: {}".format(display, kernel, preset))
@@ -67,6 +69,7 @@ def parse_params_and_run():
     os.umask(0o077)
     config = read_config()
     distribution = ArchLinuxConfig()
+    initramfs = Mkinitcpio(distribution)
 
     parser = argparse.ArgumentParser(
         description="Create signed efi binaries which mount a verified "
@@ -144,19 +147,20 @@ def parse_params_and_run():
                 encrypt.check_if_archives_exist()
                 encrypt.create_and_pack_secure_boot_keys()
         elif args.command == "list":
-            list_distribution_efi(config, distribution)
+            list_distribution_efi(config, distribution, initramfs)
         elif args.command == "setup":
             with TmpfsMount(TMPDIR):
                 if args.boot_method == "uefi":
-                    add_kernels_to_uefi(config, distribution,
+                    add_kernels_to_uefi(config, distribution, initramfs,
                                         args.disk, args.partition_no)
                 if args.boot_method == "systemd":
                     with DecryptKeys(config):
-                        setup_systemd_boot(config, distribution)
+                        setup_systemd_boot(config, distribution, initramfs)
         elif args.command == "build":
             with TmpfsMount(TMPDIR):
                 with DecryptKeys(config):
-                    create_image_and_sign_kernel(config, distribution)
+                    create_image_and_sign_kernel(config, distribution,
+                                                 initramfs)
         elif args.command == "sign_extra_files":
             with TmpfsMount(TMPDIR):
                 with DecryptKeys(config):
