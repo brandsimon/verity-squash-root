@@ -132,7 +132,7 @@ def parse_params_and_run():
 
     logging.debug("Running: {}".format(sys.argv))
     logging.debug("Parsed arguments: {}".format(args))
-    warned = warn_check_system_config(config, distribution, initramfs)
+    warned = warn_check_system_config(config, distribution)
     if warned and not args.ignore_warnings:
         logging.error("If you want to ignore those warnings, run with "
                       "--ignore-warnings")
