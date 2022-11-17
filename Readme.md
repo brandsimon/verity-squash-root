@@ -174,6 +174,7 @@ Overlayfs directories:
 ```
 age (only when used for decryption of secure-boot keys)
 binutils
+efitools
 python
 sbsigntools
 squashfs-tools
