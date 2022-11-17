@@ -2,7 +2,8 @@ import unittest
 from tests.unit.cmdline import CmdlineTest
 from tests.unit.config import ConfigTest
 from tests.unit.decrypt import DecryptTest
-from tests.unit.distributions.arch import ArchLinuxConfigTest
+from tests.unit.distributions.arch import ArchLinuxConfigTest, \
+    MkinitcpioTest
 from tests.unit.distributions.base import BaseDistributionTest
 from tests.unit.efi import EfiTest
 from tests.unit.encrypt import EncryptTest
@@ -33,6 +34,7 @@ def test_suite():
         unittest.makeSuite(ImageTest),
         unittest.makeSuite(InitramfsTest),
         unittest.makeSuite(MainTest),
+        unittest.makeSuite(MkinitcpioTest),
         unittest.makeSuite(MountTest),
         unittest.makeSuite(ParsingTest),
         unittest.makeSuite(Pep8Test),
