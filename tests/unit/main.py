@@ -340,7 +340,7 @@ class MainTest(unittest.TestCase):
                 backup_and_sign_extra_files(config)
             self.assertEqual(
                 str(e.exception),
-                "extra signing files need to be specified "
+                "extra signing files need to be specified as\n"
                 "name = SOURCE => DEST")
             self.assertEqual(
                 all_mocks.mock_calls,

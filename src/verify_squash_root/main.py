@@ -123,7 +123,7 @@ def backup_and_sign_extra_files(config: ConfigParser):
         logging.info("Signing {}...".format(key))
         files = extra[key].split("=>")
         if len(files) != 2:
-            raise ValueError("extra signing files need to be specified "
+            raise ValueError("extra signing files need to be specified as\n"
                              "name = SOURCE => DEST")
         src = files[0].strip()
         dest = files[1].strip()

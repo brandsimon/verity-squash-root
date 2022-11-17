@@ -96,9 +96,12 @@ configuration files are stored there.
 
 #### Section `EXTRA_SIGN`
 
-You can specify files to signed when running with the `sign_extra_files`
-command. The format is: `NAME = SOURCE_PATH => DESTINATION_PATH`, e.g.
-to sign the systemd-boot efi files:
+You can specify files to be signed when running with the `sign_extra_files`
+command. The format is:
+```
+NAME = SOURCE_PATH => DESTINATION_PATH
+```
+e.g. to sign the systemd-boot efi files:
 ```
 [EXTRA_SIGN]
 systemd-boot = /usr/lib/systemd/boot/efi/systemd-bootx64.efi => /boot/efi/EFI/systemd/systemd-bootx64.efi
