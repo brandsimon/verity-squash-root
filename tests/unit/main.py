@@ -2,7 +2,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 from unittest.mock import call
-from tests.unit.distributions.base import distribution_mock
+from tests.unit.distributions.base import distribution_mock, \
+    create_initramfs_mock
 from verify_squash_root.config import KEY_DIR
 from verify_squash_root.main import move_kernel_to, \
     create_squashfs_return_verity_hash, build_and_move_kernel, \
@@ -194,12 +195,20 @@ class MainTest(unittest.TestCase):
               mock.patch("{}.move_kernel_to".format(base),
                          new=all_mocks.move_kernel_to)):
             distri_mock = distribution_mock()
-            distri_mock.build_initramfs_with_microcode.side_effect = initrdfunc
+            # create separate mock, since otherwise all_mock history will be
+            # full # with initramfs calls to distribution.
+            initramfs_mock = create_initramfs_mock(distribution_mock())
+            distri_initramfs_mock = mock.Mock()
+            distri_initramfs_mock.distri = distri_mock
+            distri_initramfs_mock.initramfs = initramfs_mock
+            initramfs_mock.build_initramfs_with_microcode.side_effect = \
+                initrdfunc
             all_mocks.cmdline.unused_slot.return_value = use_slot
             all_mocks.create_squashfs_return_verity_hash.return_value = \
                 root_hash
             all_mocks.read_text_from.return_value = cmdline
-            create_image_and_sign_kernel(config, distri_mock)
+            create_image_and_sign_kernel(config, distri_mock, initramfs_mock)
+            self.maxDiff = None
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.read_text_from(Path('/proc/cmdline')),
@@ -213,8 +222,8 @@ class MainTest(unittest.TestCase):
                      root_hash,
                      '',
                      'linux_fallback',
-                     Path('/boot/efi/EFI/Arch'),
-                     'Distri Linux (fallback)',
+                     Path('/boot/efi/EFI/ArchEfi'),
+                     'Display Linux (fallback)',
                      ignored_efis),
                  call.build_and_move_kernel(
                      config,
@@ -224,8 +233,8 @@ class MainTest(unittest.TestCase):
                      root_hash,
                      'verify_squash_root_volatile',
                      'linux_fallback_tmpfs',
-                     Path('/boot/efi/EFI/Arch'),
-                     'Distri Linux (fallback) tmpfs',
+                     Path('/boot/efi/EFI/ArchEfi'),
+                     'Display Linux (fallback) tmpfs',
                      ignored_efis),
                  call.build_and_move_kernel(
                      config,
@@ -235,8 +244,8 @@ class MainTest(unittest.TestCase):
                      root_hash,
                      '',
                      'linux-lts_default',
-                     Path('/boot/efi/EFI/Arch'),
-                     'Distri Linux-lts (default)',
+                     Path('/boot/efi/EFI/ArchEfi'),
+                     'Display Linux-lts (default)',
                      ignored_efis),
                  call.build_and_move_kernel(
                      config,
@@ -246,29 +255,31 @@ class MainTest(unittest.TestCase):
                      root_hash,
                      'verify_squash_root_volatile',
                      'linux-lts_default_tmpfs',
-                     Path('/boot/efi/EFI/Arch'),
-                     'Distri Linux-lts (default) tmpfs',
+                     Path('/boot/efi/EFI/ArchEfi'),
+                     'Display Linux-lts (default) tmpfs',
                      ignored_efis)])
             self.assertEqual(
-                distri_mock.mock_calls,
-                [call.efi_dirname(),
-                 call.list_kernels(),
-                 call.list_kernel_presets('5.19'),
-                 call.file_name('5.19', 'default'),
-                 call.vmlinuz('5.19'),
-                 call.file_name('5.19', 'default'),
-                 call.display_name('5.19', 'default'),
-                 call.file_name('5.19', 'fallback'),
-                 call.vmlinuz('5.19'),
-                 call.file_name('5.19', 'fallback'),
-                 call.display_name('5.19', 'fallback'),
-                 call.build_initramfs_with_microcode('5.19', 'fallback'),
-                 call.list_kernel_presets('5.14'),
-                 call.file_name('5.14', 'default'),
-                 call.vmlinuz('5.14'),
-                 call.file_name('5.14', 'default'),
-                 call.display_name('5.14', 'default'),
-                 call.build_initramfs_with_microcode('5.14', 'default')])
+                list(distri_initramfs_mock.mock_calls),
+                [call.distri.efi_dirname(),
+                 call.distri.list_kernels(),
+                 call.initramfs.list_kernel_presets('5.19'),
+                 call.initramfs.file_name('5.19', 'default'),
+                 call.distri.vmlinuz('5.19'),
+                 call.initramfs.file_name('5.19', 'default'),
+                 call.initramfs.display_name('5.19', 'default'),
+                 call.initramfs.file_name('5.19', 'fallback'),
+                 call.distri.vmlinuz('5.19'),
+                 call.initramfs.file_name('5.19', 'fallback'),
+                 call.initramfs.display_name('5.19', 'fallback'),
+                 call.initramfs.build_initramfs_with_microcode(
+                     '5.19', 'fallback'),
+                 call.initramfs.list_kernel_presets('5.14'),
+                 call.initramfs.file_name('5.14', 'default'),
+                 call.distri.vmlinuz('5.14'),
+                 call.initramfs.file_name('5.14', 'default'),
+                 call.initramfs.display_name('5.14', 'default'),
+                 call.initramfs.build_initramfs_with_microcode(
+                     '5.14', 'default')])
 
     def test__backup_and_sign_efi(self):
         base = "verify_squash_root.main"

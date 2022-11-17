@@ -7,17 +7,43 @@ from verify_squash_root.config import TMPDIR
 from verify_squash_root.exec import exec_binary
 from verify_squash_root.file_op import read_text_from, write_str_to
 from verify_squash_root.initramfs import merge_initramfs_images
-from verify_squash_root.distributions.base import DistributionConfig
+from verify_squash_root.distributions.base import DistributionConfig, \
+    InitramfsBuilder
 
 
 class ArchLinuxConfig(DistributionConfig):
-    _microcode_paths: List[Path] = [
-        Path("/boot/intel-ucode.img"), Path("/boot/amd-ucode.img")]
+
+    def efi_dirname(self) -> str:
+        return "Arch"
+
+    @lru_cache(maxsize=128)
+    def kernel_to_name(self, kernel: str) -> str:
+        pkgbase_file = self._modules_dir / kernel / "pkgbase"
+        return read_text_from(pkgbase_file).strip()
+
+    def vmlinuz(self, kernel: str) -> Path:
+        return self._modules_dir / kernel / "vmlinuz"
+
+    def display_name(self):
+        return "Arch"
+
+    def list_kernels(self) -> List[str]:
+        return os.listdir(self._modules_dir)
+
+    def microcode_paths(self) -> List[Path]:
+        return [Path("/boot/amd-ucode.img"),
+                Path("/boot/intel-ucode.img")]
+
+
+class Mkinitcpio(InitramfsBuilder):
     _preset_map: Mapping[str, str] = {"default": ""}
+
+    def __init__(self, distribution: DistributionConfig):
+        self._distribution = distribution
 
     def file_name(self, kernel: str, preset: str) -> str:
         preset_name = self._preset_map.get(preset, preset)
-        kernel_name = self._kernel_to_name(kernel)
+        kernel_name = self._distribution.kernel_to_name(kernel)
         if preset_name == "":
             return kernel_name
         else:
@@ -25,25 +51,18 @@ class ArchLinuxConfig(DistributionConfig):
 
     def display_name(self, kernel: str, preset: str) -> str:
         preset_name = self._preset_map.get(preset, preset)
-        kernel_name = self._kernel_to_name(kernel).replace("-", " ")
+        kernel_name = self._distribution.kernel_to_name(
+            kernel).replace("-", " ")
         if preset_name != "":
             preset_name = " ({})".format(preset_name)
-        return "Arch {}{}".format(kernel_name.capitalize(), preset_name)
-
-    def efi_dirname(self) -> str:
-        return "Arch"
-
-    @lru_cache(maxsize=128)
-    def _kernel_to_name(self, kernel: str) -> str:
-        pkgbase_file = self._modules_dir / kernel / "pkgbase"
-        return read_text_from(pkgbase_file).strip()
-
-    def vmlinuz(self, kernel: str) -> Path:
-        return self._modules_dir / kernel / "vmlinuz"
+        return "{} {}{}".format(
+            self._distribution.display_name(),
+            kernel_name.capitalize(),
+            preset_name)
 
     def build_initramfs_with_microcode(self, kernel: str,
                                        preset: str) -> Path:
-        name = self._kernel_to_name(kernel)
+        name = self._distribution.kernel_to_name(kernel)
         config = read_text_from(
             Path("/etc/mkinitcpio.d") / "{}.preset".format(name))
         base_path = TMPDIR / "{}-{}".format(name, preset)
@@ -57,15 +76,13 @@ class ArchLinuxConfig(DistributionConfig):
         exec_binary(["mkinitcpio", "-p", str(preset_path)])
 
         merged_initramfs = base_path.with_suffix(".image")
-        merge_initramfs_images(initcpio_image, self._microcode_paths,
+        merge_initramfs_images(initcpio_image,
+                               self._distribution.microcode_paths(),
                                merged_initramfs)
         return merged_initramfs
 
-    def list_kernels(self) -> List[str]:
-        return os.listdir(self._modules_dir)
-
     def list_kernel_presets(self, kernel: str) -> List[str]:
-        name = self._kernel_to_name(kernel)
+        name = self._distribution.kernel_to_name(kernel)
         run = "/usr/lib/verify-squash-root/mkinitcpio_list_presets"
         presets_str = exec_binary([run, name])[0].decode()
         return presets_str.strip().split("\n")

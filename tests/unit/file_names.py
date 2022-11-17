@@ -1,5 +1,6 @@
 import unittest
-from tests.unit.distributions.base import distribution_mock
+from tests.unit.distributions.base import distribution_mock, \
+    create_initramfs_mock
 from verify_squash_root.file_names import iterate_kernel_variants, \
     backup_file, backup_label, tmpfs_file, tmpfs_label, \
     iterate_non_ignored_kernel_variants, kernel_is_ignored
@@ -9,34 +10,37 @@ class FileNamesTest(unittest.TestCase):
 
     def test__iterate_kernel_variants(self):
         distri_mock = distribution_mock()
-        variants = list(iterate_kernel_variants(distri_mock))
+        initramfs_mock = create_initramfs_mock(distri_mock)
+        variants = list(iterate_kernel_variants(distri_mock, initramfs_mock))
         self.assertEqual(
             variants,
-            [('5.19', 'default', 'linux_default', 'Distri Linux (default)'),
+            [('5.19', 'default', 'linux_default', 'Display Linux (default)'),
              ('5.19', 'default', 'linux_default_backup',
-              'Distri Linux (default) Backup'),
+              'Display Linux (default) Backup'),
              ('5.19', 'default', 'linux_default_tmpfs',
-              'Distri Linux (default) tmpfs'),
+              'Display Linux (default) tmpfs'),
              ('5.19', 'default', 'linux_default_tmpfs_backup',
-              'Distri Linux (default) tmpfs Backup'),
-             ('5.19', 'fallback', 'linux_fallback', 'Distri Linux (fallback)'),
+              'Display Linux (default) tmpfs Backup'),
+             ('5.19', 'fallback', 'linux_fallback',
+              'Display Linux (fallback)'),
              ('5.19', 'fallback', 'linux_fallback_backup',
-              'Distri Linux (fallback) Backup'),
+              'Display Linux (fallback) Backup'),
              ('5.19', 'fallback', 'linux_fallback_tmpfs',
-              'Distri Linux (fallback) tmpfs'),
+              'Display Linux (fallback) tmpfs'),
              ('5.19', 'fallback', 'linux_fallback_tmpfs_backup',
-              'Distri Linux (fallback) tmpfs Backup'),
+              'Display Linux (fallback) tmpfs Backup'),
              ('5.14', 'default', 'linux-lts_default',
-              'Distri Linux-lts (default)'),
+              'Display Linux-lts (default)'),
              ('5.14', 'default', 'linux-lts_default_backup',
-              'Distri Linux-lts (default) Backup'),
+              'Display Linux-lts (default) Backup'),
              ('5.14', 'default', 'linux-lts_default_tmpfs',
-              'Distri Linux-lts (default) tmpfs'),
+              'Display Linux-lts (default) tmpfs'),
              ('5.14', 'default', 'linux-lts_default_tmpfs_backup',
-              'Distri Linux-lts (default) tmpfs Backup')])
+              'Display Linux-lts (default) tmpfs Backup')])
 
     def test__iterate_non_ignored_kernel_variants(self):
         distri_mock = distribution_mock()
+        initramfs_mock = create_initramfs_mock(distri_mock)
         ignore = (" linux-lts_default_backup,linux_default_backup,"
                   "linux-lts_default_tmpfs ,linux_fallback")
         config = {
@@ -45,20 +49,20 @@ class FileNamesTest(unittest.TestCase):
             }
         }
         variants = list(iterate_non_ignored_kernel_variants(
-            config, distri_mock))
+            config, distri_mock, initramfs_mock))
         self.assertEqual(
             variants,
-            [('5.19', 'default', 'linux_default', 'Distri Linux (default)'),
+            [('5.19', 'default', 'linux_default', 'Display Linux (default)'),
              ('5.19', 'default', 'linux_default_tmpfs',
-              'Distri Linux (default) tmpfs'),
+              'Display Linux (default) tmpfs'),
              ('5.19', 'default', 'linux_default_tmpfs_backup',
-              'Distri Linux (default) tmpfs Backup'),
+              'Display Linux (default) tmpfs Backup'),
              ('5.19', 'fallback', 'linux_fallback_tmpfs',
-              'Distri Linux (fallback) tmpfs'),
+              'Display Linux (fallback) tmpfs'),
              ('5.19', 'fallback', 'linux_fallback_tmpfs_backup',
-              'Distri Linux (fallback) tmpfs Backup'),
+              'Display Linux (fallback) tmpfs Backup'),
              ('5.14', 'default', 'linux-lts_default',
-              'Distri Linux-lts (default)')])
+              'Display Linux-lts (default)')])
 
     def test__backup_file(self):
         self.assertEqual(backup_file("linux-lts"), "linux-lts_backup")

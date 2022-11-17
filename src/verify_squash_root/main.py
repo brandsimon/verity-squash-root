@@ -8,7 +8,7 @@ import verify_squash_root.efi as efi
 from verify_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, KEY_DIR, \
     config_str_to_stripped_arr
 from verify_squash_root.distributions.base import DistributionConfig, \
-    iterate_distribution_efi
+    InitramfsBuilder, iterate_distribution_efi
 from verify_squash_root.file_names import backup_file, tmpfs_file, tmpfs_label
 from verify_squash_root.file_op import read_text_from
 from verify_squash_root.image import mksquashfs, veritysetup_image
@@ -71,7 +71,8 @@ def build_and_move_kernel(config: ConfigParser,
 
 
 def create_image_and_sign_kernel(config: ConfigParser,
-                                 distribution: DistributionConfig):
+                                 distribution: DistributionConfig,
+                                 initramfs: InitramfsBuilder):
     kernel_cmdline = read_text_from(Path("/proc/cmdline"))
     use_slot = cmdline.unused_slot(kernel_cmdline)
     efi_partition = Path(config["DEFAULT"]["EFI_PARTITION"])
@@ -83,22 +84,23 @@ def create_image_and_sign_kernel(config: ConfigParser,
     ignore_efis = config_str_to_stripped_arr(
         config["DEFAULT"]["IGNORE_KERNEL_EFIS"])
 
-    for [kernel, preset, base_name] in iterate_distribution_efi(distribution):
+    for [kernel, preset, base_name] in iterate_distribution_efi(distribution,
+                                                                initramfs):
         vmlinuz = distribution.vmlinuz(kernel)
-        base_name = distribution.file_name(kernel, preset)
+        base_name = initramfs.file_name(kernel, preset)
         base_name_tmpfs = tmpfs_file(base_name)
-        display = distribution.display_name(kernel, preset)
+        display = initramfs.display_name(kernel, preset)
 
         if base_name in ignore_efis and base_name_tmpfs in ignore_efis:
             logging.info("skipping due to ignored kernels")
             continue
 
         logging.info("Create initramfs for {}".format(display))
-        initramfs = distribution.build_initramfs_with_microcode(
+        initramfs_path = initramfs.build_initramfs_with_microcode(
             kernel, preset)
 
         def build(bn, label, cmdline_add):
-            build_and_move_kernel(config, vmlinuz, initramfs,
+            build_and_move_kernel(config, vmlinuz, initramfs_path,
                                   use_slot, root_hash, cmdline_add,
                                   bn, out_dir, label,
                                   ignore_efis)
