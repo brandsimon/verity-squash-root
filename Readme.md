@@ -199,3 +199,13 @@ Run unit tests:
 ```shell
 .venv/bin/python -m unittest tests/unit/tests.py
 ```
+
+## Related resources
+
+* https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface
+* https://wiki.archlinux.org/index.php/Secure_Boot
+* https://www.rodsbooks.com/efi-bootloaders/index.html
+* https://bentley.link/secureboot/
+* [sbupdate](https://github.com/andreyv/sbupdate) — tool to automatically sign
+Arch Linux kernels
+* [Foxboron/sbctl](https://github.com/Foxboron/sbctl) — Secure Boot Manager
