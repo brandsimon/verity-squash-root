@@ -14,7 +14,8 @@ from verify_squash_root.distributions.base import DistributionConfig, \
 from verify_squash_root.distributions.arch import ArchLinuxConfig
 from verify_squash_root.file_names import iterate_kernel_variants, \
     kernel_is_ignored
-from verify_squash_root.main import create_image_and_sign_kernel
+from verify_squash_root.main import create_image_and_sign_kernel, \
+    backup_and_sign_extra_files
 from verify_squash_root.mount import TmpfsMount
 from verify_squash_root.setup import add_kernels_to_uefi, setup_systemd_boot
 
@@ -120,6 +121,9 @@ def parse_params_and_run():
     efi_parser.add_argument("partition_no",
                             help="Parameter for efibootmgr --part",
                             type=int)
+    cmd_parser.add_parser("sign_extra_files",
+                          help="Sign all files specified in the EXTRA_SIGN "
+                               "section in the config file.")
     args = parser.parse_args()
     configure_logger(args.verbose)
 
@@ -153,6 +157,10 @@ def parse_params_and_run():
             with TmpfsMount(TMPDIR):
                 with DecryptKeys(config):
                     create_image_and_sign_kernel(config, distribution)
+        elif args.command == "sign_extra_files":
+            with TmpfsMount(TMPDIR):
+                with DecryptKeys(config):
+                    backup_and_sign_extra_files(config)
     except BaseException as e:
         logging.error("Error: {}".format(e))
         logging.debug(e, exc_info=1)

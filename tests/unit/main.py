@@ -3,9 +3,11 @@ from pathlib import Path
 from unittest import mock
 from unittest.mock import call
 from tests.unit.distributions.base import distribution_mock
+from verify_squash_root.config import KEY_DIR
 from verify_squash_root.main import move_kernel_to, \
     create_squashfs_return_verity_hash, build_and_move_kernel, \
-    create_image_and_sign_kernel
+    create_image_and_sign_kernel, backup_and_sign_efi, \
+    backup_and_sign_extra_files
 
 
 class MainTest(unittest.TestCase):
@@ -267,3 +269,81 @@ class MainTest(unittest.TestCase):
                  call.file_name('5.14', 'default'),
                  call.display_name('5.14', 'default'),
                  call.build_initramfs_with_microcode('5.14', 'default')])
+
+    def test__backup_and_sign_efi(self):
+        base = "verify_squash_root.main"
+        all_mocks = mock.Mock()
+        with mock.patch("{}.efi".format(base),
+                        new=all_mocks.efi):
+            dest = all_mocks.dest
+            dest.exists.return_value = False
+            backup_and_sign_efi(all_mocks.source, dest)
+            self.assertEqual(
+                all_mocks.mock_calls,
+                [call.dest.exists(),
+                 call.efi.sign(KEY_DIR, all_mocks.source, dest)])
+
+    def test__backup_and_sign_efi__backup(self):
+        base = "verify_squash_root.main"
+        all_mocks = mock.Mock()
+        with mock.patch("{}.efi".format(base),
+                        new=all_mocks.efi):
+            dest = all_mocks.dest
+            dest.exists.return_value = True
+            dest.parent = Path("/parent/dir")
+            dest.stem = "myfile"
+            dest.suffix = "efi"
+            replace = Path("/parent/dir/myfile_backup.efi")
+            backup_and_sign_efi(all_mocks.source, dest)
+            self.assertEqual(
+                all_mocks.mock_calls,
+                [call.dest.exists(),
+                 call.dest.replace(replace),
+                 call.efi.sign(KEY_DIR, all_mocks.source, dest)])
+
+    def test__backup_and_sign_extra_files(self):
+        base = "verify_squash_root.main"
+        all_mocks = mock.Mock()
+        config = {
+            "EXTRA_SIGN": {
+                "systemd": "/usr/lib/systemd/boot/efi/systemd-bootx64.efi => "
+                           " /boot/efi/EFI/systemd/systemd-bootx64.efi",
+                "fwupd": "/usr/lib/fwupd/fwupd.efi => /boot/fwupd.efi ",
+            }
+        }
+        with mock.patch("{}.backup_and_sign_efi".format(base),
+                        new=all_mocks.backup_and_sign_efi):
+            backup_and_sign_extra_files(config)
+            self.assertEqual(
+                all_mocks.mock_calls,
+                [call.backup_and_sign_efi(
+                     Path("/usr/lib/systemd/boot/efi/systemd-bootx64.efi"),
+                     Path("/boot/efi/EFI/systemd/systemd-bootx64.efi")),
+                 call.backup_and_sign_efi(
+                     Path("/usr/lib/fwupd/fwupd.efi"),
+                     Path("/boot/fwupd.efi"))])
+
+    def test__backup_and_sign_extra_files__exception(self):
+        base = "verify_squash_root.main"
+        all_mocks = mock.Mock()
+        config = {
+            "EXTRA_SIGN": {
+                "systemd": "/usr/lib/systemd/boot/efi/systemd-bootx64.efi => "
+                           " /boot/efi/EFI/systemd/systemd-bootx64.efi",
+                "fwupd": "/usr/lib/fwupd/fwupd.efi",
+                "test": "/x.efi => /y.efi",
+            }
+        }
+        with mock.patch("{}.backup_and_sign_efi".format(base),
+                        new=all_mocks.backup_and_sign_efi):
+            with self.assertRaises(ValueError) as e:
+                backup_and_sign_extra_files(config)
+            self.assertEqual(
+                str(e.exception),
+                "extra signing files need to be specified "
+                "name = SOURCE => DEST")
+            self.assertEqual(
+                all_mocks.mock_calls,
+                [call.backup_and_sign_efi(
+                     Path("/usr/lib/systemd/boot/efi/systemd-bootx64.efi"),
+                     Path("/boot/efi/EFI/systemd/systemd-bootx64.efi"))])

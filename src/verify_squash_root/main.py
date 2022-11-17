@@ -5,7 +5,7 @@ from configparser import ConfigParser
 from typing import List, Union
 import verify_squash_root.cmdline as cmdline
 import verify_squash_root.efi as efi
-from verify_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, \
+from verify_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, KEY_DIR, \
     config_str_to_stripped_arr
 from verify_squash_root.distributions.base import DistributionConfig, \
     iterate_distribution_efi
@@ -106,3 +106,26 @@ def create_image_and_sign_kernel(config: ConfigParser,
         build(base_name, display, "")
         build(base_name_tmpfs, tmpfs_label(display),
               "{}_volatile".format(KERNEL_PARAM_BASE))
+
+
+def backup_and_sign_efi(source: Path, dest: Path):
+    if dest.exists():
+        parent = dest.parent
+        backup_name = backup_file(dest.stem) + "." + dest.suffix
+        backup = parent / backup_name
+        dest.replace(backup)
+    efi.sign(KEY_DIR, source, dest)
+
+
+def backup_and_sign_extra_files(config: ConfigParser):
+    extra = config["EXTRA_SIGN"]
+    for key in extra.keys():
+        logging.info("Signing {}...".format(key))
+        files = extra[key].split("=>")
+        if len(files) != 2:
+            raise ValueError("extra signing files need to be specified "
+                             "name = SOURCE => DEST")
+        src = files[0].strip()
+        dest = files[1].strip()
+        logging.debug("Sign file '{}' to '{}'".format(src, dest))
+        backup_and_sign_efi(Path(src), Path(dest))

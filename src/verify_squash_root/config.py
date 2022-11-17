@@ -18,7 +18,8 @@ def config_str_to_stripped_arr(s: str) -> List[str]:
 
 
 def read_config() -> ConfigParser:
-    config = ConfigParser()
+    # defaults will be visible in EXTRA_SIGN and break
+    config = ConfigParser(default_section="DO_NOT_USE_DEFAULTS")
     directory = Path(__file__).resolve().parent
     defconfig = directory / "default_config.ini"
     config.read(defconfig)

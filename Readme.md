@@ -78,6 +78,8 @@ rm keys.tar
 The config file is located at `/etc/verify_squash_root/config.ini`.
 These config options are available:
 
+#### Section `DEFAULT`
+
 - `CMDLINE`: configures kernel cmdline, if not configured,
 fallback to `/etc/kernel/cmdline`.
 - `EFI_STUB`: path to efi stub, default is the one provided by systemd.
@@ -91,6 +93,19 @@ configuration files are stored there.
 - `ROOT_MOUNT`: Path to your "original" root partition.
 - `IGNORE_KERNEL_EFIS`: Which efi binaries are not built. You can use the
 `list` parameter to show which can exist and which are excluded already.
+
+#### Section `EXTRA_SIGN`
+
+You can specify files to signed when running with the `sign_extra_files`
+command. The format is: `NAME = SOURCE_PATH => DESTINATION_PATH`, e.g.
+to sign the systemd-boot efi files:
+```
+[EXTRA_SIGN]
+systemd-boot = /usr/lib/systemd/boot/efi/systemd-bootx64.efi => /boot/efi/EFI/systemd/systemd-bootx64.efi
+```
+
+Be careful to not specify files from untrusted sources, e.g. the ESP
+partition. An attacker could exchange these files.
 
 ### Arch Linux
 

@@ -17,9 +17,9 @@ class ConfigTest(unittest.TestCase):
     @mock.patch("verify_squash_root.config.ConfigParser")
     def test__read_config(self, cp_mock):
         result = read_config()
-        cp_mock.assert_called_once_with()
+        cp_mock.assert_called_once_with(default_section="DO_NOT_USE_DEFAULTS")
         self.assertEqual(cp_mock.mock_calls, [
-            mock.call(),
+            mock.call(default_section="DO_NOT_USE_DEFAULTS"),
             mock.call().read(
                 PROJECT_ROOT / "src/verify_squash_root/default_config.ini"),
             mock.call().read(
