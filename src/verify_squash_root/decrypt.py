@@ -4,9 +4,9 @@ import tarfile
 from configparser import ConfigParser
 from pathlib import Path
 from typing import List
-from verify_squash_root.config import KEY_DIR
-from verify_squash_root.exec import exec_binary
-from verify_squash_root.efi import DB_CERT_FILE, DB_KEY_FILE
+from verity_squash_root.config import KEY_DIR
+from verity_squash_root.exec import exec_binary
+from verity_squash_root.efi import DB_CERT_FILE, DB_KEY_FILE
 TAR_FILE = KEY_DIR / "keys.tar"
 
 

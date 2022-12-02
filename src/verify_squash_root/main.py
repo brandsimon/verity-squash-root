@@ -3,15 +3,15 @@ import shutil
 from pathlib import Path
 from configparser import ConfigParser
 from typing import List, Union
-import verify_squash_root.cmdline as cmdline
-import verify_squash_root.efi as efi
-from verify_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, KEY_DIR, \
+import verity_squash_root.cmdline as cmdline
+import verity_squash_root.efi as efi
+from verity_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, KEY_DIR, \
     config_str_to_stripped_arr
-from verify_squash_root.distributions.base import DistributionConfig, \
+from verity_squash_root.distributions.base import DistributionConfig, \
     InitramfsBuilder, iterate_distribution_efi
-from verify_squash_root.file_names import backup_file, tmpfs_file, tmpfs_label
-from verify_squash_root.file_op import read_text_from
-from verify_squash_root.image import mksquashfs, veritysetup_image
+from verity_squash_root.file_names import backup_file, tmpfs_file, tmpfs_label
+from verity_squash_root.file_op import read_text_from
+from verity_squash_root.image import mksquashfs, veritysetup_image
 
 
 def move_kernel_to(src: Path, dst: Path, slot: str,

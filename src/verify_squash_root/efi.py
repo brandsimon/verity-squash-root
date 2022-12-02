@@ -1,9 +1,9 @@
 import logging
 from pathlib import Path
 from configparser import ConfigParser
-from verify_squash_root.config import KERNEL_PARAM_BASE, TMPDIR, KEY_DIR
-from verify_squash_root.exec import exec_binary, ExecBinaryError
-from verify_squash_root.file_op import write_str_to
+from verity_squash_root.config import KERNEL_PARAM_BASE, TMPDIR, KEY_DIR
+from verity_squash_root.exec import exec_binary, ExecBinaryError
+from verity_squash_root.file_op import write_str_to
 
 DB_CERT_FILE = "db.crt"
 DB_KEY_FILE = "db.key"

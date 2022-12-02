@@ -1,6 +1,6 @@
 import shutil
 from pathlib import Path
-from verify_squash_root.exec import exec_binary
+from verity_squash_root.exec import exec_binary
 
 
 class TmpfsMount():

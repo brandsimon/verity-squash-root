@@ -11,7 +11,7 @@ get_kparam_set() {
 ${kernel_params}
 EOF
 }
-KP_NAME="verify_squash_root"
+KP_NAME="verity_squash_root"
 SLOT="$(get_kparam "${KP_NAME}_slot")"
 ROOTHASH="$(get_kparam "${KP_NAME}_hash")"
 VOLATILE="$(get_kparam_set "${KP_NAME}_volatile")"

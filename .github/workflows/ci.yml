@@ -33,7 +33,7 @@ jobs:
 
       # Check syntax
       - run: sudo apt-get install shellcheck
-      - run: shellcheck usr/lib/initcpio/install/verify-squash-root usr/lib/verify-squash-root/*
+      - run: shellcheck usr/lib/initcpio/install/verity-squash-root usr/lib/verity-squash-root/*
       - run: pip3 install flake8 mypy
       - run: flake8 src/ tests/ setup.py
       - run: mypy src

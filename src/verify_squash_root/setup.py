@@ -1,12 +1,12 @@
 from configparser import ConfigParser
 from pathlib import Path
-from verify_squash_root.distributions.base import DistributionConfig, \
+from verity_squash_root.distributions.base import DistributionConfig, \
     InitramfsBuilder
-from verify_squash_root.exec import exec_binary
-from verify_squash_root.config import KEY_DIR
-import verify_squash_root.efi as efi
-from verify_squash_root.file_op import write_str_to
-from verify_squash_root.file_names import iterate_non_ignored_kernel_variants
+from verity_squash_root.exec import exec_binary
+from verity_squash_root.config import KEY_DIR
+import verity_squash_root.efi as efi
+from verity_squash_root.file_op import write_str_to
+from verity_squash_root.file_names import iterate_non_ignored_kernel_variants
 
 EFI_PATH = Path("/EFI")
 

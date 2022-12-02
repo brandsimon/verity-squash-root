@@ -1,4 +1,4 @@
-# verify-squash-root
+# verity-squash-root
 ## Build signed efi binaries which mount a dm-verity verified squashfs image as rootfs on boot.
 
 ### [Install](#install) - [Configuration](#configuration) - [Usage](#usage) - [Development](#development)
@@ -24,11 +24,11 @@ be encrypted, if encryption of the root image is configured.
 
 ## Install
 
- - Install [verify-squash-root](https://aur.archlinux.org/packages/verify-squash-root/) from AUR
+ - Install [verity-squash-root](https://aur.archlinux.org/packages/verity-squash-root/) from AUR
  - Install `age` and create your encrypted secure-boot keys:
 ```bash
 pacman -S age
-verify-squash-root --ignore-warnings create-keys
+verity-squash-root --ignore-warnings create-keys
 ```
  - Create directories `/boot/efi` and `/mnt/root`
  - Make sure your EFI parition is big enough (1 GB recommended)
@@ -40,12 +40,12 @@ verify-squash-root --ignore-warnings create-keys
  - Configure distribution specific options (see [Configuration](#configuration))
  - Install systemd-boot, configure it and build the first image:
 ```
-verify-squash-root --ignore-warnings setup systemd
-verify-squash-root --ignore-warnings build
+verity-squash-root --ignore-warnings setup systemd
+verity-squash-root --ignore-warnings build
 ```
  - Now reboot into the squashfs
  - If everything works as expected, enable secure-boot with the keys
-   from `/etc/verify_squash_root/public_keys.tar`.
+   from `/etc/verity_squash_root/public_keys.tar`.
 
 ### Updates
 
@@ -53,7 +53,7 @@ verify-squash-root --ignore-warnings build
  - Update your distribution
  - Create new squashfs image with signed efis:
 ```
-verify-squash-root build
+verity-squash-root build
 ```
 
 ### Using custom keys
@@ -68,14 +68,14 @@ After you have generated your custom keys:
 cd to/your/keys/direcory
 tar cf keys.tar db.key db.crt
 age -p -e -o keys.tar.age keys.tar
-mv keys.tar.age /etc/verify_squash_root/
+mv keys.tar.age /etc/verity_squash_root/
 rm keys.tar
 ```
  - Remove your plaintext keys
 
 ## Configuration
 
-The config file is located at `/etc/verify_squash_root/config.ini`.
+The config file is located at `/etc/verity_squash_root/config.ini`.
 These config options are available:
 
 #### Section `DEFAULT`
@@ -113,7 +113,7 @@ partition. An attacker could exchange these files.
 ### Arch Linux
 
 Only mkinitcpio wih systemd-hooks is supported under Arch Linux.
-Add the hook `verify-squash-root` to `/etc/mkinitcpio.conf`.
+Add the hook `verity-squash-root` to `/etc/mkinitcpio.conf`.
 
 ## Considerations / Recommendations
 
@@ -133,22 +133,22 @@ image as well.
 To list all efi images, which will be created or ignored via
 `IGNORE_KERNEL_EFIS`:
 ```
-verify-squash-root list
+verity-squash-root list
 ```
 
 To install systemd-boot and create a UEFI Boot Manger entry for it:
 ```
-verify-squash-root setup systemd
+verity-squash-root setup systemd
 ```
 
 To add efi files to the UEFI Boot Manager with /dev/sda1 as EFI partition:
 ```
-verify-squash-root setup uefi /dev/sda 1
+verity-squash-root setup uefi /dev/sda 1
 ```
 
 To build a new squashfs image and efi files:
 ```
-verify-squash-root build
+verity-squash-root build
 ```
 
 If you are not yet booted in a verified image, you need `--ignore-warnings`,
@@ -193,7 +193,7 @@ python-pycodestyle
 Setup a python3 virtual environment:
 
 ```shell
-git clone git@github.com:brandsimon/verify-squash-root.git
+git clone git@github.com:brandsimon/verity-squash-root.git
 python3 -m venv .venv
 .venv/bin/pip install -e . --no-deps
 ```

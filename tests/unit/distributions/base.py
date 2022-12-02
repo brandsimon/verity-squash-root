@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 from unittest import mock
-from verify_squash_root.distributions.base import iterate_distribution_efi, \
+from verity_squash_root.distributions.base import iterate_distribution_efi, \
     calc_kernel_packages_not_unique
 
 

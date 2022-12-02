@@ -1,9 +1,9 @@
 import unittest
 from pathlib import Path
 from unittest import mock
-from verify_squash_root.distributions.arch import ArchLinuxConfig
-from verify_squash_root.exec import exec_binary
-from verify_squash_root.config import TMPDIR
+from verity_squash_root.distributions.arch import ArchLinuxConfig
+from verity_squash_root.exec import exec_binary
+from verity_squash_root.config import TMPDIR
 from tests.unit.test_helper import PROJECT_ROOT, get_test_files_path
 
 TEST_FILES_DIR = get_test_files_path("distributions/arch")
@@ -15,7 +15,7 @@ class ArchLinuxConfigTest(unittest.TestCase):
         arch = ArchLinuxConfig()
         self.assertEqual(arch.efi_dirname(), "Arch")
 
-    @mock.patch("verify_squash_root.distributions.arch.read_text_from")
+    @mock.patch("verity_squash_root.distributions.arch.read_text_from")
     def test__kernel_to_name(self, mock):
         arch = ArchLinuxConfig()
         mock.return_value = " kernel Nom "
@@ -33,7 +33,7 @@ class ArchLinuxConfigTest(unittest.TestCase):
         arch = ArchLinuxConfig()
         self.assertEqual(arch.display_name(), "Arch")
 
-    @mock.patch("verify_squash_root.distributions.arch.os.listdir")
+    @mock.patch("verity_squash_root.distributions.arch.os.listdir")
     def test__list_kernels(self, mock):
         arch = ArchLinuxConfig()
         result = arch.list_kernels()
@@ -49,7 +49,7 @@ class ArchLinuxConfigTest(unittest.TestCase):
 
 class MkinitcpioTest(unittest.TestCase):
 
-    @mock.patch("verify_squash_root.distributions.arch.read_text_from")
+    @mock.patch("verity_squash_root.distributions.arch.read_text_from")
     def test__file_name(self, mock):
         def test_file_name(kernel, preset, mock_ret, expected_result):
             mock.reset_mock()
@@ -64,7 +64,7 @@ class MkinitcpioTest(unittest.TestCase):
         test_file_name("5.2.44", "fallback", "linux", "linux_fallback")
         test_file_name("5.19.4", "test", "linux-lts", "linux-lts_test")
 
-    @mock.patch("verify_squash_root.distributions.arch.read_text_from")
+    @mock.patch("verity_squash_root.distributions.arch.read_text_from")
     def test__display_name(self, mock):
         def test_display_name(kernel, preset, mock_ret, expected_result):
             mock.reset_mock()
@@ -92,7 +92,7 @@ class MkinitcpioTest(unittest.TestCase):
                 return preset_info
             raise ValueError(file)
 
-        base = "verify_squash_root.distributions.arch"
+        base = "verity_squash_root.distributions.arch"
         all_mocks = mock.Mock()
         all_mocks.read_text_from.side_effect = read
         with (mock.patch("{}.merge_initramfs_images".format(base),
@@ -129,8 +129,8 @@ class MkinitcpioTest(unittest.TestCase):
                                                  base_name))])
             self.assertEqual(res, TMPDIR / "{}.image".format(base_name))
 
-    @mock.patch("verify_squash_root.distributions.arch.read_text_from")
-    @mock.patch("verify_squash_root.distributions.arch.exec_binary")
+    @mock.patch("verity_squash_root.distributions.arch.read_text_from")
+    @mock.patch("verity_squash_root.distributions.arch.exec_binary")
     def test__list_kernel_presets(self, exec_mock, read_mock):
         def change_lib_path(cmd):
             cmd[0] = str(PROJECT_ROOT / cmd[0].strip('/'))
@@ -147,7 +147,7 @@ class MkinitcpioTest(unittest.TestCase):
             Path("/usr/lib/modules/5.19.4/pkgbase"))
         exec_mock.assert_called_once_with([
             str(PROJECT_ROOT /
-                'usr/lib/verify-squash-root/mkinitcpio_list_presets'),
+                'usr/lib/verity-squash-root/mkinitcpio_list_presets'),
             "../..{}".format(
                 PROJECT_ROOT /
                 'tests/unit/files/distributions/arch/linux_name')])

@@ -1,5 +1,5 @@
 import unittest
-from verify_squash_root.exec import exec_binary, ExecBinaryError
+from verity_squash_root.exec import exec_binary, ExecBinaryError
 
 
 class ExecTest(unittest.TestCase):

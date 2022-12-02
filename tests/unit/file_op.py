@@ -1,6 +1,6 @@
 import unittest
 from .test_helper import get_test_files_path, wrap_tempdir
-from verify_squash_root.file_op import read_text_from, write_str_to, \
+from verity_squash_root.file_op import read_text_from, write_str_to, \
     merge_files, read_from
 
 TEST_FILES_DIR = get_test_files_path("file_op")

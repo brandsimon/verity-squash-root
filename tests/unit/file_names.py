@@ -1,7 +1,7 @@
 import unittest
 from tests.unit.distributions.base import distribution_mock, \
     create_initramfs_mock
-from verify_squash_root.file_names import iterate_kernel_variants, \
+from verity_squash_root.file_names import iterate_kernel_variants, \
     backup_file, backup_label, tmpfs_file, tmpfs_label, \
     iterate_non_ignored_kernel_variants, kernel_is_ignored
 

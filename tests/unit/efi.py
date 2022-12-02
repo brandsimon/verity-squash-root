@@ -2,9 +2,9 @@ import unittest
 from .test_helper import get_test_files_path
 from pathlib import Path
 from unittest import mock
-from verify_squash_root.config import KEY_DIR
-from verify_squash_root.file_op import read_from
-from verify_squash_root.efi import file_matches_slot_or_is_broken, sign, \
+from verity_squash_root.config import KEY_DIR
+from verity_squash_root.file_op import read_from
+from verity_squash_root.efi import file_matches_slot_or_is_broken, sign, \
     create_efi_executable, build_and_sign_kernel, get_cmdline
 
 TEST_FILES_DIR = get_test_files_path("efi")
@@ -46,7 +46,7 @@ class EfiTest(unittest.TestCase):
             self.assertTrue(wrapper("stub_empty.efi", "b"))
         self.assertEqual(logs.output, log_empty)
 
-    @mock.patch("verify_squash_root.efi.exec_binary")
+    @mock.patch("verity_squash_root.efi.exec_binary")
     def test__sign(self, mock):
         sign(Path("my/key/dir"), Path("my/in/file"), Path("my/out/file"))
         mock.assert_called_once_with(
@@ -56,7 +56,7 @@ class EfiTest(unittest.TestCase):
              "--output", "my/out/file",
              "my/in/file"])
 
-    @mock.patch("verify_squash_root.efi.exec_binary")
+    @mock.patch("verity_squash_root.efi.exec_binary")
     def test__create_efi_executable(self, mock):
         create_efi_executable(
             "/my/stub.efi", "/tmp/cmdline", "/usr/vmlinuz",
@@ -82,7 +82,7 @@ class EfiTest(unittest.TestCase):
                 "EFI_STUB": "/usr/lib/systemd/mystub.efi",
             }
         }
-        base = "verify_squash_root.efi"
+        base = "verity_squash_root.efi"
         with mock.patch("{}.CMDLINE_FILE".format(base),
                         new=all_mocks.efi.CMDLINE_FILE):
             self.assertEqual(get_cmdline(config), cmdline)
@@ -95,7 +95,7 @@ class EfiTest(unittest.TestCase):
                 "EFI_STUB": "/usr/lib/systemd/mystub.efi",
             }
         }
-        base = "verify_squash_root.efi"
+        base = "verity_squash_root.efi"
         call = mock.call
         with mock.patch("{}.CMDLINE_FILE".format(base),
                         new=all_mocks.efi.CMDLINE_FILE):
@@ -112,7 +112,7 @@ class EfiTest(unittest.TestCase):
 
     def test__build_and_sign_kernel(self):
         all_mocks = mock.Mock()
-        base = "verify_squash_root.efi"
+        base = "verity_squash_root.efi"
         config = {
             "DEFAULT": {
                 "CMDLINE": "rw encrypt=/dev/sda2 quiet check=on",
@@ -137,13 +137,13 @@ class EfiTest(unittest.TestCase):
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.get_cmdline(config),
-                 call.write_str_to(Path("/tmp/verify_squash_root/cmdline"),
+                 call.write_str_to(Path("/tmp/verity_squash_root/cmdline"),
                                    ("rw encrypt=/dev/sda2 quiet tmpfsparam "
-                                    "verify_squash_root_slot=a "
-                                    "verify_squash_root_hash=567myhash234")),
+                                    "verity_squash_root_slot=a "
+                                    "verity_squash_root_hash=567myhash234")),
                  call.efi.create_efi_executable(
                      Path("/usr/lib/systemd/mystub.efi"),
-                     Path("/tmp/verify_squash_root/cmdline"),
+                     Path("/tmp/verity_squash_root/cmdline"),
                      Path("/boot/vmlinuz"), Path("/tmp/initramfs.img"),
                      Path("/tmp/file.efi")),
                  call.efi.sign(KEY_DIR, Path("/tmp/file.efi"),
@@ -160,12 +160,12 @@ class EfiTest(unittest.TestCase):
                 all_mocks.mock_calls,
                 [call.get_cmdline(config),
                  call.write_str_to(
-                     Path("/tmp/verify_squash_root/cmdline"),
-                     ("rw encrypt=/dev/sda2 quiet  verify_squash_root_slot=b "
-                      "verify_squash_root_hash=853anotherhash723")),
+                     Path("/tmp/verity_squash_root/cmdline"),
+                     ("rw encrypt=/dev/sda2 quiet  verity_squash_root_slot=b "
+                      "verity_squash_root_hash=853anotherhash723")),
                  call.efi.create_efi_executable(
                          Path("/usr/lib/systemd/mystub.efi"),
-                         Path("/tmp/verify_squash_root/cmdline"),
+                         Path("/tmp/verity_squash_root/cmdline"),
                          Path("/usr/lib/vmlinuz-lts"),
                          Path("/boot/initramfs_fallback.img"),
                          Path("/tmporary/dir/f.efi")),

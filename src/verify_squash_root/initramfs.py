@@ -1,6 +1,6 @@
 from pathlib import Path
 from typing import List
-from verify_squash_root.file_op import merge_files
+from verity_squash_root.file_op import merge_files
 
 
 def merge_initramfs_images(main_image: Path, microcode_paths: List[Path],

@@ -1,5 +1,5 @@
 from typing import Optional
-from verify_squash_root.config import KERNEL_PARAM_BASE
+from verity_squash_root.config import KERNEL_PARAM_BASE
 
 
 def current_slot(kernel_cmdline: str) -> Optional[str]:

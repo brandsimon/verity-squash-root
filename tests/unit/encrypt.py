@@ -2,7 +2,7 @@ import unittest
 from pathlib import Path
 from unittest import mock
 from unittest.mock import call
-from verify_squash_root.encrypt import create_secure_boot_keys, \
+from verity_squash_root.encrypt import create_secure_boot_keys, \
     create_encrypted_tar_file, create_tar_file, \
     check_if_archives_exist, create_and_pack_secure_boot_keys, \
     PUBLIC_KEY_FILES_TAR, SIGNING_FILES_TAR, ALL_FILES_TAR, \
@@ -12,24 +12,24 @@ from .test_helper import wrap_tempdir
 
 class EncryptTest(unittest.TestCase):
 
-    @mock.patch("verify_squash_root.encrypt.exec_binary")
+    @mock.patch("verity_squash_root.encrypt.exec_binary")
     def test__create_secure_boot_keys(self, mock):
         create_secure_boot_keys()
         mock.assert_called_once_with(
-            ["/usr/lib/verify-squash-root/generate_secure_boot_keys"])
+            ["/usr/lib/verity-squash-root/generate_secure_boot_keys"])
 
-    @mock.patch("verify_squash_root.encrypt.exec_binary")
+    @mock.patch("verity_squash_root.encrypt.exec_binary")
     def test__create_encrypted_tar_file(self, mock):
         create_encrypted_tar_file(
              ["db.key", "db.crt", "another_file", "/etc/resolv.conf"],
              "/etc/targetfile.tar.age")
         mock.assert_called_once_with(
-            ["/usr/lib/verify-squash-root/create_encrypted_tar_file",
+            ["/usr/lib/verity-squash-root/create_encrypted_tar_file",
              "/etc/targetfile.tar.age",
              "db.key", "db.crt", "another_file", "/etc/resolv.conf"])
 
     def test__create_tar_file(self):
-        base = "verify_squash_root.encrypt"
+        base = "verity_squash_root.encrypt"
         all_mocks = mock.MagicMock()
         with mock.patch("{}.tarfile".format(base),
                         new=all_mocks.tarfile):
@@ -47,7 +47,7 @@ class EncryptTest(unittest.TestCase):
                  call.tarfile.open().__exit__(None, None, None)])
 
     def test__check_if_archives_exist(self):
-        base = "verify_squash_root.encrypt"
+        base = "verity_squash_root.encrypt"
         all_mocks = mock.MagicMock()
         variants = [
             [False, False, False, None],
@@ -76,7 +76,7 @@ class EncryptTest(unittest.TestCase):
 
     @wrap_tempdir
     def test__create_and_pack_secure_boot_keys(self, tempdir):
-        base = "verify_squash_root.encrypt"
+        base = "verity_squash_root.encrypt"
         all_mocks = mock.MagicMock()
         key_dir = tempdir / "keys"
 
@@ -110,7 +110,7 @@ class EncryptTest(unittest.TestCase):
 
     @wrap_tempdir
     def test__create_and_pack_secure_boot_keys__error_cleanup(self, tempdir):
-        base = "verify_squash_root.encrypt"
+        base = "verity_squash_root.encrypt"
         all_mocks = mock.MagicMock()
         key_dir = tempdir / "keys"
 

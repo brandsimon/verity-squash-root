@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 from unittest.mock import call
-from verify_squash_root.decrypt import format_cmd, TAR_FILE, KEY_DIR, \
+from verity_squash_root.decrypt import format_cmd, TAR_FILE, KEY_DIR, \
     decrypt_secure_boot_keys, DecryptKeys
 from .test_helper import wrap_tempdir, get_test_files_path
 
@@ -18,7 +18,7 @@ class DecryptTest(unittest.TestCase):
 
     @wrap_tempdir
     def test__decrypt_secure_boot_keys(self, tempdir):
-        base = "verify_squash_root.decrypt"
+        base = "verity_squash_root.decrypt"
         key_dir = tempdir / "keys"
         all_mocks = mock.MagicMock()
         with (mock.patch("{}.exec_binary".format(base),
@@ -45,7 +45,7 @@ class DecryptTest(unittest.TestCase):
             self.assertEqual(key_dir.is_dir(), True)
 
     def test__decrypt_keys(self):
-        base = "verify_squash_root.decrypt"
+        base = "verity_squash_root.decrypt"
         all_mocks = mock.Mock()
         config = mock.Mock()
         with (mock.patch("{}.decrypt_secure_boot_keys".format(base),
@@ -70,7 +70,7 @@ class DecryptTest(unittest.TestCase):
         }
         key_dir = tempdir / "keys"
         tar_file = key_dir / "keys.tar"
-        base = "verify_squash_root.decrypt"
+        base = "verity_squash_root.decrypt"
         with (mock.patch("{}.TAR_FILE".format(base),
                          new=tar_file),
               mock.patch("{}.KEY_DIR".format(base),

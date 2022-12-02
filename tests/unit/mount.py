@@ -1,12 +1,12 @@
 import unittest
 from unittest import mock
-from verify_squash_root.mount import TmpfsMount
+from verity_squash_root.mount import TmpfsMount
 
 
 class MountTest(unittest.TestCase):
 
     def test__tmpfs_mount(self):
-        base = "verify_squash_root.mount"
+        base = "verity_squash_root.mount"
         all_mocks = mock.Mock()
         all_mocks.path.__str__ = mock.Mock(return_value="/my_directory")
         with (mock.patch("{}.exec_binary".format(base),

@@ -3,9 +3,9 @@ import os
 import tarfile
 from pathlib import Path
 from typing import List
-from verify_squash_root.config import KEY_DIR, CONFIG_DIR
-from verify_squash_root.efi import DB_CERT_FILE, DB_KEY_FILE
-from verify_squash_root.exec import exec_binary
+from verity_squash_root.config import KEY_DIR, CONFIG_DIR
+from verity_squash_root.efi import DB_CERT_FILE, DB_KEY_FILE
+from verity_squash_root.exec import exec_binary
 
 SIGNING_FILES = [DB_KEY_FILE, DB_CERT_FILE]
 PUBLIC_FILES = [
@@ -20,7 +20,7 @@ ALL_FILES_TAR = CONFIG_DIR / "all_keys.tar.age"
 
 
 def create_secure_boot_keys() -> None:
-    exec_binary(["/usr/lib/verify-squash-root/generate_secure_boot_keys"])
+    exec_binary(["/usr/lib/verity-squash-root/generate_secure_boot_keys"])
 
 
 def create_tar_file(files: List[str], out: Path) -> None:
@@ -30,7 +30,7 @@ def create_tar_file(files: List[str], out: Path) -> None:
 
 
 def create_encrypted_tar_file(files: List[str], out: Path) -> None:
-    cmd_arr = ["/usr/lib/verify-squash-root/create_encrypted_tar_file",
+    cmd_arr = ["/usr/lib/verity-squash-root/create_encrypted_tar_file",
                str(out)] + files
     exec_binary(cmd_arr)
 

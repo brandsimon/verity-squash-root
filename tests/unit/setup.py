@@ -1,8 +1,8 @@
 import unittest
 from pathlib import Path
 from unittest import mock
-from verify_squash_root.config import KEY_DIR
-from verify_squash_root.setup import add_uefi_boot_option, \
+from verity_squash_root.config import KEY_DIR
+from verity_squash_root.setup import add_uefi_boot_option, \
     add_kernels_to_uefi, setup_systemd_boot
 from tests.unit.distributions.base import distribution_mock, \
     create_initramfs_mock
@@ -10,7 +10,7 @@ from tests.unit.distributions.base import distribution_mock, \
 
 class SetupTest(unittest.TestCase):
 
-    @mock.patch("verify_squash_root.setup.exec_binary")
+    @mock.patch("verity_squash_root.setup.exec_binary")
     def test__add_uefi_boot_option(self, mock):
         add_uefi_boot_option("/dev/sda", 1, "Arch Linux",
                              Path("/EFI/Arch/linux.efi"))
@@ -19,7 +19,7 @@ class SetupTest(unittest.TestCase):
              "--create", "--label", "Arch Linux", "--loader",
              "/EFI/Arch/linux.efi"])
 
-    @mock.patch("verify_squash_root.setup.add_uefi_boot_option")
+    @mock.patch("verity_squash_root.setup.add_uefi_boot_option")
     def test__add_kernels_to_uefi(self, boot_mock):
         distri_mock = distribution_mock()
         initramfs_mock = create_initramfs_mock(distri_mock)
@@ -48,9 +48,9 @@ class SetupTest(unittest.TestCase):
              mock.call('/dev/vda', 3, 'Display Linux (default)',
                        Path('/EFI/ArchEfi/linux_default.efi'))])
 
-    @mock.patch("verify_squash_root.setup.exec_binary")
-    @mock.patch("verify_squash_root.setup.write_str_to")
-    @mock.patch("verify_squash_root.setup.efi.sign")
+    @mock.patch("verity_squash_root.setup.exec_binary")
+    @mock.patch("verity_squash_root.setup.write_str_to")
+    @mock.patch("verity_squash_root.setup.efi.sign")
     def test__setup_systemd_boot(self, sign_mock, write_to_mock, exec_mock):
         distri_mock = distribution_mock()
         initramfs_mock = create_initramfs_mock(distri_mock)

@@ -5,7 +5,7 @@ with open('Readme.md', encoding='utf-8') as f:
 
 
 setup(
-    name='verify-squash-root',
+    name='verity-squash-root',
     version='0.0.4',
     description='Build a signed efi binary which mounts a '
                 'verified squashfs image as root',
@@ -24,7 +24,7 @@ setup(
     ],
     author='Simon Brand',
     author_email='simon.brand@postadigitale.de',
-    url='https://github.com/brandsimon/verify-squash-root',
+    url='https://github.com/brandsimon/verity-squash-root',
     keywords='Secure boot, squashfs, dm-verity',
     package_dir={'': 'src'},
     packages=find_packages('src/'),
@@ -36,7 +36,7 @@ setup(
     install_requires=[],
     entry_points={
         'console_scripts': [
-            'verify-squash-root=verify_squash_root:parse_params_and_run'
+            'verity-squash-root=verity_squash_root:parse_params_and_run'
         ]
     },
 )
