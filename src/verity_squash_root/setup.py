@@ -3,12 +3,10 @@ from pathlib import Path
 from verity_squash_root.distributions.base import DistributionConfig, \
     InitramfsBuilder
 from verity_squash_root.exec import exec_binary
-from verity_squash_root.config import KEY_DIR
+from verity_squash_root.config import KEY_DIR, EFI_KERNELS
 import verity_squash_root.efi as efi
 from verity_squash_root.file_op import write_str_to
 from verity_squash_root.file_names import iterate_non_ignored_kernel_variants
-
-EFI_PATH = Path("/EFI")
 
 
 def add_uefi_boot_option(disk: str, partition_no: int, label: str,
@@ -22,7 +20,7 @@ def add_kernels_to_uefi(config: ConfigParser, distribution: DistributionConfig,
                         initramfs: InitramfsBuilder,
                         disk: str, partition_no: int) -> None:
     efi_dirname = distribution.efi_dirname()
-    out_dir = EFI_PATH / efi_dirname
+    out_dir = Path("/") / EFI_KERNELS / efi_dirname
 
     # Use reversed order, because last added option is sometimes
     # the default boot option
@@ -43,7 +41,7 @@ def setup_systemd_boot(config: ConfigParser,
     efi.sign(KEY_DIR, boot_efi, Path("/boot/efi/EFI/BOOT/BOOTX64.EFI"))
 
     efi_dirname = distribution.efi_dirname()
-    out_dir = EFI_PATH / efi_dirname
+    out_dir = Path("/") / EFI_KERNELS / efi_dirname
     entries_dir = Path(config["DEFAULT"]["EFI_PARTITION"]) / "loader/entries"
 
     for (kernel, preset, base_name, label) in \

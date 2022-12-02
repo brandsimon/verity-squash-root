@@ -31,22 +31,23 @@ class SetupTest(unittest.TestCase):
             }
         }
         add_kernels_to_uefi(config, distri_mock, initramfs_mock, "/dev/vda", 3)
+        efi_path = Path('/EFI/verity_squash_root/ArchEfi')
         self.assertEqual(
             boot_mock.mock_calls,
             [mock.call('/dev/vda', 3, 'Display Linux-lts (default)',
-                       Path('/EFI/ArchEfi/linux-lts_default.efi')),
+                       efi_path / 'linux-lts_default.efi'),
              mock.call('/dev/vda', 3, 'Display Linux (fallback) tmpfs Backup',
-                       Path('/EFI/ArchEfi/linux_fallback_tmpfs_backup.efi')),
+                       efi_path / 'linux_fallback_tmpfs_backup.efi'),
              mock.call('/dev/vda', 3, 'Display Linux (fallback) tmpfs',
-                       Path('/EFI/ArchEfi/linux_fallback_tmpfs.efi')),
+                       efi_path / 'linux_fallback_tmpfs.efi'),
              mock.call('/dev/vda', 3, 'Display Linux (default) tmpfs Backup',
-                       Path('/EFI/ArchEfi/linux_default_tmpfs_backup.efi')),
+                       efi_path / 'linux_default_tmpfs_backup.efi'),
              mock.call('/dev/vda', 3, 'Display Linux (default) tmpfs',
-                       Path('/EFI/ArchEfi/linux_default_tmpfs.efi')),
+                       efi_path / 'linux_default_tmpfs.efi'),
              mock.call('/dev/vda', 3, 'Display Linux (default) Backup',
-                       Path('/EFI/ArchEfi/linux_default_backup.efi')),
+                       efi_path / 'linux_default_backup.efi'),
              mock.call('/dev/vda', 3, 'Display Linux (default)',
-                       Path('/EFI/ArchEfi/linux_default.efi'))])
+                       efi_path / 'linux_default.efi')])
 
     @mock.patch("verity_squash_root.setup.exec_binary")
     @mock.patch("verity_squash_root.setup.write_str_to")
@@ -72,7 +73,7 @@ class SetupTest(unittest.TestCase):
                        Path("/boot/efi/EFI/systemd/systemd-bootx64.efi")),
              mock.call(KEY_DIR, boot_efi,
                        Path("/boot/efi/EFI/BOOT/BOOTX64.EFI"))])
-        text = "title Display {}\nlinux /EFI/ArchEfi/{}\n"
+        text = "title Display {}\nlinux /EFI/verity_squash_root/ArchEfi/{}\n"
         path = Path("/boot/efi_dir/loader/entries")
         self.assertEqual(
             write_to_mock.mock_calls,

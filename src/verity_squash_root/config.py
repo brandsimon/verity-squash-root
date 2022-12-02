@@ -11,6 +11,8 @@ CONFIG_DIR = Path("/etc/{}".format(KERNEL_PARAM_BASE))
 CONFIG_FILE = CONFIG_DIR / "config.ini"
 DISTRI_FILE = Path("/usr/share") / KERNEL_PARAM_BASE / "default.ini"
 LOG_FILE = Path("/var/log/{}.log".format(KERNEL_PARAM_BASE))
+EFI_PATH = Path("EFI")
+EFI_KERNELS = EFI_PATH / KERNEL_PARAM_BASE
 
 
 def config_str_to_stripped_arr(s: str) -> List[str]:

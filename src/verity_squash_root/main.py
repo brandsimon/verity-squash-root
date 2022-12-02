@@ -6,7 +6,7 @@ from typing import List, Union
 import verity_squash_root.cmdline as cmdline
 import verity_squash_root.efi as efi
 from verity_squash_root.config import TMPDIR, KERNEL_PARAM_BASE, KEY_DIR, \
-    config_str_to_stripped_arr
+    EFI_KERNELS, config_str_to_stripped_arr
 from verity_squash_root.distributions.base import DistributionConfig, \
     InitramfsBuilder, iterate_distribution_efi
 from verity_squash_root.file_names import backup_file, tmpfs_file, tmpfs_label
@@ -77,7 +77,7 @@ def create_image_and_sign_kernel(config: ConfigParser,
     use_slot = cmdline.unused_slot(kernel_cmdline)
     efi_partition = Path(config["DEFAULT"]["EFI_PARTITION"])
     efi_dirname = distribution.efi_dirname()
-    out_dir = efi_partition / "EFI" / efi_dirname
+    out_dir = efi_partition / EFI_KERNELS / efi_dirname
     logging.info("Using slot {} for new image".format(use_slot))
     root_hash = create_squashfs_return_verity_hash(config, use_slot)
     logging.debug("Calculated root hash: {}".format(root_hash))
