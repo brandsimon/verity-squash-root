@@ -13,7 +13,7 @@ class ArchLinuxConfigTest(unittest.TestCase):
 
     def test__efi_dirname(self):
         arch = ArchLinuxConfig()
-        self.assertEqual(arch.efi_dirname(), "Arch")
+        self.assertEqual(arch.efi_dirname(), "arch")
 
     @mock.patch("verity_squash_root.distributions.arch.read_text_from")
     def test__kernel_to_name(self, mock):

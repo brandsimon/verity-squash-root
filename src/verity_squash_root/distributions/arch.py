@@ -14,7 +14,7 @@ from verity_squash_root.distributions.base import DistributionConfig, \
 class ArchLinuxConfig(DistributionConfig):
 
     def efi_dirname(self) -> str:
-        return "Arch"
+        return "arch"
 
     @lru_cache(maxsize=128)
     def kernel_to_name(self, kernel: str) -> str:
