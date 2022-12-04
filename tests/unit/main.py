@@ -8,7 +8,7 @@ from verity_squash_root.config import KEY_DIR
 from verity_squash_root.main import move_kernel_to, \
     create_squashfs_return_verity_hash, build_and_move_kernel, \
     create_image_and_sign_kernel, backup_and_sign_efi, \
-    backup_and_sign_extra_files
+    backup_and_sign_extra_files, create_directory
 
 
 class MainTest(unittest.TestCase):
@@ -110,6 +110,13 @@ class MainTest(unittest.TestCase):
                 result,
                 all_mocks.veritysetup_image())
 
+    def test__create_directory(self):
+        path = mock.Mock()
+        create_directory(path)
+        self.assertEqual(
+            path.mock_calls,
+            [call.mkdir(parents=True, exist_ok=True)])
+
     def test__build_and_move_kernel(self):
         base = "verity_squash_root.main"
         all_mocks = mock.Mock()
@@ -188,6 +195,8 @@ class MainTest(unittest.TestCase):
                          new=all_mocks.read_text_from),
               mock.patch("{}.cmdline".format(base),
                          new=all_mocks.cmdline),
+              mock.patch("{}.create_directory".format(base),
+                         new=all_mocks.create_directory),
               mock.patch("{}.create_squashfs_return_verity_hash".format(base),
                          new=all_mocks.create_squashfs_return_verity_hash),
               mock.patch("{}.build_and_move_kernel".format(base),
@@ -213,6 +222,8 @@ class MainTest(unittest.TestCase):
                 all_mocks.mock_calls,
                 [call.read_text_from(Path('/proc/cmdline')),
                  call.cmdline.unused_slot(cmdline),
+                 call.create_directory(Path(
+                     "/boot/efi/EFI/verity_squash_root/ArchEfi")),
                  call.create_squashfs_return_verity_hash(config, use_slot),
                  call.build_and_move_kernel(
                      config,

@@ -70,6 +70,10 @@ def build_and_move_kernel(config: ConfigParser,
     move_kernel_to(tmp_efi_file, out, use_slot, backup_out)
 
 
+def create_directory(path: Path):
+    path.mkdir(parents=True, exist_ok=True)
+
+
 def create_image_and_sign_kernel(config: ConfigParser,
                                  distribution: DistributionConfig,
                                  initramfs: InitramfsBuilder):
@@ -78,6 +82,7 @@ def create_image_and_sign_kernel(config: ConfigParser,
     efi_partition = Path(config["DEFAULT"]["EFI_PARTITION"])
     efi_dirname = distribution.efi_dirname()
     out_dir = efi_partition / EFI_KERNELS / efi_dirname
+    create_directory(out_dir)
     logging.info("Using slot {} for new image".format(use_slot))
     root_hash = create_squashfs_return_verity_hash(config, use_slot)
     logging.debug("Calculated root hash: {}".format(root_hash))
