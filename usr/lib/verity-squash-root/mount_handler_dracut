@@ -1,0 +1,4 @@
+#!/bin/sh
+mount --bind "${NEWROOT}" "/moved_root"
+umount "${NEWROOT}"
+sh /usr/lib/verity-squash-root/mount_handler "/moved_root" "${NEWROOT}"

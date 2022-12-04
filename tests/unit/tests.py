@@ -11,6 +11,7 @@ from tests.unit.file_names import FileNamesTest
 from tests.unit.file_op import FileOPTest
 from tests.unit.image import ImageTest
 from tests.unit.initramfs import InitramfsTest
+from tests.unit.initramfs.dracut import DracutTest
 from tests.unit.main import MainTest
 from tests.unit.mount import MountTest
 from tests.unit.parsing import ParsingTest
@@ -24,6 +25,7 @@ def test_suite():
         unittest.makeSuite(BaseDistributionTest),
         unittest.makeSuite(CmdlineTest),
         unittest.makeSuite(ConfigTest),
+        unittest.makeSuite(DracutTest),
         unittest.makeSuite(DecryptTest),
         unittest.makeSuite(EfiTest),
         unittest.makeSuite(EncryptTest),

@@ -1,6 +1,6 @@
 import unittest
 from pathlib import Path
-from .test_helper import wrap_tempdir
+from ..test_helper import wrap_tempdir
 from verity_squash_root.file_op import write_str_to, read_text_from
 from verity_squash_root.initramfs import merge_initramfs_images
 
