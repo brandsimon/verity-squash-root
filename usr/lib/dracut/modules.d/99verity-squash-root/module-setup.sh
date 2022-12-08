@@ -31,12 +31,12 @@ installkernel() {
 
 install() {
 	# shellcheck disable=SC2154
-	date_or_override > "${initdir}/VERIFY_SQUASH_ROOT_DATE"
+	date_or_override > "${initdir}/VERITY_SQUASH_ROOT_DATE"
 	# create mount points
 	mkdir -p "${initdir}"/moved_root
 	mkdir -p "${initdir}"/overlayroot
-	mkdir -p "${initdir}"/verify-squashfs-tmp/squashroot
-	mkdir -p "${initdir}"/verify-squashfs-tmp/tmpfs
+	mkdir -p "${initdir}"/verity-squash-root-tmp/squashroot
+	mkdir -p "${initdir}"/verity-squash-root-tmp/tmpfs
 	# mount handler
 	# shellcheck disable=SC2154
 	inst "${moddir}/verity_squash_root.conf" \

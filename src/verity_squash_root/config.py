@@ -33,7 +33,7 @@ def read_config() -> ConfigParser:
 def is_volatile_boot():
     res = exec_binary(["findmnt", "-uno", "OPTIONS", "/"])[0].decode()
     parts = res.split(",")
-    return "upperdir=/verify-squashfs-tmp/tmpfs/overlay" in parts
+    return "upperdir=/verity-squash-root-tmp/tmpfs/overlay" in parts
 
 
 def check_config(config: ConfigParser) -> List[str]:

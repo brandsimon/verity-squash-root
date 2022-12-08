@@ -68,7 +68,7 @@ class ConfigTest(unittest.TestCase):
 
     @mock.patch("verity_squash_root.config.exec_binary")
     def test__is_volatile_boot(self, exec_mock):
-        cmdline = ("rw,relatime,lowerdir=/verify-squashfs-tmp/squashroot,"
+        cmdline = ("rw,relatime,lowerdir=/verity-squash-root-tmp/squashroot,"
                    "upperdir={},workdir=/sysroot/workdir,"
                    "index=off,xino=off,metacopy=off")
 
@@ -80,7 +80,7 @@ class ConfigTest(unittest.TestCase):
                 ["findmnt", "-uno", "OPTIONS", "/"])
 
         test("/sysroot/overlay", False)
-        test("/verify-squashfs-tmp/tmpfs/overlay", True)
+        test("/verity-squash-root-tmp/tmpfs/overlay", True)
 
     def test__check_config_and_system(self):
         base = "verity_squash_root.config"
