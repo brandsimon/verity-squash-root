@@ -1,7 +1,7 @@
 from configparser import ConfigParser
 from pathlib import Path
-from verity_squash_root.distributions.base import DistributionConfig, \
-    InitramfsBuilder
+from verity_squash_root.distributions.base import DistributionConfig
+from verity_squash_root.initramfs.base import InitramfsBuilder
 from verity_squash_root.exec import exec_binary
 from verity_squash_root.config import KEY_DIR, EFI_KERNELS
 import verity_squash_root.efi as efi

@@ -2,8 +2,8 @@ from pathlib import Path
 from typing import List
 from verity_squash_root.config import TMPDIR
 from verity_squash_root.exec import exec_binary
-from verity_squash_root.distributions.base import DistributionConfig, \
-    InitramfsBuilder
+from verity_squash_root.distributions.base import DistributionConfig
+from verity_squash_root.initramfs.base import InitramfsBuilder
 
 
 class Dracut(InitramfsBuilder):

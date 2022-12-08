@@ -1,8 +1,9 @@
 import unittest
 from pathlib import Path
 from unittest import mock
-from verity_squash_root.distributions.base import iterate_distribution_efi, \
+from verity_squash_root.distributions.base import \
     calc_kernel_packages_not_unique
+from verity_squash_root.initramfs.base import iterate_distribution_efi
 
 
 def distribution_mock():

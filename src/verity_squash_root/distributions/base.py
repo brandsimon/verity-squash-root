@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Generator, List, MutableMapping, Tuple
+from typing import List, MutableMapping
 
 
 class DistributionConfig:
@@ -26,31 +26,6 @@ class DistributionConfig:
 
     def microcode_paths(self) -> List[Path]:
         raise NotImplementedError("Base class")
-
-
-class InitramfsBuilder:
-
-    def file_name(self, kernel: str, preset: str) -> str:
-        raise NotImplementedError("Base class")
-
-    def display_name(self, kernel: str, preset: str) -> str:
-        raise NotImplementedError("Base class")
-
-    def build_initramfs_with_microcode(self, kernel: str,
-                                       preset: str) -> Path:
-        raise NotImplementedError("Base class")
-
-    def list_kernel_presets(self, kernel: str) -> List[str]:
-        raise NotImplementedError("Base class")
-
-
-def iterate_distribution_efi(distribution: DistributionConfig,
-                             initramfs: InitramfsBuilder) \
-        -> Generator[Tuple[str, str, str], None, None]:
-    for kernel in distribution.list_kernels():
-        for preset in initramfs.list_kernel_presets(kernel):
-            base_name = initramfs.file_name(kernel, preset)
-            yield (kernel, preset, base_name)
 
 
 def calc_kernel_packages_not_unique(distribution: DistributionConfig) \

@@ -11,8 +11,9 @@ from verity_squash_root.config import read_config, LOG_FILE, \
 from verity_squash_root.decrypt import DecryptKeys
 from verity_squash_root.distributions.base import DistributionConfig, \
     calc_kernel_packages_not_unique
-from verity_squash_root.distributions.arch import ArchLinuxConfig, \
-    InitramfsBuilder, Mkinitcpio
+from verity_squash_root.distributions.arch import ArchLinuxConfig
+from verity_squash_root.initramfs.mkinitcpio import InitramfsBuilder, \
+    Mkinitcpio
 from verity_squash_root.file_names import iterate_kernel_variants, \
     kernel_is_ignored
 from verity_squash_root.main import create_image_and_sign_kernel, \

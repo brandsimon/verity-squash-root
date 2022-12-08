@@ -1,8 +1,9 @@
 from typing import Generator, List, Tuple
 from configparser import ConfigParser
 from verity_squash_root.config import config_str_to_stripped_arr
-from verity_squash_root.distributions.base import DistributionConfig, \
-    InitramfsBuilder, iterate_distribution_efi
+from verity_squash_root.distributions.base import DistributionConfig
+from verity_squash_root.initramfs.base import InitramfsBuilder, \
+    iterate_distribution_efi
 
 BACKUP_SUFFIX = "_backup"
 
