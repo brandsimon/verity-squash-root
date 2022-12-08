@@ -2,9 +2,11 @@ import unittest
 from pathlib import Path
 from unittest import mock
 from verity_squash_root.distributions.arch import ArchLinuxConfig
+from verity_squash_root.initramfs.mkinitcpio import Mkinitcpio
 from verity_squash_root.exec import exec_binary
 from verity_squash_root.config import TMPDIR
 from tests.unit.test_helper import PROJECT_ROOT, get_test_files_path
+from .base import distribution_mock
 
 TEST_FILES_DIR = get_test_files_path("distributions/arch")
 
@@ -49,50 +51,27 @@ class ArchLinuxConfigTest(unittest.TestCase):
 
 class MkinitcpioTest(unittest.TestCase):
 
-    @mock.patch("verity_squash_root.distributions.arch.read_text_from")
-    def test__file_name(self, mock):
-        def test_file_name(kernel, preset, mock_ret, expected_result):
-            mock.reset_mock()
-            arch = ArchLinuxConfig()
-            mock.return_value = mock_ret
-            result = arch.file_name(kernel, preset)
-            mock.assert_called_once_with(
-                Path("/usr/lib/modules") / kernel / "pkgbase")
-            self.assertEqual(result, expected_result)
+    def test__file_name(self):
+        mkinitcpio = Mkinitcpio(distribution_mock())
+        self.assertEqual(mkinitcpio.file_name("5.19", "pres"), "linux_pres")
+        self.assertEqual(mkinitcpio.file_name("5.14", "nom"), "linux-lts_nom")
 
-        test_file_name("5.2.43", "default", "linux", "linux")
-        test_file_name("5.2.44", "fallback", "linux", "linux_fallback")
-        test_file_name("5.19.4", "test", "linux-lts", "linux-lts_test")
-
-    @mock.patch("verity_squash_root.distributions.arch.read_text_from")
-    def test__display_name(self, mock):
-        def test_display_name(kernel, preset, mock_ret, expected_result):
-            mock.reset_mock()
-            arch = ArchLinuxConfig()
-            mock.return_value = mock_ret
-            result = arch.display_name(kernel, preset)
-            mock.assert_called_once_with(
-                Path("/usr/lib/modules") / kernel / "pkgbase")
-            self.assertEqual(result, expected_result)
-
-        test_display_name("5.2.43", "default", "linux",
-                          "Arch Linux")
-        test_display_name("5.2.44", "fallback", "linux",
-                          "Arch Linux (fallback)")
-        test_display_name("5.19.4", "test", "linux-lts",
-                          "Arch Linux lts (test)")
+    def test__display_name(self):
+        mkinitcpio = Mkinitcpio(distribution_mock())
+        self.assertEqual(mkinitcpio.display_name("5.19", "my_preset"),
+                         "Arch Linux (my_preset)")
+        self.assertEqual(mkinitcpio.display_name("5.14", "set"),
+                         "Arch Linux lts (set)")
 
     def test__build_initramfs_with_microcode(self):
         preset_info = "some info\npreset_image = /test\nsome more info\nx=y\n"
 
         def read(file):
-            if file == Path("/usr/lib/modules/5.14.3-arch/pkgbase"):
-                return "linux-pkg"
-            if file == Path("/etc/mkinitcpio.d/linux-pkg.preset"):
+            if file == Path("/etc/mkinitcpio.d/linux-lts.preset"):
                 return preset_info
             raise ValueError(file)
 
-        base = "verity_squash_root.distributions.arch"
+        base = "verity_squash_root.initramfs.mkinitcpio"
         all_mocks = mock.Mock()
         all_mocks.read_text_from.side_effect = read
         with (mock.patch("{}.merge_initramfs_images".format(base),
@@ -103,19 +82,18 @@ class MkinitcpioTest(unittest.TestCase):
                          new=all_mocks.read_text_from),
               mock.patch("{}.write_str_to".format(base),
                          new=all_mocks.write_str_to)):
-            arch = ArchLinuxConfig()
-            res = arch.build_initramfs_with_microcode(
-                "5.14.3-arch", "x_preset")
-            base_name = "linux-pkg-x_preset"
+            distri_mock = distribution_mock()
+            mkinitcpio = Mkinitcpio(distri_mock)
+            res = mkinitcpio.build_initramfs_with_microcode(
+                "5.14", "x_preset")
+            base_name = "linux-lts-x_preset"
             call = mock.call
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.read_text_from(
-                     Path("/usr/lib/modules/5.14.3-arch/pkgbase")),
-                 call.read_text_from(
-                     Path("/etc/mkinitcpio.d/linux-pkg.preset")),
+                     Path("/etc/mkinitcpio.d/linux-lts.preset")),
                  call.write_str_to(
-                     TMPDIR / "linux-pkg-x_preset.preset",
+                     TMPDIR / "linux-lts-x_preset.preset",
                      ("{}\nPRESETS=('x_preset')\n"
                       "x_preset_image={}/{}.initcpio\n".format(
                           preset_info, TMPDIR, base_name))),
@@ -123,28 +101,23 @@ class MkinitcpioTest(unittest.TestCase):
                                    "{}/{}.preset".format(TMPDIR, base_name)]),
                  call.merge_initramfs_images(TMPDIR / "{}.initcpio".format(
                                                  base_name),
-                                             [Path("/boot/intel-ucode.img"),
-                                              Path("/boot/amd-ucode.img")],
+                                             distri_mock.microcode_paths(),
                                              TMPDIR / "{}.image".format(
                                                  base_name))])
             self.assertEqual(res, TMPDIR / "{}.image".format(base_name))
 
-    @mock.patch("verity_squash_root.distributions.arch.read_text_from")
-    @mock.patch("verity_squash_root.distributions.arch.exec_binary")
-    def test__list_kernel_presets(self, exec_mock, read_mock):
+    @mock.patch("verity_squash_root.initramfs.mkinitcpio.exec_binary")
+    def test__list_kernel_presets(self, exec_mock):
         def change_lib_path(cmd):
             cmd[0] = str(PROJECT_ROOT / cmd[0].strip('/'))
             cmd[1] = "../..{}".format(
                 TEST_FILES_DIR / "linux_name")
             return exec_binary(cmd)
 
-        read_mock.return_value = b"linux_kernel"
         exec_mock.side_effect = change_lib_path
-        arch = ArchLinuxConfig()
-        result = arch.list_kernel_presets("5.19.4")
+        mkinitcpio = Mkinitcpio(distribution_mock())
+        result = mkinitcpio.list_kernel_presets("5.14")
         self.assertEqual(result, ["default", "fallback", "test"])
-        read_mock.assert_called_once_with(
-            Path("/usr/lib/modules/5.19.4/pkgbase"))
         exec_mock.assert_called_once_with([
             str(PROJECT_ROOT /
                 'usr/lib/verity-squash-root/mkinitcpio_list_presets'),
