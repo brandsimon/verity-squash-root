@@ -7,7 +7,7 @@ from verity_squash_root.config import TMPDIR
 from tests.unit.test_helper import PROJECT_ROOT, get_test_files_path
 from tests.unit.distributions.base import distribution_mock
 
-TEST_FILES_DIR = get_test_files_path("distributions/arch")
+TEST_FILES_DIR = get_test_files_path("initramfs/mkinitcpio")
 
 
 class MkinitcpioTest(unittest.TestCase):
@@ -84,4 +84,4 @@ class MkinitcpioTest(unittest.TestCase):
                 'usr/lib/verity-squash-root/mkinitcpio_list_presets'),
             "../..{}".format(
                 PROJECT_ROOT /
-                'tests/unit/files/distributions/arch/linux_name')])
+                'tests/unit/files/initramfs/mkinitcpio/linux_name')])
