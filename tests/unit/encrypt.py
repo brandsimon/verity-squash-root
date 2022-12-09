@@ -48,7 +48,7 @@ class EncryptTest(unittest.TestCase):
 
     def test__check_if_archives_exist(self):
         base = "verity_squash_root.encrypt"
-        all_mocks = mock.MagicMock()
+        all_mocks = mock.Mock()
         variants = [
             [False, False, False, None],
             [True, False, False, PUBLIC_KEY_FILES_TAR, all_mocks.pubkeytar],
@@ -77,10 +77,9 @@ class EncryptTest(unittest.TestCase):
     @wrap_tempdir
     def test__create_and_pack_secure_boot_keys(self, tempdir):
         base = "verity_squash_root.encrypt"
-        all_mocks = mock.MagicMock()
         key_dir = tempdir / "keys"
 
-        all_mocks = mock.MagicMock()
+        all_mocks = mock.Mock()
         with (mock.patch("{}.create_secure_boot_keys".format(base),
                          new=all_mocks.create_secure_boot_keys),
               mock.patch("{}.create_encrypted_tar_file".format(base),
@@ -111,10 +110,9 @@ class EncryptTest(unittest.TestCase):
     @wrap_tempdir
     def test__create_and_pack_secure_boot_keys__error_cleanup(self, tempdir):
         base = "verity_squash_root.encrypt"
-        all_mocks = mock.MagicMock()
         key_dir = tempdir / "keys"
 
-        all_mocks = mock.MagicMock()
+        all_mocks = mock.Mock()
         with (mock.patch("{}.create_secure_boot_keys".format(base),
                          new=all_mocks.create_secure_boot_keys),
               mock.patch("{}.os".format(base),
