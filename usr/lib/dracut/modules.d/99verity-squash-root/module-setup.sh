@@ -9,7 +9,20 @@ date_or_override() {
 	fi
 }
 
+warn_security() {
+	# shellcheck disable=SC2154
+	if [ "${hostonly}" = "" ]; then
+		dwarning ""
+		dwarning "##################################################"
+		dwarning "verity-squash-root: not using hostonly will allow"
+		dwarning "                    login to the emergency console"
+		dwarning "##################################################"
+		dwarning ""
+	fi
+}
+
 check() {
+	warn_security
 	return 255
 }
 
@@ -30,6 +43,7 @@ installkernel() {
 }
 
 install() {
+	warn_security
 	# shellcheck disable=SC2154
 	date_or_override > "${initdir}/VERITY_SQUASH_ROOT_DATE"
 	# create mount points
