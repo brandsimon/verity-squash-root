@@ -4,8 +4,8 @@ from unittest import mock
 from verity_squash_root.config import KEY_DIR
 from verity_squash_root.setup import add_uefi_boot_option, \
     add_kernels_to_uefi, setup_systemd_boot
-from tests.unit.distributions.base import distribution_mock, \
-    create_initramfs_mock
+from tests.unit.distributions.base import distribution_mock
+from tests.unit.initramfs import create_initramfs_mock
 
 
 class SetupTest(unittest.TestCase):

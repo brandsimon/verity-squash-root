@@ -2,7 +2,7 @@ import unittest
 from tests.unit.cmdline import CmdlineTest
 from tests.unit.config import ConfigTest
 from tests.unit.decrypt import DecryptTest
-from tests.unit.distributions.arch import ArchLinuxConfigTest, MkinitcpioTest
+from tests.unit.distributions.arch import ArchLinuxConfigTest
 from tests.unit.distributions.base import BaseDistributionTest
 from tests.unit.efi import EfiTest
 from tests.unit.encrypt import EncryptTest
@@ -12,6 +12,7 @@ from tests.unit.file_op import FileOPTest
 from tests.unit.image import ImageTest
 from tests.unit.initramfs import InitramfsTest
 from tests.unit.initramfs.dracut import DracutTest
+from tests.unit.initramfs.mkinitcpio import MkinitcpioTest
 from tests.unit.main import MainTest
 from tests.unit.mount import MountTest
 from tests.unit.parsing import ParsingTest
@@ -25,8 +26,8 @@ def test_suite():
         unittest.makeSuite(BaseDistributionTest),
         unittest.makeSuite(CmdlineTest),
         unittest.makeSuite(ConfigTest),
-        unittest.makeSuite(DracutTest),
         unittest.makeSuite(DecryptTest),
+        unittest.makeSuite(DracutTest),
         unittest.makeSuite(EfiTest),
         unittest.makeSuite(EncryptTest),
         unittest.makeSuite(ExecTest),

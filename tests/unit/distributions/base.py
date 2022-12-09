@@ -3,7 +3,6 @@ from pathlib import Path
 from unittest import mock
 from verity_squash_root.distributions.base import \
     calc_kernel_packages_not_unique
-from verity_squash_root.initramfs.base import iterate_distribution_efi
 
 
 def distribution_mock():
@@ -24,49 +23,7 @@ def distribution_mock():
     return distri_mock
 
 
-def create_initramfs_mock(distri):
-    initramfs_mock = mock.Mock()
-
-    def file_name(kernel, preset):
-        return "{}_{}".format(
-            distri.kernel_to_name(kernel), preset)
-
-    def display_name(kernel, preset):
-        return "Display {} ({})".format(
-            distri.kernel_to_name(kernel).capitalize(), preset)
-
-    def list_kernel_presets(kernel):
-        obj = {"5.19": ["default", "fallback"], "5.14": ["default"]}
-        return obj[kernel]
-
-    initramfs_mock.list_kernel_presets.side_effect = list_kernel_presets
-    initramfs_mock.file_name.side_effect = file_name
-    initramfs_mock.display_name.side_effect = display_name
-    return initramfs_mock
-
-
 class BaseDistributionTest(unittest.TestCase):
-
-    def test__iterate_distribution_efi(self):
-        distri_mock = distribution_mock()
-        # create separate mock, since otherwise all_mock history will be full
-        # with initramfs calls to distribution.
-        initramfs_mock = create_initramfs_mock(distribution_mock())
-        all_mock = mock.Mock()
-        all_mock.distri = distri_mock
-        all_mock.initramfs = initramfs_mock
-        result = list(iterate_distribution_efi(distri_mock, initramfs_mock))
-        self.assertEqual(result,
-                         [("5.19", "default", "linux_default"),
-                          ("5.19", "fallback", "linux_fallback"),
-                          ("5.14", "default", "linux-lts_default")])
-        self.assertEqual(all_mock.mock_calls,
-                         [mock.call.distri.list_kernels(),
-                          mock.call.initramfs.list_kernel_presets("5.19"),
-                          mock.call.initramfs.file_name("5.19", "default"),
-                          mock.call.initramfs.file_name("5.19", "fallback"),
-                          mock.call.initramfs.list_kernel_presets("5.14"),
-                          mock.call.initramfs.file_name("5.14", "default")])
 
     def test__calc_kernel_packages_not_unique(self):
         distri_mock = distribution_mock()

@@ -2,8 +2,8 @@ import unittest
 from pathlib import Path
 from unittest import mock
 from unittest.mock import call
-from tests.unit.distributions.base import distribution_mock, \
-    create_initramfs_mock
+from tests.unit.distributions.base import distribution_mock
+from tests.unit.initramfs import create_initramfs_mock
 from verity_squash_root.config import KEY_DIR
 from verity_squash_root.main import move_kernel_to, \
     create_squashfs_return_verity_hash, build_and_move_kernel, \
