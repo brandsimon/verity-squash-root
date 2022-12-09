@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import List, MutableMapping
 
@@ -9,9 +10,6 @@ class DistributionConfig:
     def kernel_to_name(self, kernel: str) -> str:
         raise NotImplementedError("Base class")
 
-    def file_name(self, kernel: str) -> str:
-        raise NotImplementedError("Base class")
-
     def display_name(self) -> str:
         raise NotImplementedError("Base class")
 
@@ -19,10 +17,10 @@ class DistributionConfig:
         raise NotImplementedError("Base class")
 
     def vmlinuz(self, kernel: str) -> Path:
-        raise NotImplementedError("Base class")
+        return self._modules_dir / kernel / "vmlinuz"
 
     def list_kernels(self) -> List[str]:
-        raise NotImplementedError("Base class")
+        return os.listdir(self._modules_dir)
 
     def microcode_paths(self) -> List[Path]:
         raise NotImplementedError("Base class")

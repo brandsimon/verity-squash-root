@@ -1,4 +1,3 @@
-import os
 from functools import lru_cache
 from pathlib import Path
 from typing import List
@@ -16,14 +15,8 @@ class ArchLinuxConfig(DistributionConfig):
         pkgbase_file = self._modules_dir / kernel / "pkgbase"
         return read_text_from(pkgbase_file).strip()
 
-    def vmlinuz(self, kernel: str) -> Path:
-        return self._modules_dir / kernel / "vmlinuz"
-
     def display_name(self):
         return "Arch"
-
-    def list_kernels(self) -> List[str]:
-        return os.listdir(self._modules_dir)
 
     def microcode_paths(self) -> List[Path]:
         return [Path("/boot/amd-ucode.img"),

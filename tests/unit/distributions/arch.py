@@ -31,7 +31,7 @@ class ArchLinuxConfigTest(unittest.TestCase):
         arch = ArchLinuxConfig()
         self.assertEqual(arch.display_name(), "Arch")
 
-    @mock.patch("verity_squash_root.distributions.arch.os.listdir")
+    @mock.patch("verity_squash_root.distributions.base.os.listdir")
     def test__list_kernels(self, mock):
         arch = ArchLinuxConfig()
         result = arch.list_kernels()
