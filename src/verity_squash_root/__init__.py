@@ -125,7 +125,7 @@ def parse_params_and_run():
     efi_parser.add_argument("partition_no",
                             help="Parameter for efibootmgr --part",
                             type=int)
-    cmd_parser.add_parser("sign_extra_files",
+    cmd_parser.add_parser("sign-extra-files",
                           help="Sign all files specified in the EXTRA_SIGN "
                                "section in the config file.")
     args = parser.parse_args()
@@ -162,7 +162,7 @@ def parse_params_and_run():
                 with DecryptKeys(config):
                     create_image_and_sign_kernel(config, distribution,
                                                  initramfs)
-        elif args.command == "sign_extra_files":
+        elif args.command == "sign-extra-files":
             with TmpfsMount(TMPDIR):
                 with DecryptKeys(config):
                     backup_and_sign_extra_files(config)
