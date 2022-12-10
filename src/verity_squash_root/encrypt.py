@@ -9,11 +9,13 @@ from verity_squash_root.exec import exec_binary
 
 SIGNING_FILES = [DB_KEY_FILE, DB_CERT_FILE]
 PUBLIC_FILES = [
-    "db.auth", "db.cer", DB_CERT_FILE, "db.esl", "guid.txt", "kek.auth",
-    "kek.cer", "kek.crt", "kek.esl", "pk.auth", "pk.cer", "pk.crt", "pk.esl",
-    "rm_pk.auth"]
-ALL_FILES = [DB_KEY_FILE, "pk.key", "kek.key"] + PUBLIC_FILES
-
+    "db.auth", "db.cer", "db.esl",
+    "kek.auth", "kek.cer", "kek.esl",
+    "pk.auth", "pk.cer", "pk.esl"]
+ALL_FILES = [DB_KEY_FILE, DB_CERT_FILE,
+             "pk.key", "kek.key",
+             "kek.crt", "pk.crt",
+             "rm_pk.auth", "guid.txt"] + PUBLIC_FILES
 PUBLIC_KEY_FILES_TAR = CONFIG_DIR / "public_keys.tar"
 SIGNING_FILES_TAR = CONFIG_DIR / "keys.tar.age"
 ALL_FILES_TAR = CONFIG_DIR / "all_keys.tar.age"
