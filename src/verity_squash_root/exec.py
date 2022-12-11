@@ -1,3 +1,4 @@
+import logging
 import subprocess
 from typing import List, Tuple
 
@@ -22,6 +23,7 @@ def exec_binary(cmd: List[str], expect_returncode: int = 0) \
     if len(cmd) == 0:
         raise ChildProcessError("Cannot execute empty cmd")
     try:
+        logging.debug("Execute {}".format(cmd))
         proc = subprocess.Popen(cmd, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE)
     except FileNotFoundError:

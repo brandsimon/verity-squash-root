@@ -1,3 +1,4 @@
+import logging
 from configparser import ConfigParser
 from pathlib import Path
 from verity_squash_root.distributions.base import DistributionConfig
@@ -37,6 +38,7 @@ def setup_systemd_boot(config: ConfigParser,
     exec_binary(["bootctl", "install"])
     boot_efi = Path("/usr/lib/systemd/boot/efi/systemd-bootx64.efi")
     efi_partition = Path(config["DEFAULT"]["EFI_PARTITION"])
+    logging.debug("Sign efi files")
     efi.sign(KEY_DIR, boot_efi,
              efi_partition / "EFI/systemd/systemd-bootx64.efi")
     efi.sign(KEY_DIR, boot_efi, efi_partition / "EFI/BOOT/BOOTX64.EFI")
@@ -45,6 +47,7 @@ def setup_systemd_boot(config: ConfigParser,
     out_dir = Path("/") / EFI_KERNELS / efi_dirname
     entries_dir = efi_partition / "loader/entries"
 
+    logging.debug("Create configuration files")
     for (kernel, preset, base_name, label) in \
             iterate_non_ignored_kernel_variants(config, distribution,
                                                 initramfs):
