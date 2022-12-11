@@ -113,7 +113,6 @@ partition. An attacker could exchange these files.
 ### Arch Linux
 
 Only mkinitcpio wih systemd-hooks is supported under Arch Linux.
-Add the hook `verity-squash-root` to `/etc/mkinitcpio.conf`.
 
 ## Considerations / Recommendations
 

@@ -55,9 +55,13 @@ class MkinitcpioTest(unittest.TestCase):
                      Path("/etc/mkinitcpio.d/linux-lts.preset")),
                  call.write_str_to(
                      TMPDIR / "linux-lts-x_preset.preset",
-                     ("{}\nPRESETS=('x_preset')\n"
-                      "x_preset_image={}/{}.initcpio\n".format(
-                          preset_info, TMPDIR, base_name))),
+                     ("{}\n"
+                      "PRESETS=('x_preset')\n"
+                      "x_preset_image={}/{}.initcpio\n"
+                      "x_preset_options=\"${{x_preset_options}} "
+                      "-A verity-squash-root\"\n"
+                      ).format(
+                          preset_info, TMPDIR, base_name)),
                  call.exec_binary(["mkinitcpio", "-p",
                                    "{}/{}.preset".format(TMPDIR, base_name)]),
                  call.merge_initramfs_images(TMPDIR / "{}.initcpio".format(

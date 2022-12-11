@@ -7,6 +7,7 @@ from verity_squash_root.exec import exec_binary
 TMPDIR = Path("/tmp/verity_squash_root")
 KEY_DIR = TMPDIR / "keys"
 KERNEL_PARAM_BASE = "verity_squash_root"
+NAME_DASH = KERNEL_PARAM_BASE.replace("_", "-")
 CONFIG_DIR = Path("/etc/{}".format(KERNEL_PARAM_BASE))
 CONFIG_FILE = CONFIG_DIR / "config.ini"
 DISTRI_FILE = Path("/usr/share") / KERNEL_PARAM_BASE / "default.ini"

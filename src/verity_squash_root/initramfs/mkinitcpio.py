@@ -1,7 +1,7 @@
 from collections.abc import Mapping
 from pathlib import Path
 from typing import List
-from verity_squash_root.config import TMPDIR
+from verity_squash_root.config import TMPDIR, NAME_DASH
 from verity_squash_root.exec import exec_binary
 from verity_squash_root.file_op import read_text_from, write_str_to
 from verity_squash_root.initramfs import merge_initramfs_images
@@ -42,9 +42,13 @@ class Mkinitcpio(InitramfsBuilder):
         base_path = TMPDIR / "{}-{}".format(name, preset)
         initcpio_image = Path("{}.initcpio".format(base_path))
         preset_path = base_path.with_suffix(".preset")
-        write_config = "{}\nPRESETS=('{p}')\n{p}_image={}\n".format(
+        write_config = ("{}\n"
+                        "PRESETS=('{p}')\n"
+                        "{p}_image={}\n"
+                        "{p}_options=\"${{{p}_options}} -A {}\"\n").format(
             config,
             initcpio_image,
+            NAME_DASH,
             p=preset)
         write_str_to(preset_path, write_config)
         exec_binary(["mkinitcpio", "-p", str(preset_path)])
