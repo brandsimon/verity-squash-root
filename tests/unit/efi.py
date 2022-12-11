@@ -115,7 +115,6 @@ class EfiTest(unittest.TestCase):
         base = "verity_squash_root.efi"
         config = {
             "DEFAULT": {
-                "CMDLINE": "rw encrypt=/dev/sda2 quiet check=on",
                 "EFI_STUB": "/usr/lib/systemd/mystub.efi",
             }
         }
@@ -138,7 +137,7 @@ class EfiTest(unittest.TestCase):
                 all_mocks.mock_calls,
                 [call.get_cmdline(config),
                  call.write_str_to(Path("/tmp/verity_squash_root/cmdline"),
-                                   ("rw encrypt=/dev/sda2 quiet tmpfsparam "
+                                   ("rw encrypt=/dev/sda2 quiet rw tmpfsparam "
                                     "verity_squash_root_slot=a "
                                     "verity_squash_root_hash=567myhash234")),
                  call.efi.create_efi_executable(
@@ -151,6 +150,7 @@ class EfiTest(unittest.TestCase):
 
             all_mocks.reset_mock()
 
+            all_mocks.get_cmdline.return_value = "encrypt=/dev/sda2 quiet"
             build_and_sign_kernel(config, Path("/usr/lib/vmlinuz-lts"),
                                   Path("/boot/initramfs_fallback.img"), "b",
                                   "853anotherhash723",
@@ -161,7 +161,7 @@ class EfiTest(unittest.TestCase):
                 [call.get_cmdline(config),
                  call.write_str_to(
                      Path("/tmp/verity_squash_root/cmdline"),
-                     ("rw encrypt=/dev/sda2 quiet  verity_squash_root_slot=b "
+                     ("encrypt=/dev/sda2 quiet rw  verity_squash_root_slot=b "
                       "verity_squash_root_hash=853anotherhash723")),
                  call.efi.create_efi_executable(
                          Path("/usr/lib/systemd/mystub.efi"),

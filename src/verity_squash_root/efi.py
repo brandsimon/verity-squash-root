@@ -67,7 +67,8 @@ def get_cmdline(config: ConfigParser) -> str:
 def build_and_sign_kernel(config: ConfigParser, vmlinuz: Path, initramfs: Path,
                           slot: str, root_hash: str,
                           tmp_efi_file: Path, add_cmdline: str = "") -> None:
-    cmdline = "{} {} {p}_slot={} {p}_hash={}".format(
+    # add rw, if root is mounted ro, it cannot be mounted rw later
+    cmdline = "{} rw {} {p}_slot={} {p}_hash={}".format(
         get_cmdline(config),
         add_cmdline,
         slot,
