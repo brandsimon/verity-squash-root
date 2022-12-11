@@ -22,7 +22,7 @@ if [ "${VOLATILE}" = "${KP_NAME}_volatile" ]; then
 	OLROOT="${TMP}/tmpfs"
 	mount -t tmpfs tmpfs "${OLROOT}"
 	# Print date so rollback attacks can be detected
-	printf "You are booting a tmpfs overlay built at "
+	printf "You are booting a tmpfs overlay (slot %s) built at " "${SLOT}"
 	cat "/VERITY_SQUASH_ROOT_DATE"
 	printf "Press enter to continue\\n"
 	read -r _
