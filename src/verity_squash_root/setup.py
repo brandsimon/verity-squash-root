@@ -36,13 +36,14 @@ def setup_systemd_boot(config: ConfigParser,
                        initramfs: InitramfsBuilder) -> None:
     exec_binary(["bootctl", "install"])
     boot_efi = Path("/usr/lib/systemd/boot/efi/systemd-bootx64.efi")
+    efi_partition = Path(config["DEFAULT"]["EFI_PARTITION"])
     efi.sign(KEY_DIR, boot_efi,
-             Path("/boot/efi/EFI/systemd/systemd-bootx64.efi"))
-    efi.sign(KEY_DIR, boot_efi, Path("/boot/efi/EFI/BOOT/BOOTX64.EFI"))
+             efi_partition / "EFI/systemd/systemd-bootx64.efi")
+    efi.sign(KEY_DIR, boot_efi, efi_partition / "EFI/BOOT/BOOTX64.EFI")
 
     efi_dirname = distribution.efi_dirname()
     out_dir = Path("/") / EFI_KERNELS / efi_dirname
-    entries_dir = Path(config["DEFAULT"]["EFI_PARTITION"]) / "loader/entries"
+    entries_dir = efi_partition / "loader/entries"
 
     for (kernel, preset, base_name, label) in \
             iterate_non_ignored_kernel_variants(config, distribution,

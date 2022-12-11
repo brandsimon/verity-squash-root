@@ -70,9 +70,9 @@ class SetupTest(unittest.TestCase):
         self.assertEqual(
             sign_mock.mock_calls,
             [mock.call(KEY_DIR, Path(boot_efi),
-                       Path("/boot/efi/EFI/systemd/systemd-bootx64.efi")),
+                       Path("/boot/efi_dir/EFI/systemd/systemd-bootx64.efi")),
              mock.call(KEY_DIR, boot_efi,
-                       Path("/boot/efi/EFI/BOOT/BOOTX64.EFI"))])
+                       Path("/boot/efi_dir/EFI/BOOT/BOOTX64.EFI"))])
         text = "title Display {}\nlinux /EFI/verity_squash_root/ArchEfi/{}\n"
         path = Path("/boot/efi_dir/loader/entries")
         self.assertEqual(
