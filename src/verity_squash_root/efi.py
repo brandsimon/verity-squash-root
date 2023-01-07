@@ -17,12 +17,12 @@ def file_matches_slot_or_is_broken(file: Path, slot: str):
                               ".cmdline", str(file), "/dev/fd/1"])
     except ExecBinaryError as e:
         err = e.stderr()
-        if err.startswith(b"objcopy:") and err.endswith(b": file truncated\n"):
+        if err.startswith("objcopy:") and err.endswith(": file truncated\n"):
             logging.warning("Old efi file was truncated")
             logging.debug(err)
             return True
-        if err.startswith(b"objcopy: error: the input file '") and (
-                err.endswith(b"' is empty\n")):
+        if err.startswith("objcopy: error: the input file '") and (
+                err.endswith("' is empty\n")):
             logging.warning("Old efi file was empty")
             logging.debug(err)
             return True

@@ -20,9 +20,9 @@ class ExecTest(unittest.TestCase):
         self.assertEqual(
             str(e_ctx.exception),
             "Failed to execute 'dash -c echo err str >&2 "
-            "; exit 3', error: 'err str\\n'")
+            "; exit 3', error: err str\n")
         self.assertEqual(e_ctx.exception.stderr(),
-                         b'err str\n')
+                         'err str\n')
 
     def test__exec_binary__result(self):
         result = exec_binary(["dash", "-c",

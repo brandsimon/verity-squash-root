@@ -11,11 +11,11 @@ class ExecBinaryError(ChildProcessError):
         super().__init__([cmd, (stdout, stderr)])
 
     def stderr(self):
-        return self.__stderr
+        return self.__stderr.decode(errors="ignore")
 
     def __str__(self):
         return "Failed to execute '{}', error: {}".format(
-            " ".join(self.__cmd), str(self.__stderr)[1:])
+            " ".join(self.__cmd), self.stderr())
 
 
 def exec_binary(cmd: List[str], expect_returncode: int = 0) \
