@@ -12,7 +12,8 @@ from verity_squash_root.initramfs.base import InitramfsBuilder, \
     iterate_distribution_efi
 from verity_squash_root.file_names import backup_file, tmpfs_file, tmpfs_label
 from verity_squash_root.file_op import read_text_from
-from verity_squash_root.image import mksquashfs, veritysetup_image
+from verity_squash_root.image import mksquashfs, veritysetup_image, \
+    verity_image_path
 
 
 def move_kernel_to(src: Path, dst: Path, slot: str,
@@ -33,10 +34,9 @@ def move_kernel_to(src: Path, dst: Path, slot: str,
     shutil.move(src, dst)
 
 
-def create_squashfs_return_verity_hash(config: ConfigParser, use_slot: str) \
+def create_squashfs_return_verity_hash(config: ConfigParser, image: Path) \
         -> str:
     root_mount = Path(config["DEFAULT"]["ROOT_MOUNT"])
-    image = root_mount / "image_{}.squashfs".format(use_slot)
     logging.debug("Image path: {}".format(image))
     efi_partition = Path(config["DEFAULT"]["EFI_PARTITION"])
     exclude_dirs = config_str_to_stripped_arr(
@@ -85,7 +85,10 @@ def create_image_and_sign_kernel(config: ConfigParser,
     out_dir = efi_partition / EFI_KERNELS / efi_dirname
     create_directory(out_dir)
     logging.info("Using slot {} for new image".format(use_slot))
-    root_hash = create_squashfs_return_verity_hash(config, use_slot)
+    root_mount = Path(config["DEFAULT"]["ROOT_MOUNT"])
+    image = root_mount / "image_{}.squashfs".format(use_slot)
+    tmp_image = TMPDIR / "tmp.squashfs"
+    root_hash = create_squashfs_return_verity_hash(config, tmp_image)
     logging.debug("Calculated root hash: {}".format(root_hash))
     ignore_efis = config_str_to_stripped_arr(
         config["DEFAULT"]["IGNORE_KERNEL_EFIS"])
@@ -114,6 +117,10 @@ def create_image_and_sign_kernel(config: ConfigParser,
         build(base_name, display, "")
         build(base_name_tmpfs, tmpfs_label(display),
               "{}_volatile".format(KERNEL_PARAM_BASE))
+
+    # Only replace old image if initramfs was successfully created
+    shutil.move(tmp_image, image)
+    shutil.move(verity_image_path(tmp_image), verity_image_path(image))
 
 
 def backup_and_sign_efi(source: Path, dest: Path):

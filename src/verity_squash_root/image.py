@@ -22,8 +22,12 @@ def mksquashfs(exclude_dirs: List[str], image: Path,
     exec_binary(cmd)
 
 
+def verity_image_path(image: Path) -> Path:
+    return image.with_suffix("{}.verity".format(image.suffix))
+
+
 def veritysetup_image(image: Path) -> str:
-    cmd = ["veritysetup", "format", str(image), "{}.verity".format(image)]
+    cmd = ["veritysetup", "format", str(image), str(verity_image_path(image))]
     result = exec_binary(cmd)
     stdout = result[0].decode()
     info = parsing.info_to_dict(stdout)

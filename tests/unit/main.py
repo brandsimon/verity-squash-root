@@ -97,15 +97,16 @@ class MainTest(unittest.TestCase):
                          new=all_mocks.veritysetup_image),
               mock.patch("{}.mksquashfs".format(base),
                          new=all_mocks.mksquashfs)):
-            result = create_squashfs_return_verity_hash(config, "c")
+            result = create_squashfs_return_verity_hash(
+                config, Path("/tmp/test.img"))
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.mksquashfs(['var/lib', 'opt/var'],
-                                 Path('/opt/mnt/root/image_c.squashfs'),
+                                 Path('/tmp/test.img'),
                                  Path('/opt/mnt/root'),
                                  Path('/boot/second/efi')),
                  call.veritysetup_image(
-                     Path('/opt/mnt/root/image_c.squashfs'))])
+                     Path('/tmp/test.img'))])
             self.assertEqual(
                 result,
                 all_mocks.veritysetup_image())
@@ -183,6 +184,7 @@ class MainTest(unittest.TestCase):
 
         config = {
             "DEFAULT": {
+                "ROOT_MOUNT": "/opt/mnt/root",
                 "EFI_PARTITION": "/boot/efi",
                 "IGNORE_KERNEL_EFIS":
                     " linux_default ,linux_default_tmpfs ,linux_fallback_tmpfs"
@@ -201,6 +203,8 @@ class MainTest(unittest.TestCase):
                          new=all_mocks.create_squashfs_return_verity_hash),
               mock.patch("{}.build_and_move_kernel".format(base),
                          new=all_mocks.build_and_move_kernel),
+              mock.patch("{}.shutil".format(base),
+                         new=all_mocks.shutil),
               mock.patch("{}.move_kernel_to".format(base),
                          new=all_mocks.move_kernel_to)):
             distri_mock = distribution_mock()
@@ -224,7 +228,9 @@ class MainTest(unittest.TestCase):
                  call.cmdline.unused_slot(cmdline),
                  call.create_directory(Path(
                      "/boot/efi/EFI/verity_squash_root/ArchEfi")),
-                 call.create_squashfs_return_verity_hash(config, use_slot),
+                 call.create_squashfs_return_verity_hash(
+                     config,
+                     Path('/tmp/verity_squash_root/tmp.squashfs')),
                  call.build_and_move_kernel(
                      config,
                      Path('/lib64/modules/5.19/vmlinuz'),
@@ -268,7 +274,14 @@ class MainTest(unittest.TestCase):
                      'linux-lts_default_tmpfs',
                      efi_path,
                      'Display Linux-lts (default) tmpfs',
-                     ignored_efis)])
+                     ignored_efis),
+                 call.shutil.move(
+                     Path('/tmp/verity_squash_root/tmp.squashfs'),
+                     Path('/opt/mnt/root/image_{}.squashfs'.format(use_slot))),
+                 call.shutil.move(
+                     Path('/tmp/verity_squash_root/tmp.squashfs.verity'),
+                     Path('/opt/mnt/root/image_{}.squashfs.verity'.format(
+                         use_slot)))])
             self.assertEqual(
                 distri_initramfs_mock.mock_calls,
                 [call.distri.efi_dirname(),
