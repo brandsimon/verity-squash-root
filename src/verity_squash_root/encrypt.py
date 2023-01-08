@@ -9,9 +9,9 @@ from verity_squash_root.exec import exec_binary
 
 SIGNING_FILES = [DB_KEY_FILE, DB_CERT_FILE]
 PUBLIC_FILES = [
-    "db.auth", "db.cer", "db.esl",
-    "kek.auth", "kek.cer", "kek.esl",
-    "pk.auth", "pk.cer", "pk.esl"]
+    "db.auth", "db.cer", "db.esl", "db.hash",
+    "kek.auth", "kek.cer", "kek.esl", "kek.hash",
+    "pk.auth", "pk.cer", "pk.esl", "pk.hash"]
 ALL_FILES = [DB_KEY_FILE, DB_CERT_FILE,
              "pk.key", "kek.key",
              "kek.crt", "pk.crt",

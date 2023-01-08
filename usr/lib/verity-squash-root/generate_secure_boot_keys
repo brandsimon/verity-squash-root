@@ -1,8 +1,13 @@
 #!/usr/bin/sh
+fingerprint() {
+	openssl x509 -in "${1}" -noout -fingerprint
+	openssl x509 -in "${1}" -noout -fingerprint -sha256
+}
 uuidgen --random > guid.txt
 UUID="$(cat guid.txt)"
 
 openssl req -newkey rsa:4096 -nodes -keyout pk.key -new -x509 -sha256 -days 3650 -subj "/CN=Platform Key/" -out pk.crt
+fingerprint pk.crt > pk.hash
 openssl x509 -outform DER -in pk.crt -out pk.cer
 cert-to-efi-sig-list -g "${UUID}" pk.crt pk.esl
 sign-efi-sig-list -g "${UUID}" -k pk.key -c pk.crt pk pk.esl pk.auth
@@ -10,11 +15,13 @@ sign-efi-sig-list -g "${UUID}" -k pk.key -c pk.crt pk pk.esl pk.auth
 sign-efi-sig-list -g "${UUID}" -c pk.crt -k pk.key pk /dev/null rm_pk.auth
 
 openssl req -newkey rsa:4096 -nodes -keyout kek.key -new -x509 -sha256 -days 3650 -subj "/CN=Key Exchange Key/" -out kek.crt
+fingerprint kek.crt > kek.hash
 openssl x509 -outform DER -in kek.crt -out kek.cer
 cert-to-efi-sig-list -g "${UUID}" kek.crt kek.esl
 sign-efi-sig-list -g "${UUID}" -k pk.key -c pk.crt kek kek.esl kek.auth
 
 openssl req -newkey rsa:4096 -nodes -keyout db.key -new -x509 -sha256 -days 3650 -subj "/CN=Signature Database key/" -out db.crt
+fingerprint db.crt > db.hash
 openssl x509 -outform DER -in db.crt -out db.cer
 cert-to-efi-sig-list -g "${UUID}" db.crt db.esl
 sign-efi-sig-list -g "${UUID}" -k kek.key -c kek.crt db db.esl db.auth
