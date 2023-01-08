@@ -126,7 +126,7 @@ def create_image_and_sign_kernel(config: ConfigParser,
 def backup_and_sign_efi(source: Path, dest: Path):
     if dest.exists():
         parent = dest.parent
-        backup_name = backup_file(dest.stem) + "." + dest.suffix
+        backup_name = backup_file(dest.stem) + dest.suffix
         backup = parent / backup_name
         dest.replace(backup)
     efi.sign(KEY_DIR, source, dest)

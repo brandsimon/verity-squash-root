@@ -327,7 +327,7 @@ class MainTest(unittest.TestCase):
             dest.exists.return_value = True
             dest.parent = Path("/parent/dir")
             dest.stem = "myfile"
-            dest.suffix = "efi"
+            dest.suffix = ".efi"
             replace = Path("/parent/dir/myfile_backup.efi")
             backup_and_sign_efi(all_mocks.source, dest)
             self.assertEqual(
