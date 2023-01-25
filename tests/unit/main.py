@@ -4,6 +4,7 @@ from unittest import mock
 from unittest.mock import call
 from tests.unit.distributions.base import distribution_mock
 from tests.unit.initramfs import create_initramfs_mock
+from tests.unit.test_helper import wrap_tempdir
 from verity_squash_root.config import KEY_DIR
 from verity_squash_root.main import move_kernel_to, \
     create_squashfs_return_verity_hash, build_and_move_kernel, \
@@ -336,27 +337,34 @@ class MainTest(unittest.TestCase):
                  call.dest.replace(replace),
                  call.efi.sign(KEY_DIR, all_mocks.source, dest)])
 
-    def test__backup_and_sign_extra_files(self):
+    @wrap_tempdir
+    def test__backup_and_sign_extra_files(self, tempdir):
         base = "verity_squash_root.main"
         all_mocks = mock.Mock()
+        systemd_out = Path("{}/EFI/systemd/systemd-bootx64.efi".format(
+            tempdir))
+        fwupd_out = Path("{}/EFI/systemd/systemd-bootx64.efi".format(
+            tempdir))
         config = {
             "EXTRA_SIGN": {
                 "systemd": "/usr/lib/systemd/boot/efi/systemd-bootx64.efi => "
-                           " /boot/efi/EFI/systemd/systemd-bootx64.efi",
-                "fwupd": "/usr/lib/fwupd/fwupd.efi => /boot/fwupd.efi ",
+                           "{}".format(systemd_out),
+                "fwupd": "/usr/lib/fwupd/fwupd.efi => {}".format(fwupd_out),
             }
         }
         with mock.patch("{}.backup_and_sign_efi".format(base),
                         new=all_mocks.backup_and_sign_efi):
             backup_and_sign_extra_files(config)
+            self.assertTrue(systemd_out.resolve().parent.is_dir())
+            self.assertTrue(fwupd_out.resolve().parent.is_dir())
             self.assertEqual(
                 all_mocks.mock_calls,
                 [call.backup_and_sign_efi(
                      Path("/usr/lib/systemd/boot/efi/systemd-bootx64.efi"),
-                     Path("/boot/efi/EFI/systemd/systemd-bootx64.efi")),
+                     systemd_out),
                  call.backup_and_sign_efi(
                      Path("/usr/lib/fwupd/fwupd.efi"),
-                     Path("/boot/fwupd.efi"))])
+                     fwupd_out)])
 
     def test__backup_and_sign_extra_files__exception(self):
         base = "verity_squash_root.main"
@@ -364,7 +372,7 @@ class MainTest(unittest.TestCase):
         config = {
             "EXTRA_SIGN": {
                 "systemd": "/usr/lib/systemd/boot/efi/systemd-bootx64.efi => "
-                           " /boot/efi/EFI/systemd/systemd-bootx64.efi",
+                           " /systemd-bootx64.efi",
                 "fwupd": "/usr/lib/fwupd/fwupd.efi",
                 "test": "/x.efi => /y.efi",
             }
@@ -381,4 +389,4 @@ class MainTest(unittest.TestCase):
                 all_mocks.mock_calls,
                 [call.backup_and_sign_efi(
                      Path("/usr/lib/systemd/boot/efi/systemd-bootx64.efi"),
-                     Path("/boot/efi/EFI/systemd/systemd-bootx64.efi"))])
+                     Path("/systemd-bootx64.efi"))])

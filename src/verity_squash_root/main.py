@@ -140,7 +140,8 @@ def backup_and_sign_extra_files(config: ConfigParser):
         if len(files) != 2:
             raise ValueError("extra signing files need to be specified as\n"
                              "name = SOURCE => DEST")
-        src = files[0].strip()
-        dest = files[1].strip()
+        src = Path(files[0].strip())
+        dest = Path(files[1].strip())
         logging.debug("Sign file '{}' to '{}'".format(src, dest))
-        backup_and_sign_efi(Path(src), Path(dest))
+        dest.resolve().parent.mkdir(parents=True, exist_ok=True)
+        backup_and_sign_efi(src, dest)
