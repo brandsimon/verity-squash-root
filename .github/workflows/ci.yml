@@ -36,6 +36,7 @@ jobs:
       - run: shellcheck usr/lib/initcpio/install/verity-squash-root
                         usr/lib/verity-squash-root/*
                         usr/lib/dracut/modules.d/99verity-squash-root/*.sh
+                        usr/share/bash-completion/completions/verity-squash-root
       - run: pip3 install flake8 mypy
       - run: flake8 src/ tests/ setup.py
       - run: mypy src
