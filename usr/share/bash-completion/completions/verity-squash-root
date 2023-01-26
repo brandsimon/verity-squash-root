@@ -1,0 +1,56 @@
+#!/usr/bin/bash
+_VERITY_SQUASH_ROOT_FIRST="create_keys list check build setup
+ sign-extra-files --verbose --ignore-warnings"
+
+_verity_sq_root_reply() {
+	mapfile -t COMPREPLY < <(compgen -W "${1}" -- "${2}")
+}
+
+_verity_squash_root_completion() {
+	local i cur devices prev start
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD - 1]}"
+	start="$((COMP_CWORD))"
+	for i in $(seq 1 "${start}"); do
+		case "${COMP_WORDS[i]}" in
+		--verbose|--ignore-warnings)
+			start="$((start - 1))"
+		;;
+		*)
+			break
+		;;
+		esac
+	done
+
+	case "${start}" in
+	"1")
+		_verity_sq_root_reply "${_VERITY_SQUASH_ROOT_FIRST}" "${cur}"
+	;;
+	"2")
+		case "${prev}" in
+		"setup")
+			_verity_sq_root_reply "systemd uefi" "${cur}"
+		;;
+		esac
+	;;
+	"3")
+		case "${prev}" in
+		"uefi")
+			mapfile -t devices < <(lsblk -pnro name)
+			_verity_sq_root_reply "${devices[*]%%[0-9]*}" "${cur}"
+		;;
+		esac
+	;;
+	"4")
+		case "${COMP_WORDS[COMP_CWORD-2]}" in
+		"uefi")
+			mapfile -t devices < <(
+				lsblk -pnro name | grep "^${prev}")
+			_verity_sq_root_reply \
+				"${devices[*]##"${prev}"}" "${cur}"
+		;;
+		esac
+	esac
+}
+
+complete -F _verity_squash_root_completion verity-squash-root
