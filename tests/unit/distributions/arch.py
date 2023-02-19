@@ -31,12 +31,15 @@ class ArchLinuxConfigTest(unittest.TestCase):
         arch = ArchLinuxConfig()
         self.assertEqual(arch.display_name(), "Arch")
 
-    @mock.patch("verity_squash_root.distributions.base.os.listdir")
+    @mock.patch("verity_squash_root.distributions."
+                "base.DistributionConfig._modules_dir")
     def test__list_kernels(self, mock):
+        mock.iterdir.return_value = [Path("/usr/lib/modules/5.16.4"),
+                                     Path("/usr/lib/modules/5.11.2")]
         arch = ArchLinuxConfig()
         result = arch.list_kernels()
-        mock.assert_called_once_with(Path("/usr/lib/modules"))
-        self.assertEqual(result, mock())
+        mock.iterdir.assert_called_once_with()
+        self.assertEqual(result, ["5.16.4", "5.11.2"])
 
     def test__microcode_paths(self):
         arch = ArchLinuxConfig()

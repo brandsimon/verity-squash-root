@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from typing import List, MutableMapping
 
@@ -20,7 +19,7 @@ class DistributionConfig:
         return self._modules_dir / kernel / "vmlinuz"
 
     def list_kernels(self) -> List[str]:
-        return os.listdir(self._modules_dir)
+        return [k.name for k in self._modules_dir.iterdir()]
 
     def microcode_paths(self) -> List[Path]:
         raise NotImplementedError("Base class")
