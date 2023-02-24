@@ -11,9 +11,9 @@ from verity_squash_root.config import read_config, LOG_FILE, \
 from verity_squash_root.decrypt import DecryptKeys
 from verity_squash_root.distributions.base import DistributionConfig, \
     calc_kernel_packages_not_unique
-from verity_squash_root.distributions.arch import ArchLinuxConfig
-from verity_squash_root.initramfs.mkinitcpio import InitramfsBuilder, \
-    Mkinitcpio
+from verity_squash_root.distributions.autodetect import autodetect_distribution
+from verity_squash_root.initramfs.autodetect import InitramfsBuilder, \
+    autodetect_initramfs
 from verity_squash_root.file_names import iterate_kernel_variants, \
     kernel_is_ignored
 from verity_squash_root.main import create_image_and_sign_kernel, \
@@ -69,8 +69,8 @@ def configure_logger(verbose: bool) -> None:
 def parse_params_and_run():
     os.umask(0o077)
     config = read_config()
-    distribution = ArchLinuxConfig()
-    initramfs = Mkinitcpio(distribution)
+    distribution = autodetect_distribution()
+    initramfs = autodetect_initramfs(distribution)
 
     parser = argparse.ArgumentParser(
         description="Create signed efi binaries which mount a verified "

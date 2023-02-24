@@ -5,15 +5,21 @@ from typing import List, MutableMapping
 class DistributionConfig:
 
     _modules_dir: Path = Path("/usr/lib/modules")
+    __os_id: str = ""
+    __os_name: str = ""
+
+    def __init__(self, os_id: str, os_name: str):
+        self.__os_id = os_id
+        self.__os_name = os_name
 
     def kernel_to_name(self, kernel: str) -> str:
         raise NotImplementedError("Base class")
 
     def display_name(self) -> str:
-        raise NotImplementedError("Base class")
+        return self.__os_name
 
     def efi_dirname(self) -> str:
-        raise NotImplementedError("Base class")
+        return self.__os_id
 
     def vmlinuz(self, kernel: str) -> Path:
         return self._modules_dir / kernel / "vmlinuz"

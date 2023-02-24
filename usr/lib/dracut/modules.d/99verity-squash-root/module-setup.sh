@@ -58,4 +58,10 @@ install() {
 	inst /usr/lib/verity-squash-root/mount_handler
 	inst /usr/lib/verity-squash-root/mount_handler_dracut
 	DRACUT_RESOLVE_DEPS=1 inst_multiple mount umount uname veritysetup
+
+	# needed for veritysetup
+	inst_binary dmeventd
+	inst_binary dmsetup
+	inst_rules 55-dm.rules
+	inst_rules 95-dm-notify.rules
 }

@@ -200,6 +200,7 @@ python3 -m venv .venv
 Run unit tests:
 
 ```shell
+sudo mkdir -p /etc/mkinitcpio.d  # Otherwise mkinitcpio test will fail
 .venv/bin/python -m unittest tests/unit/tests.py
 ```
 
