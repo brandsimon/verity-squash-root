@@ -30,10 +30,11 @@ be encrypted, if encryption of the root image is configured.
 pacman -S age
 verity-squash-root --ignore-warnings create-keys
 ```
- - Create directories `/boot/efi` and `/mnt/root`
- - Make sure your EFI parition is big enough (1 GB recommended)
- - Mount your EFI partition to `/boot/efi` and configure it in fstab file
- - Mount your root-partition to `/mnt/root` and configure it in fstab file
+ - Mount your EFI partition and [configure](#configuration) it.
+ - Add your EFI partition to `/etc/fstab`.
+ - Make sure your EFI parition is big enough (1 GB recommended).
+ - Create directory `/mnt/root`.
+ - Mount your root-partition to `/mnt/root` and configure it in fstab file.
  - Configure your kernel cmdline  (see: [Configuration](#configuration))
  - Exclude every directory not wanted in the squashfs in the config file (`EXCLUDE_DIRS`)
  - Configure a bind-mount for every excluded directory from `/mnt/root/...`
@@ -110,22 +111,26 @@ systemd-boot = /usr/lib/systemd/boot/efi/systemd-bootx64.efi => /boot/efi/EFI/sy
 Be careful to not specify files from untrusted sources, e.g. the ESP
 partition. An attacker could exchange these files.
 
-### Arch Linux
+### Supported setups
 
-Only mkinitcpio wih systemd-hooks is supported under Arch Linux.
+Currently Arch Linux and Debian are supported with mkinitcpio and dracut.
+Mkinitcpio is only supported, if it is used wih systemd-hooks.
 
 ## Considerations / Recommendations
 
- - Directly before updating, reboot into a tmpfs overlay, so modifications by
-an attacker are removed and you have your trusted environment from the last
+ - Directly before updating, reboot into a tmpfs overlay, so modifications made
+by an attacker are removed and you have your trusted environment from the last
 update.
  - If you enable automatic decryption of your secure-boot keys, an
-attacker who got access can also sign efi binaries.
+attacker who gets access can also sign efi binaries. So manually decrypting
+secure-boot keys via age is more secure.
  - To be sure to only enter the password for your secure-boot keys
-on your machine, you can verify your machine with OTP keys on boot.
+on your machine, you can verify your machine on boot with
+[tpm2-totp](https://github.com/tpm2-software/tpm2-totp) or
+[cryptographic-id](https://gitlab.com/cryptographic_id/cryptographic-id-rs).
  - Encrypt your root partition! If your encryption was handled by the
-initramfs before installation, it will work with the squashfs root
-image as well.
+initramfs (dracut/mkinitcpio) before installation, it will work with the
+squashfs root image as well.
 
 ## Usage
 
