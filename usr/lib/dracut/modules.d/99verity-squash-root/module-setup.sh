@@ -40,6 +40,9 @@ depends() {
 
 installkernel() {
 	hostonly="" instmods dm_mod dm_verity loop overlay squashfs
+	# install all filesystems, since on debian the lower fs is
+	# not detected
+	hostonly="" instmods "=fs"
 }
 
 install() {
