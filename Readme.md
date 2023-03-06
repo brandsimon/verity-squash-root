@@ -178,10 +178,12 @@ Overlayfs directories:
 ```
 age (only when used for decryption of secure-boot keys)
 binutils
+cryptsetup-bin
 efitools
 python
-sbsigntools
+sbsigntool
 squashfs-tools
+systemd-boot-efi (only when no other efi-stub is configured)
 tar
 ```
 
