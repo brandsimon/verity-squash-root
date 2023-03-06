@@ -32,11 +32,11 @@ class ArchLinuxConfigTest(unittest.TestCase):
                 "base.DistributionConfig._modules_dir")
     def test__list_kernels(self, mock):
         mock.iterdir.return_value = [Path("/usr/lib/modules/5.16.4"),
-                                     Path("/usr/lib/modules/5.11.2")]
+                                     Path("/usr/lib/modules/5.5.2")]
         arch = ArchLinuxConfig("arch", "Arch")
         result = arch.list_kernels()
         mock.iterdir.assert_called_once_with()
-        self.assertEqual(result, ["5.16.4", "5.11.2"])
+        self.assertEqual(result, ["5.16.4", "5.5.2"])
 
     def test__microcode_paths(self):
         arch = ArchLinuxConfig("arch", "Arch")

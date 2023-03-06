@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from typing import List, MutableMapping
 
@@ -25,7 +26,18 @@ class DistributionConfig:
         return self._modules_dir / kernel / "vmlinuz"
 
     def list_kernels(self) -> List[str]:
-        return [k.name for k in self._modules_dir.iterdir()]
+        def int_or_str(e):
+            try:
+                return int(e)
+            except ValueError:
+                return e
+
+        def human_sort(e):
+            return [int_or_str(a)
+                    for a in re.split('([0-9]+)', e)]
+
+        return sorted([k.name for k in self._modules_dir.iterdir()],
+                      reverse=True, key=human_sort)
 
     def microcode_paths(self) -> List[Path]:
         raise NotImplementedError("Base class")

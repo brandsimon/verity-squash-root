@@ -33,13 +33,16 @@ class DebianConfigTest(unittest.TestCase):
     @mock.patch("verity_squash_root.distributions."
                 "base.DistributionConfig._modules_dir")
     def test__list_kernels(self, mock):
-        mock.iterdir.return_value = [Path("/usr/lib/modules/5.16.4"),
-                                     Path("/usr/lib/modules/5.11.2"),
-                                     Path("/usr/lib/modules/5.13.2")]
+        mock.iterdir.return_value = [Path("/usr/lib/modules/5.16.4-amd64"),
+                                     Path("/usr/lib/modules/5.4.2-amd64"),
+                                     Path("/usr/lib/modules/6.0.1-amd64"),
+                                     Path("/usr/lib/modules/5.13.2-amd64")]
         debian = DebianConfig("debian", "Debian GNU/Linux")
         result = debian.list_kernels()
         mock.iterdir.assert_called_once_with()
-        self.assertEqual(result, ["5.16.4", "5.13.2", "5.11.2"])
+        self.assertEqual(result,
+                         ["6.0.1-amd64", "5.16.4-amd64",
+                          "5.13.2-amd64", "5.4.2-amd64"])
 
     def test__microcode_paths(self):
         debian = DebianConfig("debian", "Debian GNU/Linux")
