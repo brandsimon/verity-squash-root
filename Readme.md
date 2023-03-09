@@ -24,10 +24,10 @@ be encrypted, if encryption of the root image is configured.
 
 ## Install
 
- - Install [verity-squash-root](https://aur.archlinux.org/packages/verity-squash-root/) from AUR
- - Install `age` and create your encrypted secure-boot keys:
+ - Install verity-squash-root from [AUR](https://aur.archlinux.org/packages/verity-squash-root/)
+   or [install a package build by CI](https://github.com/brandsimon/verity-squash-root-packages).
+ - Create your encrypted secure-boot keys:
 ```bash
-pacman -S age
 verity-squash-root --ignore-warnings create-keys
 ```
  - Mount your EFI partition and [configure](#configuration) it.
