@@ -25,7 +25,7 @@ be encrypted, if encryption of the root image is configured.
 ## Install
 
  - Install verity-squash-root from [AUR](https://aur.archlinux.org/packages/verity-squash-root/)
-   or [install a package build by CI](https://github.com/brandsimon/verity-squash-root-packages).
+   or install a [package built by CI](https://github.com/brandsimon/verity-squash-root-packages).
  - Create your encrypted secure-boot keys:
 ```bash
 verity-squash-root --ignore-warnings create-keys
