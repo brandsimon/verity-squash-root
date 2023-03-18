@@ -1,5 +1,5 @@
 #!/usr/bin/bash
-_VERITY_SQUASH_ROOT_FIRST="create_keys list check build setup
+_VERITY_SQUASH_ROOT_FIRST="create-keys list check build setup
  sign-extra-files --verbose --ignore-warnings"
 
 _verity_sq_root_reply() {
