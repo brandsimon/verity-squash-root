@@ -5,23 +5,20 @@ fingerprint() {
 }
 uuidgen --random > guid.txt
 UUID="$(cat guid.txt)"
+create_key() {
+	openssl req -newkey rsa:4096 -nodes -keyout "${1}.key" -new -x509 \
+		-sha256 -days 3650 -subj "/CN=${2}/" -out "${1}.crt"
+	fingerprint "${1}.crt" > "${1}.hash"
+	openssl x509 -outform DER -in "${1}.crt" -out "${1}.cer"
+	cert-to-efi-sig-list -g "${UUID}" "${1}.crt" "${1}.esl"
+}
 
-openssl req -newkey rsa:4096 -nodes -keyout pk.key -new -x509 -sha256 -days 3650 -subj "/CN=Platform Key/" -out pk.crt
-fingerprint pk.crt > pk.hash
-openssl x509 -outform DER -in pk.crt -out pk.cer
-cert-to-efi-sig-list -g "${UUID}" pk.crt pk.esl
+create_key pk "Platform Key"
 sign-efi-sig-list -g "${UUID}" -k pk.key -c pk.crt pk pk.esl pk.auth
-
 sign-efi-sig-list -g "${UUID}" -c pk.crt -k pk.key pk /dev/null rm_pk.auth
 
-openssl req -newkey rsa:4096 -nodes -keyout kek.key -new -x509 -sha256 -days 3650 -subj "/CN=Key Exchange Key/" -out kek.crt
-fingerprint kek.crt > kek.hash
-openssl x509 -outform DER -in kek.crt -out kek.cer
-cert-to-efi-sig-list -g "${UUID}" kek.crt kek.esl
+create_key kek "Key Exchange Key"
 sign-efi-sig-list -g "${UUID}" -k pk.key -c pk.crt kek kek.esl kek.auth
 
-openssl req -newkey rsa:4096 -nodes -keyout db.key -new -x509 -sha256 -days 3650 -subj "/CN=Signature Database key/" -out db.crt
-fingerprint db.crt > db.hash
-openssl x509 -outform DER -in db.crt -out db.cer
-cert-to-efi-sig-list -g "${UUID}" db.crt db.esl
+create_key db "Signature Database Key"
 sign-efi-sig-list -g "${UUID}" -k kek.key -c kek.crt db db.esl db.auth
