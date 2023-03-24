@@ -11,6 +11,7 @@ from verity_squash_root.initramfs.base import InitramfsBuilder
 
 class Mkinitcpio(InitramfsBuilder):
     _preset_map: Mapping[str, str] = {"default": ""}
+    distribution: DistributionConfig
 
     def __init__(self, distribution: DistributionConfig):
         self._distribution = distribution
