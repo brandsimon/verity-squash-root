@@ -29,6 +29,7 @@ def kernel_is_ignored(base_name: str, ignored: List[str]) -> bool:
         return True
     if base_name.endswith(BACKUP_SUFFIX):
         length = len(BACKUP_SUFFIX)
+        # Also ignore A_backup, when A is ignored
         if base_name[:-length] in ignored:
             return True
     return False
