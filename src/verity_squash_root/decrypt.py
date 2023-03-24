@@ -11,6 +11,7 @@ TAR_FILE = KEY_DIR / "keys.tar"
 
 
 def format_cmd(cmd: str, file: Path) -> List[str]:
+    # split at ' ' or new line into parameters for exec
     parts = re.split(" |\n", cmd.strip())
     return list(map(lambda x: x.format(file), parts))
 
