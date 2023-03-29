@@ -3,12 +3,24 @@
 
 ### [Install](#install) - [Configuration](#configuration) - [Usage](#usage) - [Development](#development)
 
-This repository provides an easy way to create signed efi binaries which mount a
-verified squashfs (dm-verity) image as rootfs on boot (in the initramfs/initrd).
-Also it creates A/B-style image and efi files. The current booted image will not
-be overriden, so you can boot an old known-working image if there are problems.
-The A/B images are stored on the configured root-partition, so they will still
-be encrypted, if encryption of the root image is configured.
+The goal of this project is to reduce the harm a successful attacker can
+do to a system. It prevents an attacker of persistently modifying the
+root-filesystem. This gets accomplished via building a chain-of-trust based
+on UEFI secure boot. The system-firmware verifies the signature of the UKI
+(unified-kernel-image). The UKI verifies the squashfs-rootfs via dm-verity.
+On boot you can choose to boot the squashfs with a tmpfs overlay. You start
+with the system you signed the last time and changes are discarded on power
+off.
+So if you reboot in the tmpfs variant, the system is in a state you signed
+before and the modifications in the time between by an attacker are gone.
+You can also boot in persistent mode, which loads changes from disk and saves
+them to the disk.
+
+This project also provides A/B-style update support. The current booted files
+(GKI and squashfs) won't be overriden on updates, so you can boot an old
+known-good image if there are problems). The squashfs images are stored on the
+configured root-partition, so they will still be encrypted, if encryption of
+the root image is configured.
 
 #### What happens on boot?
 
@@ -18,7 +30,7 @@ be encrypted, if encryption of the root image is configured.
  - Depending on the kernel cmdline, either the A or B image will be verified
    via dm-verity and used. (The build command will set these automatically.)
    If you boot a tmpfs image, a tmpfs will be used as overlay image for
-   volatile changes.
+   volatile changes (Note: the changes will be stored in the system RAM).
    If you boot a non-tmpfs image, the folder overlay on the root-partition
    will be used as overlayfs upper directory to save persistent changes.
 
@@ -131,6 +143,8 @@ on your machine, you can verify your machine on boot with
  - Encrypt your root partition! If your encryption was handled by the
 initramfs (dracut/mkinitcpio) before installation, it will work with the
 squashfs root image as well.
+ - You can only configure the network in the persistent system. This way you
+can download updates, reboot into the tmpfs system and install them offline.
 
 ## Usage
 
