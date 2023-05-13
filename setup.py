@@ -8,19 +8,23 @@ setup(
     name='verity-squash-root',
     version='0.3.0',
     description='Build a signed efi binary which mounts a '
-                'verified squashfs image as root',
+                'verified squashfs image as rootfs',
     long_description=readme,
     long_description_content_type='text/markdown',
     classifiers=[
-        'Programming Language :: Python',
+        'Environment :: Console',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
+        'Operating System :: Linux :: Arch Linux',
+        'Operating System :: Linux :: Debian',
+        'Programming Language :: Python',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
-        'Operating System :: Linux :: Arch Linux',
-        'Environment :: Console'
+        'Security :: Cryptography',
+        'System :: Filesystems',
+        'System :: Boot :: Init'
     ],
     author='Simon Brand',
     author_email='simon.brand@postadigitale.de',
