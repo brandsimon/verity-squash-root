@@ -1,0 +1,21 @@
+[Unit]
+Description=Show info in volatile mode for rollback prevention
+DefaultDependencies=no
+Conflicts=multi-user.target
+
+After=systemd-vconsole-setup.service
+Before=initrd-switch-root.service
+Requires=systemd-vconsole-setup.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=true
+ExecStart=-sh /usr/lib/verity-squash-root/show_boot_info
+
+StandardInput=tty
+StandardOutput=tty
+StandardError=tty
+TimeoutStartSec=10min
+
+[Install]
+WantedBy=sysinit.target

@@ -1,17 +1,6 @@
 #!/usr/bin/sh
 set -e
-kernel_params="$(sed -e 's/ /\n/g' < /proc/cmdline)"
-get_kparam() {
-	sed -e '/^'"${1}"='/!d' -e 's/^'"${1}"'=//g' <<EOF
-${kernel_params}
-EOF
-}
-get_kparam_set() {
-	sed -e '/^'"${1}"'$/!d' <<EOF
-${kernel_params}
-EOF
-}
-KP_NAME="verity_squash_root"
+. /usr/lib/verity-squash-root/functions
 SLOT="$(get_kparam "${KP_NAME}_slot")"
 ROOTHASH="$(get_kparam "${KP_NAME}_hash")"
 VOLATILE="$(get_kparam_set "${KP_NAME}_volatile")"
@@ -21,11 +10,6 @@ TMP="/verity-squash-root-tmp"
 if [ "${VOLATILE}" = "${KP_NAME}_volatile" ]; then
 	OLROOT="${TMP}/tmpfs"
 	mount -t tmpfs tmpfs "${OLROOT}"
-	# Print date so rollback attacks can be detected
-	printf "You are booting a tmpfs overlay (slot %s) built at " "${SLOT}"
-	cat "/VERITY_SQUASH_ROOT_DATE"
-	printf "Press enter to continue\\n"
-	read -r _
 else
 	OLROOT="${ROOT}"
 fi

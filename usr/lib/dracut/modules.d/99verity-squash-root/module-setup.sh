@@ -54,13 +54,21 @@ install() {
 	mkdir -p "${initdir}"/overlayroot
 	mkdir -p "${initdir}"/verity-squash-root-tmp/squashroot
 	mkdir -p "${initdir}"/verity-squash-root-tmp/tmpfs
-	# mount handler
 	# shellcheck disable=SC2154
-	inst "${moddir}/verity_squash_root.conf" \
-		"${systemdsystemunitdir}/dracut-mount.service.d/"
+	local ssud="${systemdsystemunitdir}"
+	# shellcheck disable=SC2154
+	local mod="${moddir}"
+	inst "${mod}/dracut_mount_overlay.conf" \
+		"${ssud}/dracut-mount.service.d/verity-squash-root.conf"
+	inst "${mod}/cryptsetup_overlay.conf" \
+		"${ssud}/systemd-cryptsetup@.service.d/verity-squash-root.conf"
+	inst /usr/lib/systemd/system/verity-squash-root-notifiy.service
+
+	inst /usr/lib/verity-squash-root/functions
 	inst /usr/lib/verity-squash-root/mount_handler
 	inst /usr/lib/verity-squash-root/mount_handler_dracut
-	DRACUT_RESOLVE_DEPS=1 inst_multiple mount umount uname veritysetup
+	inst /usr/lib/verity-squash-root/show_boot_info
+	DRACUT_RESOLVE_DEPS=1 inst_multiple mount umount sed sleep veritysetup
 
 	# needed for veritysetup
 	inst_binary dmeventd
