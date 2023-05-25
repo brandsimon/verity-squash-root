@@ -1,0 +1,14 @@
+#!/usr/bin/sh
+. /usr/lib/verity-squash-root/functions
+set -e
+SLOT="$(get_kparam "${KP_NAME}_slot")"
+VOLATILE="$(get_kparam_set "${KP_NAME}_volatile")"
+if [ "${VOLATILE}" = "${KP_NAME}_volatile" ]; then
+	# Give systemd time to print messages, this results in a cleaner output
+	sleep 1 || true
+	# Print date so rollback attacks can be detected
+	printf "You are booting a tmpfs overlay (slot %s) built at " "${SLOT}"
+	cat "/VERITY_SQUASH_ROOT_DATE"
+	printf "Press enter to continue\\n"
+	read -r _
+fi

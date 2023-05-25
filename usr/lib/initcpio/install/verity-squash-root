@@ -10,13 +10,16 @@ date_or_override() {
 }
 
 build() {
+	add_binary sed
+	add_binary sleep
 	add_binary mount
-	add_binary uname
 	add_binary veritysetup
 	add_dir /overlayroot
 	add_dir /verity-squash-root-tmp/squashroot
 	add_dir /verity-squash-root-tmp/tmpfs
 	add_file "/usr/lib/verity-squash-root/mount_handler"
+	add_file "/usr/lib/verity-squash-root/functions"
+	add_file "/usr/lib/verity-squash-root/show_boot_info"
 	date_or_override > "${BUILDROOT}/VERITY_SQUASH_ROOT_DATE"
 
 	add_module dm_mod
@@ -26,20 +29,21 @@ build() {
 	add_module squashfs
 
 	if type add_systemd_unit &> /dev/null; then
-		cat <<EOF | add_systemd_drop_in initrd-switch-root.service squashroot
+		add_systemd_unit verity-squash-root-notifiy.service
+		cat <<EOF | add_systemd_drop_in initrd-switch-root.service verity-squash-root
 [Unit]
-Requires=systemd-vconsole-setup.service
-After=plymouth-start.service systemd-vconsole-setup.service
+After=verity-squash-root-notifiy.service
+Wants=verity-squash-root-notifiy.service
 
 [Service]
-# needed for read, when tmpfs is used
-StandardInput=tty
-StandardOutput=tty
-TimeoutStartSec=infinity
-
 ExecStart=
 ExecStart=sh /usr/lib/verity-squash-root/mount_handler /sysroot /overlayroot
 ExecStart=systemctl --no-block switch-root /overlayroot
+EOF
+		cat <<EOF | add_systemd_drop_in systemd-cryptsetup@.service verity-squash-root-notifiy
+[Unit]
+After=verity-squash-root-notifiy.service
+Wants=verity-squash-root-notifiy.service
 EOF
 	else
 		error "Only systemd variant is supported"

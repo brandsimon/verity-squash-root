@@ -1,0 +1,14 @@
+#!/usr/bin/sh
+set -e
+export KP_NAME="verity_squash_root"
+__KERNEL_CMDLINE="$(sed -E -e 's/ |\t/\n/g' < /proc/cmdline)"
+get_kparam() {
+	sed -e '/^'"${1}"='/!d' -e 's/^'"${1}"'=//g' <<EOF
+${__KERNEL_CMDLINE}
+EOF
+}
+get_kparam_set() {
+	sed -e '/^'"${1}"'$/!d' <<EOF
+${__KERNEL_CMDLINE}
+EOF
+}
