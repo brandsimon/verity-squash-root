@@ -11,7 +11,7 @@ TEST_FILES_DIR = get_test_files_path("decrypt")
 class DecryptTest(unittest.TestCase):
 
     def test__format_cmd(self):
-        self.assertEqual(format_cmd("\nage -d -o {}\n/etc/keys.tar.age",
+        self.assertEqual(format_cmd("\n\tage -d\t-o {}\n/etc/keys.tar.age",
                                     "/tmp/keys.tar"),
                          ["age", "-d", "-o", "/tmp/keys.tar",
                           "/etc/keys.tar.age"])
