@@ -62,7 +62,7 @@ install() {
 		"${ssud}/dracut-mount.service.d/verity-squash-root.conf"
 	inst "${mod}/cryptsetup_overlay.conf" \
 		"${ssud}/systemd-cryptsetup@.service.d/verity-squash-root.conf"
-	inst /usr/lib/systemd/system/verity-squash-root-notifiy.service
+	inst /usr/lib/systemd/system/verity-squash-root-notify.service
 
 	inst /usr/lib/verity-squash-root/functions
 	inst /usr/lib/verity-squash-root/mount_handler
