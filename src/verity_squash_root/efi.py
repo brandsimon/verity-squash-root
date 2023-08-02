@@ -14,8 +14,8 @@ CMDLINE_FILE = Path("/etc/kernel/cmdline")
 def file_matches_slot_or_is_broken(file: Path, slot: str):
     search_str = " {}_slot={} ".format(KERNEL_PARAM_BASE, slot)
     try:
-        result = exec_binary(["objcopy", "-O", "binary", "--only-section",
-                              ".cmdline", str(file), "/dev/fd/1"])
+        result = exec_binary(["objcopy", "-O", "binary", "--dump-section",
+                              ".cmdline=/dev/fd/1", str(file), "/dev/null"])
     except ExecBinaryError as e:
         err = e.stderr()
         if err.startswith("objcopy:") and err.endswith(": file truncated\n"):
