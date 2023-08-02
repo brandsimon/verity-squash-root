@@ -5,7 +5,7 @@ Conflicts=multi-user.target
 
 After=systemd-vconsole-setup.service
 Before=initrd-switch-root.service
-Requires=systemd-vconsole-setup.service
+Wants=systemd-vconsole-setup.service
 
 [Service]
 Type=oneshot
