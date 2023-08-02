@@ -1,6 +1,7 @@
 import logging
-from pathlib import Path
+from collections import OrderedDict
 from configparser import ConfigParser
+from pathlib import Path
 from verity_squash_root.config import KERNEL_PARAM_BASE, TMPDIR, KEY_DIR
 from verity_squash_root.exec import exec_binary, ExecBinaryError
 from verity_squash_root.file_op import write_str_to
@@ -39,19 +40,34 @@ def sign(key_dir: Path, in_file: Path, out_file: Path) -> None:
         "--output", str(out_file), str(in_file)])
 
 
+def calculate_efi_stub_end(stub: Path) -> int:
+    result = exec_binary(["objdump", "-h", str(stub)])
+    lines = result[0].decode().split("\n")
+    words = lines[-3].split()
+    return int(words[2], 16) + int(words[3], 16)
+
+
 def create_efi_executable(stub: Path, cmdline_file: Path, linux: Path,
                           initrd: Path, dest: Path):
-    exec_binary([
-        "objcopy",
-        "--add-section", ".osrel=/etc/os-release",
-        "--change-section-vma", ".osrel=0x20000",
-        "--add-section", ".cmdline={}".format(cmdline_file),
-        "--change-section-vma", ".cmdline=0x30000",
-        "--add-section", ".linux={}".format(linux),
-        "--change-section-vma", ".linux=0x2000000",
-        "--add-section", ".initrd={}".format(initrd),
-        "--change-section-vma", ".initrd=0x3000000",
-        str(stub), str(dest)])
+    offset = calculate_efi_stub_end(stub)
+    sections = OrderedDict()
+    sections["osrel"] = Path("/etc/os-release")
+    sections["cmdline"] = cmdline_file
+    sections["initrd"] = initrd
+    # place linux at the end so decompressing it in-place does not
+    # cause problems:
+    # https://github.com/systemd/systemd/commit/
+    # 0fa2cac4f0cdefaf1addd7f1fe0fd8113db9360b#commitcomment-84868898
+    sections["linux"] = linux
+
+    cmd = ["objcopy"]
+    for name, file in sections.items():
+        size = file.stat().st_size
+        cmd += ["--add-section", ".{}={}".format(name, str(file)),
+                "--change-section-vma", ".{}={}".format(name, hex(offset))]
+        offset = offset + size
+    cmd += [str(stub), str(dest)]
+    exec_binary(cmd)
 
 
 def get_cmdline(config: ConfigParser) -> str:

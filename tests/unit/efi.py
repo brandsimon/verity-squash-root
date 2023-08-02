@@ -5,7 +5,8 @@ from unittest import mock
 from verity_squash_root.config import KEY_DIR
 from verity_squash_root.file_op import read_from
 from verity_squash_root.efi import file_matches_slot_or_is_broken, sign, \
-    create_efi_executable, build_and_sign_kernel, get_cmdline
+    create_efi_executable, build_and_sign_kernel, get_cmdline, \
+    calculate_efi_stub_end
 
 TEST_FILES_DIR = get_test_files_path("efi")
 
@@ -56,22 +57,38 @@ class EfiTest(unittest.TestCase):
              "--output", "my/out/file",
              "my/in/file"])
 
+    def test__calculate_efi_stub_end(self):
+        self.assertEqual(
+            calculate_efi_stub_end(TEST_FILES_DIR / "stub_slot_a.efi"),
+            74064)
+
     @mock.patch("verity_squash_root.efi.exec_binary")
-    def test__create_efi_executable(self, mock):
+    @mock.patch("verity_squash_root.efi.calculate_efi_stub_end")
+    def test__create_efi_executable(self, calc_mock, exec_mock):
+        calc_mock.return_value = 74064
         create_efi_executable(
-            "/my/stub.efi", "/tmp/cmdline", "/usr/vmlinuz",
-            "/tmp/initramfs.img", "/tmp/file.efi")
-        mock.assert_called_once_with([
+            TEST_FILES_DIR / "stub_slot_a.efi",
+            TEST_FILES_DIR / "cmdline",
+            TEST_FILES_DIR / "vmlinuz",
+            TEST_FILES_DIR / "initrd",
+            Path("/tmp/file.efi"))
+        calc_mock.assert_called_once_with(TEST_FILES_DIR / "stub_slot_a.efi")
+        osrel_size = Path("/etc/os-release").stat().st_size
+        exec_mock.assert_called_once_with([
             'objcopy',
             '--add-section', '.osrel=/etc/os-release',
-            '--change-section-vma', '.osrel=0x20000',
-            '--add-section', '.cmdline=/tmp/cmdline',
-            '--change-section-vma', '.cmdline=0x30000',
-            '--add-section', '.linux=/usr/vmlinuz',
-            '--change-section-vma', '.linux=0x2000000',
-            '--add-section', '.initrd=/tmp/initramfs.img',
-            '--change-section-vma', '.initrd=0x3000000',
-            '/my/stub.efi', '/tmp/file.efi'])
+            '--change-section-vma', '.osrel=0x12150',
+            '--add-section', '.cmdline={}'.format(TEST_FILES_DIR / "cmdline"),
+            '--change-section-vma', '.cmdline={}'.format(
+                hex(74064 + osrel_size)),
+            '--add-section', '.initrd={}'.format(TEST_FILES_DIR / "initrd"),
+            '--change-section-vma', '.initrd={}'.format(
+                hex(74232 + osrel_size)),
+            '--add-section', '.linux={}'.format(TEST_FILES_DIR / "vmlinuz"),
+            '--change-section-vma', '.linux={}'.format(
+                hex(76280 + osrel_size)),
+            str(TEST_FILES_DIR / "stub_slot_a.efi"),
+            str(Path("/tmp/file.efi"))])
 
     def test__get_cmdline__configfile(self):
         all_mocks = mock.Mock()

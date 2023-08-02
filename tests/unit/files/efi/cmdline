@@ -1,0 +1,1 @@
+root=/dev/mapper/root rw verity_squash_root_volatile verity_squash_root_slot=b verity_squash_root_hash=13f2b44462d811853cd2e1c959f4c985686761eb704ee05affc241ea62ed7f85
