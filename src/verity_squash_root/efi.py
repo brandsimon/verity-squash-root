@@ -1,4 +1,5 @@
 import logging
+import math
 from collections import OrderedDict
 from configparser import ConfigParser
 from pathlib import Path
@@ -47,9 +48,22 @@ def calculate_efi_stub_end(stub: Path) -> int:
     return int(words[2], 16) + int(words[3], 16)
 
 
+def calculate_efi_stub_alignment(stub: Path) -> int:
+    result = exec_binary(["objdump", "-p", str(stub)])
+    lines = result[0].decode().split("\n")
+    for line in lines:
+        words = line.split()
+        if len(words) == 2:
+            if words[0] == "SectionAlignment":
+                return int(words[1], 16)
+    raise ValueError("Efistub SectionAlignment not found")
+
+
+# TODO: use systemd-ukify when Debian 13 is stable
 def create_efi_executable(stub: Path, cmdline_file: Path, linux: Path,
                           initrd: Path, dest: Path):
     offset = calculate_efi_stub_end(stub)
+    alignment = calculate_efi_stub_alignment(stub)
     sections = OrderedDict()
     sections["osrel"] = Path("/etc/os-release")
     sections["cmdline"] = cmdline_file
@@ -62,6 +76,7 @@ def create_efi_executable(stub: Path, cmdline_file: Path, linux: Path,
 
     cmd = ["objcopy"]
     for name, file in sections.items():
+        offset = alignment * math.ceil(offset / alignment)
         size = file.stat().st_size
         cmd += ["--add-section", ".{}={}".format(name, str(file)),
                 "--change-section-vma", ".{}={}".format(name, hex(offset))]

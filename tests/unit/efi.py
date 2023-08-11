@@ -1,3 +1,4 @@
+import math
 import unittest
 from .test_helper import get_test_files_path
 from pathlib import Path
@@ -6,7 +7,7 @@ from verity_squash_root.config import KEY_DIR
 from verity_squash_root.file_op import read_from
 from verity_squash_root.efi import file_matches_slot_or_is_broken, sign, \
     create_efi_executable, build_and_sign_kernel, get_cmdline, \
-    calculate_efi_stub_end
+    calculate_efi_stub_end, calculate_efi_stub_alignment
 
 TEST_FILES_DIR = get_test_files_path("efi")
 
@@ -62,9 +63,26 @@ class EfiTest(unittest.TestCase):
             calculate_efi_stub_end(TEST_FILES_DIR / "stub_slot_a.efi"),
             74064)
 
+    def test__calculate_efi_stub_alignment(self):
+        self.assertEqual(
+            calculate_efi_stub_alignment(TEST_FILES_DIR / "stub_slot_a.efi"),
+            512)
+
+    def test__calculate_efi_stub_alignment__not_found(self):
+        with self.assertRaises(ValueError) as e_ctx:
+            calculate_efi_stub_alignment(
+                TEST_FILES_DIR / "no_sections_or_info")
+        self.assertEqual(
+            str(e_ctx.exception), "Efistub SectionAlignment not found")
+
+    @mock.patch("verity_squash_root.efi.calculate_efi_stub_alignment")
     @mock.patch("verity_squash_root.efi.exec_binary")
     @mock.patch("verity_squash_root.efi.calculate_efi_stub_end")
-    def test__create_efi_executable(self, calc_mock, exec_mock):
+    def test__create_efi_executable(self, calc_mock, exec_mock, align_mock):
+        def align(x):
+            return 2048 * math.ceil(x / 2048)
+
+        align_mock.return_value = 2048
         calc_mock.return_value = 74064
         create_efi_executable(
             TEST_FILES_DIR / "stub_slot_a.efi",
@@ -72,21 +90,23 @@ class EfiTest(unittest.TestCase):
             TEST_FILES_DIR / "vmlinuz",
             TEST_FILES_DIR / "initrd",
             Path("/tmp/file.efi"))
+        align_mock.assert_called_once_with(TEST_FILES_DIR / "stub_slot_a.efi")
         calc_mock.assert_called_once_with(TEST_FILES_DIR / "stub_slot_a.efi")
         osrel_size = Path("/etc/os-release").stat().st_size
+
         exec_mock.assert_called_once_with([
             'objcopy',
             '--add-section', '.osrel=/etc/os-release',
-            '--change-section-vma', '.osrel=0x12150',
+            '--change-section-vma', '.osrel=0x12800',
             '--add-section', '.cmdline={}'.format(TEST_FILES_DIR / "cmdline"),
             '--change-section-vma', '.cmdline={}'.format(
-                hex(74064 + osrel_size)),
+                hex(align(0x12800 + osrel_size))),
             '--add-section', '.initrd={}'.format(TEST_FILES_DIR / "initrd"),
             '--change-section-vma', '.initrd={}'.format(
-                hex(74232 + osrel_size)),
+                hex(align(0x13000 + osrel_size))),
             '--add-section', '.linux={}'.format(TEST_FILES_DIR / "vmlinuz"),
             '--change-section-vma', '.linux={}'.format(
-                hex(76280 + osrel_size)),
+                hex(align(0x13800 + osrel_size))),
             str(TEST_FILES_DIR / "stub_slot_a.efi"),
             str(Path("/tmp/file.efi"))])
 
