@@ -6,7 +6,7 @@ with open('Readme.md', encoding='utf-8') as f:
 
 setup(
     name='verity-squash-root',
-    version='0.3.2',
+    version='0.3.3',
     description='Build a signed efi binary which mounts a '
                 'verified squashfs image as rootfs',
     long_description=readme,
