@@ -14,7 +14,7 @@ class MkinitcpioTest(unittest.TestCase):
 
     def test__file_name(self):
         mkinitcpio = Mkinitcpio(distribution_mock())
-        self.assertEqual(mkinitcpio.file_name("5.19", "pres"), "linux_pres")
+        self.assertEqual(mkinitcpio.file_name("5.19", "press"), "linux_press")
         self.assertEqual(mkinitcpio.file_name("5.14", "nom"), "linux-lts_nom")
 
     def test__display_name(self):

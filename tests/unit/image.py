@@ -23,17 +23,17 @@ class ImageTest(unittest.TestCase):
     @mock.patch("verity_squash_root.image.exec_binary")
     def test__mksquashfs(self, mock):
         mksquashfs(["var/!(lib)", "/home", "/root"], "/image.squashfs",
-                   "/mnt/root/", "/boot/wierd/efi")
+                   "/mnt/root/", "/boot/weird/efi")
         mock.assert_called_once_with(
             ['mksquashfs', '/', '/image.squashfs',
              '-reproducible', '-xattrs', '-wildcards', '-noappend',
              '-no-exports',
              '-p', '/mnt/root/ d 0700 0 0',
-             '-p', '/boot/wierd/efi d 0700 0 0',
+             '-p', '/boot/weird/efi d 0700 0 0',
              '-e', 'dev/*', 'dev/.*',
              'proc/*', 'proc/.*', 'run/*', 'run/.*', 'sys/*', 'sys/.*',
              'tmp/*', 'tmp/.*', 'mnt/root/*', 'mnt/root/.*',
-             'boot/wierd/efi/*', 'boot/wierd/efi/.*',
+             'boot/weird/efi/*', 'boot/weird/efi/.*',
              'var/!(lib)/*', 'var/!(lib)/.*',
              'home/*', 'home/.*',
              'root/*', 'root/.*'])

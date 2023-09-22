@@ -17,7 +17,7 @@ You can also boot in persistent mode, which loads changes from disk and saves
 them to the disk.
 
 This project also provides A/B-style update support. The current booted files
-(GKI and squashfs) won't be overriden on updates, so you can boot an old
+(GKI and squashfs) won't be overridden on updates, so you can boot an old
 known-good image if there are problems). The squashfs images are stored on the
 configured root-partition, so they will still be encrypted, if encryption of
 the root image is configured.
@@ -44,7 +44,7 @@ verity-squash-root --ignore-warnings create-keys
 ```
  - Mount your EFI partition and [configure](#configuration) it.
  - Add your EFI partition to `/etc/fstab`.
- - Make sure your EFI parition is big enough (1 GB recommended).
+ - Make sure your EFI partition is big enough (1 GB recommended).
  - Create directory `/mnt/root`.
  - Mount your root-partition to `/mnt/root` and configure it in fstab file.
  - Configure your kernel cmdline  (see: [Configuration](#configuration))
@@ -78,7 +78,7 @@ custom Secure Boot keys. See:
 
 After you have generated your custom keys:
 ```bash
-cd to/your/keys/direcory
+cd to/your/keys/directory
 tar cf keys.tar db.key db.crt
 age -p -e -o keys.tar.age keys.tar
 mv keys.tar.age /etc/verity_squash_root/
@@ -126,7 +126,7 @@ partition. An attacker could exchange these files.
 ### Supported setups
 
 Currently Arch Linux and Debian are supported with mkinitcpio and dracut.
-Mkinitcpio is only supported, if it is used wih systemd-hooks.
+Mkinitcpio is only supported, if it is used with systemd-hooks.
 
 ## Considerations / Recommendations
 
@@ -154,7 +154,7 @@ To list all efi images, which will be created or ignored via
 verity-squash-root list
 ```
 
-To install systemd-boot and create a UEFI Boot Manger entry for it:
+To install systemd-boot and create a UEFI Boot Manager entry for it:
 ```
 verity-squash-root setup systemd
 ```
