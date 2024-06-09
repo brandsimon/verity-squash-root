@@ -39,8 +39,10 @@ class DecryptTest(unittest.TestCase):
                 [call.exec_binary(["cp", "/root/keys.tar", str(TAR_FILE)]),
                  call.tarfile.open(TAR_FILE),
                  call.tarfile.open().__enter__(),
-                 call.tarfile.open().__enter__().extract("db.crt", key_dir),
-                 call.tarfile.open().__enter__().extract("db.key", key_dir),
+                 call.tarfile.open().__enter__().extract(
+                     "db.crt", key_dir, filter='data'),
+                 call.tarfile.open().__enter__().extract(
+                     "db.key", key_dir, filter='data'),
                  call.tarfile.open().__exit__(None, None, None)])
             self.assertEqual(key_dir.is_dir(), True)
 

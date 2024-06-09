@@ -24,8 +24,8 @@ def decrypt_secure_boot_keys(config: ConfigParser) -> None:
     with tarfile.open(TAR_FILE) as t:
         # Only extract needed files to avoid python extract/extractall
         # vulnerability
-        t.extract(DB_CERT_FILE, KEY_DIR)
-        t.extract(DB_KEY_FILE, KEY_DIR)
+        t.extract(DB_CERT_FILE, KEY_DIR, filter='data')
+        t.extract(DB_KEY_FILE, KEY_DIR, filter='data')
 
 
 class DecryptKeys:
