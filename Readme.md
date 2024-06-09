@@ -48,7 +48,7 @@ verity-squash-root --ignore-warnings create-keys
  - Create directory `/mnt/root`.
  - Mount your root-partition to `/mnt/root` and configure it in fstab file.
  - Configure your kernel cmdline  (see: [Configuration](#configuration))
- - Exclude every directory not wanted in the squashfs in the config file (`EXCLUDE_DIRS`)
+ - Exclude directories or files not wanted in the squashfs in the config file (`EXCLUDE_DIRS`)
  - Configure a bind-mount for every excluded directory from `/mnt/root/...`
  - Configure distribution specific options (see [Configuration](#configuration))
  - Install systemd-boot, configure it and build the first image:

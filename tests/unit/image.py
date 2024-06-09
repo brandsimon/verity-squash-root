@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest import mock
 from verity_squash_root.image import mksquashfs, veritysetup_image, \
     verity_image_path
+from .test_helper import PROJECT_ROOT
 
 
 class ImageTest(unittest.TestCase):
@@ -22,7 +23,8 @@ class ImageTest(unittest.TestCase):
 
     @mock.patch("verity_squash_root.image.exec_binary")
     def test__mksquashfs(self, mock):
-        mksquashfs(["var/!(lib)", "/home", "/root"], "/image.squashfs",
+        setup = str(PROJECT_ROOT / "setup.py")
+        mksquashfs(["var/!(lib)", "/home", setup, "/root"], "/image.squashfs",
                    "/mnt/root/", "/boot/weird/efi")
         mock.assert_called_once_with(
             ['mksquashfs', '/', '/image.squashfs',
@@ -36,4 +38,5 @@ class ImageTest(unittest.TestCase):
              'boot/weird/efi/*', 'boot/weird/efi/.*',
              'var/!(lib)/*', 'var/!(lib)/.*',
              'home/*', 'home/.*',
+             setup[1:],
              'root/*', 'root/.*'])
